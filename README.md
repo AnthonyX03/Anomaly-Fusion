@@ -231,3 +231,8 @@ Los nombres de síntesis se construyen con vocabulario controlado por categoría
 - La selección de ingredientes prioriza la afinidad semántica y mantiene la coincidencia de nivel/rareza del material con el resultado.
 - La cámara de fusión tiene un zumbido electrónico continuo y suave durante el proceso, con fundido al terminar; exploración y fabricación conservan sus señales propias.
 - Se mantiene la versión visible 3.0 y la compatibilidad con partidas anteriores.
+
+
+## Compatibilidad de iconos (revisión r6)
+
+Los iconos de objetos, recetas, botín, registro, fundición y suministros se dibujan mediante SVG integrados en el juego. Esto evita depender de las fuentes de emoji instaladas en Android, iOS, Windows o Linux. Los iconos se asignan por familias semánticas (madera, plantas, cristal, metal, tecnología, fluidos, criaturas y anomalías), con estilos y colores coherentes. La versión visible del juego permanece en 3.0.

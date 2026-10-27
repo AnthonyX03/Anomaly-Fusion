@@ -58,6 +58,21 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 @media(max-width:600px){.recipe-card{height:190px;min-height:190px}#recipesGrid{min-height:600px;grid-auto-rows:190px;gap:8px}.zone-loot-list{grid-template-columns:1fr;max-height:52vh}.zone-loot-head{align-items:flex-start}.zone-hud-actions button{min-width:130px}}
 
 /* Versión 1.7: selector compacto de niveles descubiertos; conservado en 1.8 */.synthesis-level-select{width:min(100%,360px);margin:8px 0 10px}.synthesis-level-select .sort-trigger{min-height:42px}.synthesis-level-select .sort-options{max-height:220px;overflow:auto}.synthesis-level-select .sort-options button{white-space:normal;text-align:left}
+
+/* Compatibilidad de iconos: madera dibujada en SVG, independiente de la fuente emoji del dispositivo. */
+.item-svg-icon{display:inline-block;width:1.35em;height:1.35em;max-width:100%;vertical-align:middle;flex:0 0 auto;overflow:visible}
+.item-icon .item-svg-icon,.zone-loot-icon .item-svg-icon,.central-sale-row .item-svg-icon{width:27px;height:27px}
+.slot .slot-icon .item-svg-icon{width:38px;height:38px}
+.registry-icon .item-svg-icon{width:30px;height:30px}
+.registry-big-icon .item-svg-icon{width:56px;height:56px}
+.recipe-icon{display:grid;place-items:center;flex:0 0 34px;width:34px;height:34px;font-size:1.5rem;line-height:1}
+.recipe-icon .item-svg-icon{width:30px;height:30px}
+.supply-item-icon .item-svg-icon{width:30px;height:30px}
+.loot-chips .item-svg-icon{width:1em;height:1em}
+@media(min-width:1200px){.shell{max-width:1600px;grid-template-columns:250px minmax(0,1fr);gap:22px;padding:22px}.panel{padding:18px}.grid{gap:15px}.item-card{padding:12px}.item-icon{width:40px;height:40px;flex-basis:40px}.item-icon .item-svg-icon{width:30px;height:30px}.recipe-card{padding:13px}}
+@media(min-width:1600px){.shell{max-width:1720px;grid-template-columns:260px minmax(0,1fr);gap:24px}}
+
+.fusion-output-icon{display:grid;place-items:center;min-width:48px;min-height:48px;font-size:2.8rem}.fusion-output-icon .item-svg-icon{width:46px;height:46px}
 </style>
 </head>
 <body>
@@ -153,3 +168,10 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 <div class="modal-backdrop hidden" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle"><div class="modal"><div class="modal-head"><h3 id="confirmTitle">CONFIRMAR ACCIÓN</h3><span class="tag">HUD · SISTEMA</span></div><p class="confirm-copy" id="confirmMessage"></p><div class="confirm-actions"><button id="confirmCancel">Cancelar</button><button class="primary" id="confirmAccept">Confirmar</button></div></div></div>
 <script src="game.js"></script>
 </body></html>
+<style>
+/* Iconografía vectorial coherente en PC y móvil: no depende de emojis del sistema. */
+.zone-art .item-svg-icon{width:54px;height:54px;max-width:80%;}
+.zone-loot-icon .item-svg-icon{width:30px;height:30px;}
+.fusion-history .item-svg-icon,.activity .item-svg-icon{width:1.2em;height:1.2em;vertical-align:middle;}
+.supply-card .zone-art .item-svg-icon{width:58px;height:58px;}
+@media(max-width:600px){.zone-art .item-svg-icon{width:44px;height:44px;}.supply-card .zone-art .item-svg-icon{width:48px;height:48px;}}
