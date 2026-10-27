@@ -263,3 +263,9 @@ Se redujo notablemente el nivel de las tres capas del zumbido continuo, se suavi
 - En el selector de niveles del Registro, los valores numéricos aparecen sin la etiqueta CR.
 - Las fusiones que usan objetos sintetizados generan nombres evolutivos nuevos, conservan la genealogía semántica y guardan la profundidad de fusión. El generador de nombres original sigue actuando para fusiones de objetos base.
 - Caché PWA actualizada a r13.
+
+## Rework del inventario (r14)
+- Las tarjetas del inventario muestran solo nombre, rareza/nivel, tipo, valor y rasgo de fusión cuando corresponde.
+- Al pulsar una tarjeta se abre una ficha HUD ampliada con descripción, habilidades, rasgos, estadísticas, cantidad y datos del objeto.
+- Los nombres largos se ajustan dentro de las tarjetas y de la ficha para evitar desbordamientos.
+- El selector de niveles descubiertos del Registro muestra solo el nivel y su estado de mejora; no añade el valor numérico al selector. La ficha del Registro conserva intacto su campo «Valor Aprox.: xCR – xCR».
