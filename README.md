@@ -236,3 +236,8 @@ Los nombres de síntesis se construyen con vocabulario controlado por categoría
 ## Compatibilidad de iconos (revisión r6)
 
 Los iconos de objetos, recetas, botín, registro, fundición y suministros se dibujan mediante SVG integrados en el juego. Esto evita depender de las fuentes de emoji instaladas en Android, iOS, Windows o Linux. Los iconos se asignan por familias semánticas (madera, plantas, cristal, metal, tecnología, fluidos, criaturas y anomalías), con estilos y colores coherentes. La versión visible del juego permanece en 3.0.
+
+
+## Revisión de iconografía semántica PC y móvil
+
+Los iconos de objetos y zonas se dibujan con SVG integrado y no dependen de emojis instalados. La selección prioriza la categoría del objeto (armas, equipo, criaturas, anomalías, lingotes, herramientas y consumibles) y después usa palabras del nombre para distinguir materiales, vegetales, cristales, tecnología y fluidos. Las zonas tienen iconos propios relacionados con su nombre y entorno. El número de versión visible se mantiene en 3.0.
