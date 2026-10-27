@@ -3,7 +3,7 @@
 Prototipo jugable de navegador, responsive para móvil y PC. No necesita librerías ni servicios externos.
 
 ## Ejecutar
-- Abre `index.html` directamente para jugar (el guardado local funciona en la mayoría de navegadores).
+- Abre `index.html` directamente para jugar.
 - Para probar la PWA/offline, sirve la carpeta con un servidor local o publícala con HTTPS.
 
 ## Publicar en GitHub Pages
@@ -11,16 +11,32 @@ Prototipo jugable de navegador, responsive para móvil y PC. No necesita librer�
 2. En **Settings → Pages**, selecciona la rama y la carpeta raíz.
 3. Abre la URL HTTPS generada. Puedes instalarla desde el navegador compatible.
 
+## Cambios de esta versión (v0.4)
+- La fusión y la venta usan un selector visual del inventario, con tarjetas de objetos, búsqueda y paginación; no desplegables.
+- Exploración muestra 3 zonas por página. Al pulsar una zona se abre su informe con descripción, recursos y botón para explorar.
+- La Central separa Mesa de creación y Horno en botones; la mesa muestra 3 recetas por página.
+- Solicitar suministros y Vender objetos son módulos separados. La venta permite elegir objetos mediante el inventario y protege los objetos equipados.
+- Partida nueva sin créditos ni objetos. Explora para obtener materiales iniciales.
+- La cápsula anómala puede generar objetos raros procedurales además de sus recompensas conocidas.
+- La máquina de fusión deja el resultado pendiente de reclamar; reclamarlo lo añade al inventario y reinicia los espacios. El historial conserva las 3 fusiones más recientes.
+- Los resultados de fusión se generan a partir de los materiales y categorías de los dos objetos, sin resultados aleatorios ajenos como zombies al combinar madera y chatarra.
+- La Central incluye una sección propia de suministros con animación de entrega y botón para reclamar el contenido. Los objetos no entran al inventario hasta reclamarlos.
+- El horno presenta lingotes como producto final y explica explícitamente que se funde mena de hierro, cobre u oro con carbón.
+
 ## Mecánicas incluidas
-- HUD negro tecnológico y navegación adaptable; barra inferior en móvil.
-- Máquina de fusión: cualquier par de objetos, progreso de 10 s, resultados coherentes con los ingredientes cuando hay combinaciones reconocidas y resultados experimentales.
-- 6 zonas de exploración, recolección de materiales y encuentros hostiles.
-- La Central: recetas de fabricación y horno de lingotes, ambos con proceso de 10 s.
-- Suministros con créditos, venta de objetos, materiales, herramientas, armas y criaturas capturadas.
-- Rareza de nivel 1 a 5 con colores distintos, inventario por categorías y páginas.
+- HUD negro tecnológico, navegación adaptable y barra inferior en móvil.
+- 6 zonas, materiales, encuentros hostiles y recompensas.
+- Fabricación y horno con procesos de 10 segundos.
+- Rareza de nivel 1 a 5, inventario por categorías y páginas.
 - Equipo con daño, defensa y bonus de recolección.
 - Sonidos generados por Web Audio, ajustes de escala, reducción de animaciones y pantalla completa.
 - Guardado automático con `localStorage`.
 
-## Nota
-Es un prototipo local: el contenido y la economía están diseñados para una primera versión jugable, no para un servidor multijugador. El catálogo puede ampliarse con más objetos y reglas de fusión.
+Es un prototipo local: contenido y economía están diseñados para una primera versión jugable, no para un servidor multijugador.
+
+
+## JOYA CERO v0.4
+- Catálogo ampliado con decenas de materiales, armas, herramientas, criaturas y objetos raros.
+- Las fusiones pueden generar anomalías con pasivas procedurales y únicas; se equipan desde Equipo.
+- La Central incorpora Envío de suministro: selecciona objetos individuales o lotes, consulta el pago exacto antes de confirmar y cobra al enviar.
+- El inventario conserva el precio base y ya no permite vender directamente. Los objetos equipados quedan protegidos.
