@@ -252,3 +252,14 @@ Los iconos de objetos y zonas se dibujan con SVG integrado y no dependen de emoj
 ## Rework procedural de nombres (v2)
 
 La fusión ahora prioriza vocabulario material concreto y reglas semánticas reproducibles. Las combinaciones vegetales distinguen madera, ramas y hojas; los nombres eléctricos o anómalos requieren que un ingrediente aporte realmente esa propiedad. Se corrigió además una colisión léxica por la que «batería» podía activar la detección de «bate» como arma. El volumen general ajustable continúa en Ajustes y el sonido de fusión usa el control maestro de volumen. Caché PWA actualizada para forzar la carga de esta revisión.
+
+
+### Ajuste de audio de fusión
+Se redujo notablemente el nivel de las tres capas del zumbido continuo, se suavizó el filtro de la capa grave y se moderó la frecuencia aguda para evitar saturación y sonido áspero. El control general de volumen sigue funcionando.
+
+
+## Actualización: volumen y evolución procedural infinita
+- Barra de volumen más larga en Ajustes, adaptada a móvil y escritorio.
+- En el selector de niveles del Registro, los valores numéricos aparecen sin la etiqueta CR.
+- Las fusiones que usan objetos sintetizados generan nombres evolutivos nuevos, conservan la genealogía semántica y guardan la profundidad de fusión. El generador de nombres original sigue actuando para fusiones de objetos base.
+- Caché PWA actualizada a r13.
