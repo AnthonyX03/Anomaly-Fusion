@@ -1,11 +1,14 @@
 {
-  "name": "JOYA CERO — Laboratorio de fusión",
-  "short_name": "JOYA CERO",
-  "description": "Explora, fabrica y fusiona objetos absurdos.",
+  "name": "Anomaly Fusion — Laboratorio de anomalías",
+  "short_name": "Anomaly Fusion",
+  "description": "Explora, fabrica, descubre cientos de objetos y crea fusiones anómalas.",
   "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#07090c",
   "theme_color": "#080b0f",
   "orientation": "any",
-  "icons": []
+  "icons": [
+    {"src":"anomaly-fusion-icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
+  ]
 }

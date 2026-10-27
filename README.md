@@ -1,42 +1,38 @@
-# JOYA CERO — Laboratorio de fusión
+# Anomaly Fusion — build 0.6
 
-Prototipo jugable de navegador, responsive para móvil y PC. No necesita librerías ni servicios externos.
+Juego web de exploración, fabricación, colección y fusiones anómalas. Funciona como PWA en PC y móvil.
 
-## Ejecutar
-- Abre `index.html` directamente para jugar.
-- Para probar la PWA/offline, sirve la carpeta con un servidor local o publícala con HTTPS.
+## Contenido
+- 12 zonas de exploración y un catálogo de cientos de objetos: menas, lingotes, armas, herramientas, equipo, materiales y consumibles.
+- Registro de objetos descubiertos: cuadrícula de 10 por página, búsqueda, categorías y fichas con descripción, rareza, valor y métodos de obtención.
+- Mesa de creación con categorías de recetas y tres recetas por página.
+- Horno para fundir menas y producir los lingotes correspondientes.
+- Máquina de fusión con resultados basados en los objetos usados, reclamación del resultado e historial de las tres últimas fusiones.
+- Anomalías con habilidades pasivas procedurales y un espacio específico para equiparlas.
+- Envío de suministros para vender objetos individualmente o en lotes, mostrando el pago exacto antes de confirmar.
+- Consumibles y entregas de suministro reclamables.
+- Guardado local automático y ajustes de interfaz.
+- **Exportación e importación de partidas** en archivos JSON desde Ajustes.
+- **Actualización de PWA:** el navegador comprueba actualizaciones al abrir, al volver a la pestaña y cada 60 segundos mientras está abierta. El service worker usa estrategia de red primero para recibir archivos nuevos cuando hay conexión y conserva caché como respaldo sin conexión.
+- **Reiniciar y actualizar:** borra la partida local, limpia las cachés de Anomaly Fusion, desregistra el service worker anterior y recarga la aplicación para que se descargue la versión actual.
+
+## Exportar e importar una partida
+1. Abre **Ajustes → Exportar** y guarda el archivo `.json` en un lugar seguro.
+2. En el dispositivo donde quieras continuar, abre **Ajustes → Importar** y selecciona ese archivo.
+3. Confirma la importación. Esta sustituye la partida actual del dispositivo.
+
+La copia de seguridad incluye el progreso de juego y los ajustes guardados. No contiene datos de cuentas ni se sube a ningún servidor.
+
+## Probar localmente
+Puedes abrir `index.html` para revisar la interfaz básica. Para probar el service worker, la actualización automática y la instalación PWA, sirve la carpeta mediante `localhost` o HTTPS. Los service workers no funcionan con normalidad desde `file://`.
 
 ## Publicar en GitHub Pages
-1. Crea un repositorio y sube `index.html`, `game.js`, `manifest.webmanifest` y `sw.js`.
+1. Sube todos los archivos de esta carpeta a la raíz de un repositorio.
 2. En **Settings → Pages**, selecciona la rama y la carpeta raíz.
-3. Abre la URL HTTPS generada. Puedes instalarla desde el navegador compatible.
+3. Abre la URL HTTPS publicada. La instalación aparecerá cuando el navegador cumpla sus requisitos.
 
-## Cambios de esta versión (v0.4)
-- La fusión y la venta usan un selector visual del inventario, con tarjetas de objetos, búsqueda y paginación; no desplegables.
-- Exploración muestra 3 zonas por página. Al pulsar una zona se abre su informe con descripción, recursos y botón para explorar.
-- La Central separa Mesa de creación y Horno en botones; la mesa muestra 3 recetas por página.
-- Solicitar suministros y Vender objetos son módulos separados. La venta permite elegir objetos mediante el inventario y protege los objetos equipados.
-- Partida nueva sin créditos ni objetos. Explora para obtener materiales iniciales.
-- La cápsula anómala puede generar objetos raros procedurales además de sus recompensas conocidas.
-- La máquina de fusión deja el resultado pendiente de reclamar; reclamarlo lo añade al inventario y reinicia los espacios. El historial conserva las 3 fusiones más recientes.
-- Los resultados de fusión se generan a partir de los materiales y categorías de los dos objetos, sin resultados aleatorios ajenos como zombies al combinar madera y chatarra.
-- La Central incluye una sección propia de suministros con animación de entrega y botón para reclamar el contenido. Los objetos no entran al inventario hasta reclamarlos.
-- El horno presenta lingotes como producto final y explica explícitamente que se funde mena de hierro, cobre u oro con carbón.
+## Actualizaciones y caché
+Cada nueva versión debe incrementar el nombre de caché `CACHE` en `sw.js` (por ejemplo, `anomaly-fusion-v7`). Al activar la nueva versión se eliminan automáticamente las cachés antiguas de Anomaly Fusion. La comprobación periódica necesita conexión; sin conexión se utiliza la copia almacenada en caché.
 
-## Mecánicas incluidas
-- HUD negro tecnológico, navegación adaptable y barra inferior en móvil.
-- 6 zonas, materiales, encuentros hostiles y recompensas.
-- Fabricación y horno con procesos de 10 segundos.
-- Rareza de nivel 1 a 5, inventario por categorías y páginas.
-- Equipo con daño, defensa y bonus de recolección.
-- Sonidos generados por Web Audio, ajustes de escala, reducción de animaciones y pantalla completa.
-- Guardado automático con `localStorage`.
-
-Es un prototipo local: contenido y economía están diseñados para una primera versión jugable, no para un servidor multijugador.
-
-
-## JOYA CERO v0.4
-- Catálogo ampliado con decenas de materiales, armas, herramientas, criaturas y objetos raros.
-- Las fusiones pueden generar anomalías con pasivas procedurales y únicas; se equipan desde Equipo.
-- La Central incorpora Envío de suministro: selecciona objetos individuales o lotes, consulta el pago exacto antes de confirmar y cobra al enviar.
-- El inventario conserva el precio base y ya no permite vender directamente. Los objetos equipados quedan protegidos.
+## Privacidad y guardado
+La partida se guarda localmente en el navegador del dispositivo. Exporta una copia antes de borrar los datos del navegador o cambiar de dispositivo. La opción **Reiniciar y actualizar** elimina la partida local de forma irreversible.

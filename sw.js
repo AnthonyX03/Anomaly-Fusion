@@ -1,1 +1,16 @@
-const CACHE="joya-cero-v4";const FILES=["./","./index.html","./game.js","./manifest.webmanifest"];self.addEventListener("install",e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES))));self.addEventListener("activate",e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k))))));self.addEventListener("fetch",e=>{if(e.request.method!=="GET")return;e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).then(res=>{const copy=res.clone();caches.open(CACHE).then(c=>c.put(e.request,copy));return res}).catch(()=>caches.match("./index.html"))))});
+const CACHE="anomaly-fusion-v6";
+const FILES=["./","./index.html","./game.js","./manifest.webmanifest","./anomaly-fusion-icon.svg"];
+self.addEventListener("install",event=>event.waitUntil((async()=>{const cache=await caches.open(CACHE);await Promise.all(FILES.map(async file=>{try{const response=await fetch(file,{cache:"reload"});if(response.ok)await cache.put(file,response)}catch(e){}}));await self.skipWaiting()})()));
+self.addEventListener("activate",event=>event.waitUntil((async()=>{const keys=await caches.keys();await Promise.all(keys.filter(key=>key.startsWith("anomaly-fusion-")&&key!==CACHE).map(key=>caches.delete(key)));await self.clients.claim()})()));
+self.addEventListener("message",event=>{if(event.data&&event.data.type==="SKIP_WAITING")self.skipWaiting()});
+self.addEventListener("fetch",event=>{
+ if(event.request.method!=="GET")return;
+ const url=new URL(event.request.url);if(url.origin!==self.location.origin)return;
+ event.respondWith((async()=>{
+  const cache=await caches.open(CACHE);const key=event.request.mode==="navigate"?"./index.html":event.request;
+  try{const response=await fetch(event.request,{cache:"no-store"});if(response&&response.ok){cache.put(key,response.clone()).catch(()=>{});return response}}
+  catch(e){}
+  const cached=await cache.match(key)||await cache.match(event.request)||await cache.match("./index.html");if(cached)return cached;
+  return new Response("Sin conexión. Vuelve a conectarte para cargar Anomaly Fusion.",{status:503,headers:{"Content-Type":"text/plain;charset=utf-8"}})
+ })())
+});
