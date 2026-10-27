@@ -148,3 +148,11 @@ La partida se guarda localmente en el navegador del dispositivo. Exporta una cop
 - Conservados el precio base del 100 %, la venta estándar al 70 %, las variantes de Síntesis de convergencia, las habilidades procedurales y los guardados anteriores.
 - Migración de esquema de guardado a versión 8; importación compatible con partidas de versiones 2–8.
 - Caché PWA renovada a `anomaly-fusion-v2-0-r1`.
+
+
+## Revisión 2.1
+- Progresión ampliada hasta el nivel máximo 50.
+- Recompensas de créditos crecientes por cada nivel, con bonificaciones adicionales al alcanzar rangos.
+- Requisitos de desbloqueo de zonas escalonados hasta nivel 50, manteniendo las tres zonas iniciales abiertas.
+- Paginación unificada: solo el indicador de página queda centrado entre Anterior y Siguiente.
+- Corregidos espacios de contenido y alturas móviles que podían dejar zonas inferiores o paginadores ocultos detrás de la navegación fija.
