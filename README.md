@@ -175,3 +175,10 @@ La fusión siempre se completa. El Valor Base resultante suma los Valores Base i
 - El inventario muestra el Valor Base (100 %). La venta estándar paga el 90 % del Valor Base, redondeado hacia arriba, con mínimo de 1 CR. Las bonificaciones de créditos existentes siguen aplicándose al pago final.
 - Se actualiza el número de versión visible en Ajustes a 2.6 y la caché PWA a `anomaly-fusion-v2-6-r1`.
 - La fusión conserva el cálculo aleatorio de −30 % a +30 %, con redondeo hacia arriba y Valor Base mínimo de 1 CR.
+
+
+## Versión 2.7 — Valores fijos en el Registro
+
+- Los objetos que no tienen el rasgo **Síntesis de convergencia** muestran `Valor Base: X CR` en el Registro, porque su valor es fijo y no fluctúa.
+- Los objetos con el rasgo **Síntesis de convergencia** mantienen `Valor Aprox.` con el rango histórico de valores observados.
+- Se actualiza el número de versión visible en Ajustes a 2.7 y la caché PWA a `anomaly-fusion-v2-7-r1`.
