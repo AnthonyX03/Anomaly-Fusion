@@ -18,8 +18,8 @@ Juego web de exploración, fabricación, colección, combate y fusiones anómala
 - Consumibles, fabricación y fundición con barras de progreso y sonidos sintetizados de interfaz configurables.
 - Guardado local automático y ajustes de interfaz: tamaño, reducción de movimiento, pantalla completa y modo Automático/Móvil/PC 16:9.
 - **Exportación e importación de partidas** en archivos JSON desde Ajustes.
-- En Ajustes se muestra el número de versión visible: **VERSIÓN 1.0**.
-- La PWA comprueba actualizaciones al abrir, al volver a la pestaña y cada 60 segundos mientras está abierta. La caché interna usa `anomaly-fusion-v1-0-r2`; el nombre visible del juego sigue siendo 1.0.
+- En Ajustes se muestra el número de versión visible: **VERSIÓN 1.2**.
+- La PWA comprueba actualizaciones al abrir, al volver a la pestaña y cada 60 segundos mientras está abierta. La caché interna se actualiza con cada revisión para evitar cargar archivos antiguos.
 
 ## Exportar e importar una partida
 1. Abre **Ajustes → Exportar** y guarda el archivo `.json` en un lugar seguro.
@@ -56,3 +56,19 @@ La partida se guarda localmente en el navegador del dispositivo. Exporta una cop
 - Los controles de paginación reservan un espacio constante y los listados paginados mantienen una huella estable en escritorio y móvil.
 - El sistema de resultados de fusión se presenta como **Síntesis de convergencia**; los nombres procedurales se limitan a cuatro palabras y se eliminan repeticiones consecutivas.
 - La versión visible sigue siendo **1.0**. La caché interna del service worker usa `anomaly-fusion-v1-0-r3` para refrescar los archivos publicados.
+
+
+## Revisión 1.1
+- Eliminado el destello azul táctil al pulsar botones, fichas del Registro y tarjetas en móviles; el foco accesible conserva un indicador discreto de color cian.
+- Los ordenamientos del Inventario y Registro ahora son menús propios del HUD (Nombre A-Z, nivel y valor), sin desplegables nativos del navegador.
+- Reiniciar e importar partida usan un diálogo de confirmación integrado en la interfaz; ya no se muestran ventanas `confirm()` del navegador.
+- Añadidas tres zonas explorables: Laboratorio sumergido, Jardín de sílice y Estación de eco.
+- Añadido cierre de menús y ventanas con la tecla Escape y actualizado el identificador de caché de la PWA.
+
+
+## Revisión 1.2
+- Recetas con tarjetas compactas y paginación reservada para evitar saltos al cambiar de página.
+- Botón Loot dentro del HUD de cada zona; el inventario de hallazgos se muestra en una lista desplazable sin paginación.
+- Progresión por nivel de Operador: Bosque hundido, Mina abandonada y Vertedero orbital disponibles desde el inicio; las zonas posteriores se desbloquean progresivamente entre los niveles 2 y 16.
+- Rangos de Operador renovados y mostrados en el perfil; la experiencia se obtiene explorando, fusionando, fabricando y fundiendo, con recompensa adicional al combatir.
+- Guardado migrado a versión 7 para conservar partidas anteriores.
