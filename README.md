@@ -48,3 +48,11 @@ Durante los combates de exploración se muestra una estimación de la probabilid
 
 ## Privacidad y guardado
 La partida se guarda localmente en el navegador del dispositivo. Exporta una copia antes de borrar los datos del navegador o cambiar de dispositivo. La opción **Reiniciar y actualizar** elimina la partida local de forma irreversible.
+
+
+## Revisión 1.0-r3
+
+- El botón de instalación está disponible únicamente en Ajustes, junto a las opciones de instalación y actualización.
+- Los controles de paginación reservan un espacio constante y los listados paginados mantienen una huella estable en escritorio y móvil.
+- El sistema de resultados de fusión se presenta como **Síntesis de convergencia**; los nombres procedurales se limitan a cuatro palabras y se eliminan repeticiones consecutivas.
+- La versión visible sigue siendo **1.0**. La caché interna del service worker usa `anomaly-fusion-v1-0-r3` para refrescar los archivos publicados.
