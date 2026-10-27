@@ -125,3 +125,11 @@ La partida se guarda localmente en el navegador del dispositivo. Exporta una cop
 - Añadidos dos linajes hostiles procedurales, Archivista hueco y Cartógrafo de la grieta, con 20 variantes cada uno. Las habilidades de compañeros capturados siguen generándose durante el flujo normal de adquisición, en lugar de fijarse en la ficha base.
 - Ajustado el ancho del texto de las cabeceras para mejorar legibilidad en pantallas estrechas.
 - Versión visible 1.8; caché PWA renovada a `anomaly-fusion-v1-8-r1` para que la instalación detecte los archivos nuevos.
+
+
+## Revisión 1.9
+
+- Versión visible 1.9; caché PWA renovada a `anomaly-fusion-v1-9-r1`.
+- Descripciones de la Central, Inventario y suministros reducidas a explicaciones breves y funcionales, sin lore.
+- Envío de suministro (venta individual o en lote) trasladado a un cuarto botón independiente de la Central, junto a Mesa de creación, Horno industrial y Solicitar suministros.
+- Eliminada la pestaña secundaria duplicada de venta dentro de Solicitar suministros.
