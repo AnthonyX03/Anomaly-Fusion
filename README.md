@@ -72,3 +72,56 @@ La partida se guarda localmente en el navegador del dispositivo. Exporta una cop
 - Progresión por nivel de Operador: Bosque hundido, Mina abandonada y Vertedero orbital disponibles desde el inicio; las zonas posteriores se desbloquean progresivamente entre los niveles 2 y 16.
 - Rangos de Operador renovados y mostrados en el perfil; la experiencia se obtiene explorando, fusionando, fabricando y fundiendo, con recompensa adicional al combatir.
 - Guardado migrado a versión 7 para conservar partidas anteriores.
+
+
+## Revisión 1.3
+- Recuperado el botón **Envío de suministro** junto a **Solicitar suministro** dentro de La Central; la vista separa la petición del seguimiento y reclamación del envío.
+- Aumentados los niveles mínimos de desbloqueo de las zonas posteriores a las tres iniciales.
+- Añadidos materiales, consumibles, herramientas y diez criaturas base; el bestiario de enemigos suma seis linajes nuevos con variantes procedurales.
+- Añadido el filtro **Síntesis** al Inventario y al Registro. Detecta objetos fusionados mediante el rasgo persistente **Síntesis de convergencia**, también compatible con objetos guardados en versiones anteriores.
+- Los objetos de síntesis conservan el rasgo principal aunque tengan un rasgo adicional de combate, extracción o defensa.
+- Versión visible 1.3 y caché PWA renovada.
+
+## Revisión 1.4
+- «Envío de suministro» en la Central funciona como módulo de venta: permite vender una unidad o un lote, muestra valor base por objeto y pago real calculado con bonificaciones. Los objetos equipados quedan protegidos.
+- El selector de objetos de fusión incluye un menú de filtros junto al buscador con las mismas categorías del Inventario, incluida Síntesis.
+- Los materiales se agrupan solo si comparten nombre, categoría y procedencia; objetos obtenidos mediante funciones distintas permanecen en pilas separadas. Los resultados de síntesis siempre se conservan como instancias separadas y etiquetadas.
+- Versión visible 1.4 y caché PWA renovada.
+
+
+## Revisión 1.5
+- El Inventario y el Registro identifican explícitamente el valor base del objeto como 100%. El módulo de venta muestra el valor base, el precio estándar de venta al 70% y el pago final, que puede aumentar mediante habilidades de créditos.
+- Corregido el flujo de venta individual para retirar la unidad por su identificador exacto y no consumir accidentalmente otra pila con el mismo nombre.
+- Nuevas habilidades de compañeros y equipo: Mandíbula recolectora, Cazador de alijos, Resonancia de aprendizaje, Compartimento oculto, Memoria de campo y Recolector adaptativo.
+- La exploración ahora concede realmente botín adicional cuando se activan las bonificaciones; la probabilidad combina Recolección y Botín, con una segunda tirada influida por Suerte. Se corrige la duplicación anterior del conjunto de posibles objetos, que no aumentaba por sí misma la cantidad de recompensas.
+- Los enemigos pueden dejar botín duplicado según las habilidades equipadas. Las bonificaciones de Experiencia se aplican a exploración, combate, fusión, fabricación y fundición.
+- Panel de bonificaciones actualizado para mostrar la probabilidad de botín adicional y la experiencia extra.
+- Versión visible 1.5 y caché PWA renovada.
+
+
+## Revisión 1.6
+
+- El Registro conserva las variantes de nivel de los objetos con el rasgo «Síntesis de convergencia».
+- En la información de un objeto fusionado se pueden consultar los niveles descubiertos, incluidos sus estadísticas, habilidades y rasgos desbloqueados.
+- Cada variante de nivel se guarda en la partida y se mantiene separada de la instancia actual del objeto. La consulta de niveles inferiores no modifica el objeto del inventario ni el equipo.
+- Las partidas anteriores migran automáticamente la variante de síntesis que ya tengan registrada; los nuevos niveles descubiertos se añaden al historial.
+- Versión visible 1.6 y caché PWA renovada.
+
+
+## Revisión 1.7
+
+- El selector de variantes de síntesis del Registro ahora usa un menú desplegable integrado, similar al selector de ordenación. Solo muestra niveles que el jugador ha descubierto (N1, N2, etc.) y marca el nivel más alto conocido.
+- Los precios de los objetos con rasgo «Síntesis de convergencia» quedan fijados por nombre y nivel: el valor base se conserva y el valor de nivel aumenta de forma predecible un 35 % por cada nivel adicional. Volver a fusionar el mismo objeto al mismo nivel no vuelve a alterar su precio ni reemplaza las habilidades procedurales ya registradas para esa variante.
+- Añadidas nuevas habilidades procedurales de compañeros: Cartógrafo de alijos, Reciclador de campo, Memoria fractal, Tasador de anomalías y Vínculo de contención. Usan los mismos tipos de estadísticas soportados por el juego.
+- Caché de la PWA actualizada a 1.7; la versión visible es 1.7.
+
+
+## Revisión 1.8
+- Reescrita la descripción del Inventario con lore del mundo: el operador conserva los hallazgos y sus procedencias, mientras que las pilas de distinto origen permanecen separadas.
+- Ampliado el lore de la Mesa de creación: reconstruye planos fragmentarios de gremios desaparecidos, ordena recetas de nivel 1 a 5 y procesa materiales en componentes.
+- Reforzado el lore del Horno Industrial con protocolos de refinado anteriores al Colapso, fases de calentamiento y estabilización.
+- El Registro se presenta como el archivo de la Central, con fichas parciales que solo se completan mediante descubrimientos reales.
+- Añadidos tres recursos narrativos recuperables: Archivo de ceniza, Sello de cartógrafo y Ampolla de memoria. Incorporadas tres recetas de archivo: Mapa de ceniza restaurado, Sello de cartógrafo calibrado y Memoria de expedición sellada.
+- Añadidos dos linajes hostiles procedurales, Archivista hueco y Cartógrafo de la grieta, con 20 variantes cada uno. Las habilidades de compañeros capturados siguen generándose durante el flujo normal de adquisición, en lugar de fijarse en la ficha base.
+- Ajustado el ancho del texto de las cabeceras para mejorar legibilidad en pantallas estrechas.
+- Versión visible 1.8; caché PWA renovada a `anomaly-fusion-v1-8-r1` para que la instalación detecte los archivos nuevos.
