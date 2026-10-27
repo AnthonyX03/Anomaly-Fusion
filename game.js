@@ -630,7 +630,7 @@ function fusionOutcome(a,b){
  else{name=choose(pools.other);icon="🔧";cat="Material";}
  const ra=Math.max(1,Math.min(5,Number(a.r||da.r||1))),rb=Math.max(1,Math.min(5,Number(b.r||db.r||1))),avg=(ra+rb)/2,hi=Math.max(ra,rb),lo=Math.min(ra,rb);let r=Math.max(1,Math.min(5,Math.round(avg)));
  if(hi>=4&&Math.random()<(hi===5?.72:.58))r=Math.min(5,Math.max(r,hi-(lo<=2?1:0)));else if(hi>=3&&Math.random()<.18)r=Math.min(5,r+1);if(ra===5&&rb===5)r=Math.random()<.72?5:4;
- const combinedBase=Math.max(1,Number(a.val??da.val??1)+Number(b.val??db.val??1));const variation=Math.floor(Math.random()*61)-30;const val=Math.max(1,Math.ceil(combinedBase*(1+variation/100)));let desc=cat==="Criatura"?"Organismo procedural estabilizado en la cámara de fusión. Su comportamiento y potencial dependen de su nivel.":"Objeto procedural formado por propiedades compatibles de la materia introducida. Su calidad y parámetros varían en cada ciclo.";
+ const combinedBase=Math.max(1,Number(a.val??da.val??1)+Number(b.val??db.val??1));const variation=Math.floor(Math.random()*61)-30;const val=Math.max(1,Math.ceil(combinedBase*(1+variation/100)));let desc=cat==="Criatura"?"Criatura procedural creada a partir de los dos objetos fusionados. Sus habilidades varían en cada ciclo.":"Objeto procedural formado por propiedades compatibles de la materia introducida. Su calidad y parámetros varían en cada ciclo.";
  // Nombres breves y con identidad: toman pistas de ambos ingredientes sin pegar
  // frases largas ni añadir epítetos aleatorios repetidos.
  const sourceRoot=value=>{
@@ -660,19 +660,39 @@ function fusionOutcome(a,b){
  const pick=list=>list[Math.floor(Math.random()*list.length)];
  // El término acuñado recuerda a los dos ingredientes; el nombre principal sigue
  // siendo corto y legible. El código solo se usa si hay riesgo de colisión.
- const motif=pick(motifs[family]);
+ // Evitar combinaciones redundantes o que suenen a dos sustantivos pegados sin sentido.
+ const sourceWords=(String(a.name)+" "+String(b.name)).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+ let motifOptions=motifs[family].filter(m=>!sourceWords.includes(m.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase()));
+ if(/resin/.test(sourceWords)&&family==="plant") motifOptions=motifOptions.filter(m=>!["Rizoma","Savia"].includes(m));
+ const motif=pick(motifOptions.length?motifOptions:motifs[family]);
  const fusedRoot=compactRoots(stemA,stemB);
  const shortCode=()=>uid().replace(/[^a-z0-9]/gi,"").slice(-3).toUpperCase();
  const nameBase=Math.random()<.52?`${motif} ${fusedRoot}`:`${fusedRoot} ${motif}`;
- name=nameBase.trim().split(/\s+/).slice(0,3).join(" ");
+ const titleShortName=value=>String(value||"").trim().split(/\s+/).slice(0,3).map((part,i)=>{
+  if(i===0)return part.charAt(0).toLocaleUpperCase("es-ES")+part.slice(1).toLocaleLowerCase("es-ES");
+  // Los códigos de anomalía se mantienen en mayúsculas; el resto sigue la ortografía normal.
+  return /^[A-Z0-9]{2,4}$/.test(part)?part:part.charAt(0).toLocaleLowerCase("es-ES")+part.slice(1).toLocaleLowerCase("es-ES");
+ }).join(" ");
+ name=titleShortName(nameBase);
  // Mantener los nombres únicos en el registro sin hacerlos largos: código discreto.
  if(itemDB[name] || (state.seen||[]).includes(name)) name=`${name} ${shortCode()}`;
+ const synthesisDescription=category=>({
+  "Material":"Material sintetizado. Útil para nuevas recetas.",
+  "Lingote":"Aleación sintetizada. Base para fabricar componentes.",
+  "Herramienta":"Herramienta sintetizada. Facilita la extracción y recolección.",
+  "Arma":"Arma sintetizada. Sus parámetros determinan su rendimiento.",
+  "Equipo":"Equipo sintetizado. Aporta protección y propiedades adicionales.",
+  "Consumible":"Consumible sintetizado. Sus efectos dependen de sus parámetros.",
+  "Criatura":"Criatura sintetizada. Sus habilidades varían en cada ciclo.",
+  "Anomalía":"Anomalía sintetizada. Su efecto depende de la pasiva generada."
+ }[category]||"Objeto sintetizado. Sus parámetros dependen de los materiales combinados.");
+ desc=synthesisDescription(cat);
  const out={name,icon,cat,r,val,desc,slot,unique:true,coherent:true,trait:"Síntesis de convergencia",affix:"Síntesis de convergencia"};
- if(cat==="Arma"){out.damage=Math.max(4,Math.round(r*5+(Number(a.damage)||0)*.25+(Number(b.damage)||0)*.25+Math.random()*r*2));out.secondaryTrait=choose(["Filo resonante","Impacto brutal","Pulso estable","Carga residual"]);out.desc+=` Rasgo adicional: ${out.secondaryTrait}.`;}
- if(cat==="Herramienta"){out.gather=Math.max(5,Math.round(r*7+(Number(a.gather)||0)*.2+(Number(b.gather)||0)*.2+Math.random()*r*2));out.damage=Math.round(r*2+Math.random()*r);out.secondaryTrait=choose(["Extracción fina","Agarre adaptativo","Lectura mineral","Corte limpio"]);out.desc+=` Rasgo adicional: ${out.secondaryTrait}.`;}
- if(cat==="Equipo"){out.defense=Math.max(3,Math.round(r*6+(Number(a.defense)||0)*.25+(Number(b.defense)||0)*.25+Math.random()*r*2));out.secondaryTrait=choose(["Blindaje reactivo","Disipación térmica","Sello hermético","Malla cinética"]);out.desc+=` Rasgo adicional: ${out.secondaryTrait}.`;}
- if(cat==="Criatura"){out.abilities=rollCompanionAbilities(r);out.ability=out.abilities[0];out.companion=true;out.desc+=` Rasgo procedural: ${out.ability.name} (${out.ability.desc}).`;}
- if(r>=3&&Math.random()<Math.min(.42,.12+r*.055)){cat="Anomalía";out.cat=cat;out.name=(choose(["Nexo","Umbral","Eco","Vórtice","Paradoja","Latido","Eclipse","Marea","Aurora","Prisma","Abismo","Cero"])+" "+compactRoots(stemA,stemB)+"-"+uid().replace(/[^a-z0-9]/gi,"").slice(-3).toUpperCase()).split(/\s+/).slice(0,3).join(" ");out.icon="🧬";const passives=[["Daño",`+${2+r*2} daño pasivo`],["Defensa",`+${r*2} defensa pasiva`],["Recolección",`+${r*5}% de recolección`],["Suerte",`+${r*3}% de hallazgos`],["Créditos",`+${r*2}% de créditos`],["Captura",`+${r*2}% de captura`]];const passive=passives[Math.floor(Math.random()*passives.length)];out.passive={type:passive[0],value:passive[1]};out.slot=null;out.desc=`Anomalía procedural de nivel ${r}. Pasiva: ${passive[1]}.`;out.val+=20;}
+ if(cat==="Arma"){out.damage=Math.max(4,Math.round(r*5+(Number(a.damage)||0)*.25+(Number(b.damage)||0)*.25+Math.random()*r*2));out.secondaryTrait=choose(["Filo resonante","Impacto brutal","Pulso estable","Carga residual"]);}
+ if(cat==="Herramienta"){out.gather=Math.max(5,Math.round(r*7+(Number(a.gather)||0)*.2+(Number(b.gather)||0)*.2+Math.random()*r*2));out.damage=Math.round(r*2+Math.random()*r);out.secondaryTrait=choose(["Extracción fina","Agarre adaptativo","Lectura mineral","Corte limpio"]);}
+ if(cat==="Equipo"){out.defense=Math.max(3,Math.round(r*6+(Number(a.defense)||0)*.25+(Number(b.defense)||0)*.25+Math.random()*r*2));out.secondaryTrait=choose(["Blindaje reactivo","Disipación térmica","Sello hermético","Malla cinética"]);}
+ if(cat==="Criatura"){out.abilities=rollCompanionAbilities(r);out.ability=out.abilities[0];out.companion=true;}
+ if(r>=3&&Math.random()<Math.min(.42,.12+r*.055)){cat="Anomalía";out.cat=cat;out.name=(choose(["Nexo","Umbral","Eco","Vórtice","Paradoja","Latido","Eclipse","Marea","Aurora","Prisma","Abismo","Cero"])+" "+compactRoots(stemA,stemB)+"-"+uid().replace(/[^a-z0-9]/gi,"").slice(-3).toUpperCase()).split(/\s+/).slice(0,3).join(" ");out.icon="🧬";const passives=[["Daño",`+${2+r*2} daño pasivo`],["Defensa",`+${r*2} defensa pasiva`],["Recolección",`+${r*5}% de recolección`],["Suerte",`+${r*3}% de hallazgos`],["Créditos",`+${r*2}% de créditos`],["Captura",`+${r*2}% de captura`]];const passive=passives[Math.floor(Math.random()*passives.length)];out.passive={type:passive[0],value:passive[1]};out.slot=null;out.desc=synthesisDescription("Anomalía");out.val+=20;}
  return out;
 }
 function doFuse(){if(activeTask||state.pendingFusion)return;if(!state.fusionSlots)return;const a=state.inventory.find(x=>x.id===state.fusionSlots?.A),b=state.inventory.find(x=>x.id===state.fusionSlots?.B);if(!a||!b)return toast("Selecciona dos objetos antes de fusionar.",true);if(a.id===b.id&&a.qty<2)return toast("Necesitas dos unidades si eliges el mismo objeto.",true);const aa={...a},bb={...b};beginTask("fusion",10000,()=>{if(aa.id===bb.id){takeById(aa.id,2)}else{takeById(aa.id,1);takeById(bb.id,1)}const out={...fusionOutcome(aa,bb),sourceA:aa.name,sourceB:bb.name,origin:"síntesis",trait:"Síntesis de convergencia",affix:"Síntesis de convergencia",unique:true};saveSynthesisVariant(out);/* No reemplazar el valor de esta fusión por el de una variante anterior con el mismo nombre: cada resultado conserva su propio valor calculado. */itemDB[out.name]=out;state.discovered=state.discovered||{};state.discovered[out.name]={...out,name:out.name};if(!state.seen.includes(out.name))state.seen.push(out.name);state.fusions++;xp(20);state.pendingFusion={a:aa.name,b:bb.name,out,createdAt:Date.now()};state.history.unshift({a:aa.name,b:bb.name,out:out.name,r:out.r,icon:out.icon});state.history=state.history.slice(0,3);log(`Fusión lista para reclamar: <b>${aa.name}</b> + <b>${bb.name}</b>.`);toast("Fusión terminada. Reclama el objeto para guardarlo.");render();save()}, {panel:$('fusionProgress'),bar:$('fusionBar'),percent:$('fusionPercent'),status:null,button:$('fuseBtn')});renderFusionSelects()}
