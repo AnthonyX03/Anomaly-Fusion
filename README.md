@@ -207,3 +207,9 @@ La fusión siempre se completa. El Valor Base resultante suma los Valores Base i
 - Las partidas anteriores se migran conservando los descubrimientos ya guardados y añadiendo al Registro los nombres que sigan en el inventario.
 - El Registro no tiene un límite fijo de entradas impuesto por la interfaz: usa paginación dinámica. La cantidad real de nombres posibles sí depende de las combinaciones y reglas procedurales del juego; no es matemáticamente infinita, y los objetos con el mismo nombre se muestran como una sola entrada.
 - Actualizada la versión visible y la caché de la PWA a 2.9.
+
+
+### Ajustes de edición 3.0 (mesa de creación)
+- Icono de madera sustituido por un símbolo Unicode más compatible con fuentes de escritorio, evitando el emoji 🪵 ausente en algunos sistemas.
+- La mesa muestra seis recetas por página en escritorio (tres columnas por dos filas) y cuatro en móvil para conservar la navegación compacta.
+- Las recetas de objetos procedurales eligen materiales según el nombre y la función del objeto (madera/fibra, metal, electrónica, cristal, biomateriales o energía), en lugar de reutilizar un coste genérico por categoría.
