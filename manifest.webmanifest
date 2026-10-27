@@ -1,7 +1,7 @@
 {
   "name": "Anomaly Fusion — Laboratorio de anomalías",
   "short_name": "Anomaly Fusion",
-  "description": "Anomaly Fusion 1.5: explora zonas, captura criaturas, fabrica materiales y descubre síntesis procedurales.",
+  "description": "Anomaly Fusion 2.0: explora nuevas regiones, captura criaturas, fabrica objetos y descubre síntesis procedurales.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

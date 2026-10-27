@@ -133,3 +133,18 @@ La partida se guarda localmente en el navegador del dispositivo. Exporta una cop
 - Descripciones de la Central, Inventario y suministros reducidas a explicaciones breves y funcionales, sin lore.
 - Envío de suministro (venta individual o en lote) trasladado a un cuarto botón independiente de la Central, junto a Mesa de creación, Horno industrial y Solicitar suministros.
 - Eliminada la pestaña secundaria duplicada de venta dentro de Solicitar suministros.
+
+
+## Versión 2.0 — Expansión mayor
+
+- Interfaz de La Central reorganizada en una cuadrícula fija de 2 × 2 para sus cuatro módulos: Mesa de creación, Horno industrial, Solicitar suministros y Envío de suministro. La venta solo está disponible en el cuarto módulo de la Central; se elimina el duplicado del área de suministros.
+- En Envío de suministro se añade un filtro por categoría y Síntesis. Seleccionar visibles respeta la búsqueda y el filtro; las selecciones permanecen activas al cambiar de categoría, y el total incluye todas las unidades seleccionadas. Los objetos equipados siguen protegidos.
+- Catálogo de recetas paginado de cuatro en cuatro, con tarjetas compactas y dos columnas en móvil. La zona de paginación conserva una altura fija entre páginas.
+- Añadidas seis zonas de alto nivel: Cámara criogénica (N22), Archivo orbital (N24), Raíces de titanio (N27), Fundición errante (N30), Observatorio fractal (N34) y Costa nula (N38). Las tres primeras zonas originales siguen desbloqueadas desde el nivel 1.
+- Añadidos más de 40 objetos base entre materiales, componentes, herramientas, armas, equipo y criaturas de las nuevas regiones.
+- El bestiario alcanza 28 linajes procedurales con 20 variantes cada uno (560 variantes de enemigo), incluyendo seis nuevos tipos de criaturas base en esta revisión.
+- Añadidos once linajes de enemigos procedurales con variantes de nombre, nivel, salud y botín.
+- Ampliados los rangos de Operador hasta nivel 45: Maestro de expedición, Estratega del vacío, Custodio del umbral, Soberano de anomalías, Arquitecto de convergencia y Nexo trascendente.
+- Conservados el precio base del 100 %, la venta estándar al 70 %, las variantes de Síntesis de convergencia, las habilidades procedurales y los guardados anteriores.
+- Migración de esquema de guardado a versión 8; importación compatible con partidas de versiones 2–8.
+- Caché PWA renovada a `anomaly-fusion-v2-0-r1`.
