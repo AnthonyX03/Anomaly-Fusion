@@ -90,7 +90,7 @@ La partida se guarda localmente en el navegador del dispositivo. Exporta una cop
 
 
 ## Revisión 1.5
-- El Inventario y el Registro identifican explícitamente el valor base del objeto como 100%. El módulo de venta muestra el valor base, el precio estándar de venta al 70% y el pago final, que puede aumentar mediante habilidades de créditos.
+- El Inventario y el Registro identifican explícitamente el valor base del objeto como 100%. El módulo de venta muestra el valor base, el precio estándar de venta al 90% y el pago final, que puede aumentar mediante habilidades de créditos.
 - Corregido el flujo de venta individual para retirar la unidad por su identificador exacto y no consumir accidentalmente otra pila con el mismo nombre.
 - Nuevas habilidades de compañeros y equipo: Mandíbula recolectora, Cazador de alijos, Resonancia de aprendizaje, Compartimento oculto, Memoria de campo y Recolector adaptativo.
 - La exploración ahora concede realmente botín adicional cuando se activan las bonificaciones; la probabilidad combina Recolección y Botín, con una segunda tirada influida por Suerte. Se corrige la duplicación anterior del conjunto de posibles objetos, que no aumentaba por sí misma la cantidad de recompensas.
@@ -145,7 +145,7 @@ La partida se guarda localmente en el navegador del dispositivo. Exporta una cop
 - El bestiario alcanza 28 linajes procedurales con 20 variantes cada uno (560 variantes de enemigo), incluyendo seis nuevos tipos de criaturas base en esta revisión.
 - Añadidos once linajes de enemigos procedurales con variantes de nombre, nivel, salud y botín.
 - Ampliados los rangos de Operador hasta nivel 45: Maestro de expedición, Estratega del vacío, Custodio del umbral, Soberano de anomalías, Arquitecto de convergencia y Nexo trascendente.
-- Conservados el precio base del 100 %, la venta estándar al 70 %, las variantes de Síntesis de convergencia, las habilidades procedurales y los guardados anteriores.
+- Conservados el precio base del 100 %, la venta estándar al 90 %, las variantes de Síntesis de convergencia, las habilidades procedurales y los guardados anteriores.
 - Migración de esquema de guardado a versión 8; importación compatible con partidas de versiones 2–8.
 - Caché PWA renovada a `anomaly-fusion-v2-0-r1`.
 
@@ -167,3 +167,11 @@ La partida se guarda localmente en el navegador del dispositivo. Exporta una cop
 ## Economía de fusión (v2.5)
 
 La fusión siempre se completa. El Valor Base resultante suma los Valores Base individuales de ambos ingredientes, aplica una variación aleatoria entera entre −30 % y +30 % (incluido 0 %) y redondea hacia arriba. El Valor Base mínimo es 1 CR. La Central compra cada objeto por el 90 % de su Valor Base, redondeado hacia arriba, con un precio mínimo de 1 CR (se mantienen las bonificaciones de créditos que ya existan en la partida).
+
+
+## Versión 2.6 — Restauración de zonas y economía de venta
+- Restaurados los nombres y descripciones anteriores de las 21 zonas, conservando sus identificadores internos, botín, riesgos y desbloqueos.
+- La Central permite vender una unidad o varias unidades en lote; los objetos equipados no se pueden vender.
+- El inventario muestra el Valor Base (100 %). La venta estándar paga el 90 % del Valor Base, redondeado hacia arriba, con mínimo de 1 CR. Las bonificaciones de créditos existentes siguen aplicándose al pago final.
+- Se actualiza el número de versión visible en Ajustes a 2.6 y la caché PWA a `anomaly-fusion-v2-6-r1`.
+- La fusión conserva el cálculo aleatorio de −30 % a +30 %, con redondeo hacia arriba y Valor Base mínimo de 1 CR.
