@@ -1,7 +1,7 @@
 {
   "name": "Anomaly Fusion — Laboratorio de anomalías",
   "short_name": "Anomaly Fusion",
-  "description": "Explora, fabrica, descubre cientos de objetos y crea fusiones anómalas.",
+  "description": "Anomaly Fusion 1.0: explora, fabrica cientos de materiales y descubre fusiones procedurales.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
@@ -9,6 +9,11 @@
   "theme_color": "#080b0f",
   "orientation": "any",
   "icons": [
-    {"src":"anomaly-fusion-icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
+    {
+      "src": "anomaly-fusion-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
   ]
 }
