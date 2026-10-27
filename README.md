@@ -1,6 +1,6 @@
-# Anomaly Fusion — versión 1.0
+# ANOMALY FUSION 3.0 — ULTIMATE EDITION
 
-Juego web de exploración, fabricación, colección, combate y fusiones anómalas. Funciona como PWA en PC y móvil. El número visible de versión se mantiene en **1.0**; la revisión interna de caché se ha actualizado para que el navegador cargue estos cambios.
+Juego web de exploración, fabricación, colección, combate y fusiones anómalas. Funciona como PWA en PC y móvil. Esta edición conserva la partida local y amplía la generación procedural de nombres de fusión.
 
 ## Contenido
 - 12 zonas de exploración con HUD independiente y un catálogo de cientos de materiales, menas, lingotes, armas, herramientas, equipo, consumibles y criaturas.
@@ -18,7 +18,7 @@ Juego web de exploración, fabricación, colección, combate y fusiones anómala
 - Consumibles, fabricación y fundición con barras de progreso y sonidos sintetizados de interfaz configurables.
 - Guardado local automático y ajustes de interfaz: tamaño, reducción de movimiento, pantalla completa y modo Automático/Móvil/PC 16:9.
 - **Exportación e importación de partidas** en archivos JSON desde Ajustes.
-- En Ajustes se muestra el número de versión visible: **VERSIÓN 1.2**.
+- En Ajustes se muestra el número de versión visible: **VERSIÓN 3.0 · ULTIMATE EDITION**.
 - La PWA comprueba actualizaciones al abrir, al volver a la pestaña y cada 60 segundos mientras está abierta. La caché interna se actualiza con cada revisión para evitar cargar archivos antiguos.
 
 ## Exportar e importar una partida
@@ -182,3 +182,28 @@ La fusión siempre se completa. El Valor Base resultante suma los Valores Base i
 - Los objetos que no tienen el rasgo **Síntesis de convergencia** muestran `Valor Base: X CR` en el Registro, porque su valor es fijo y no fluctúa.
 - Los objetos con el rasgo **Síntesis de convergencia** mantienen `Valor Aprox.` con el rango histórico de valores observados.
 - Se actualiza el número de versión visible en Ajustes a 2.7 y la caché PWA a `anomaly-fusion-v2-7-r1`.
+
+
+## Versión 2.8 — Corrección del valor de cada fusión
+
+- Corregido un error por el que una variante de Síntesis de convergencia ya registrada podía sustituir el valor recién calculado de una nueva fusión con el mismo nombre.
+- Cada resultado conserva el valor individual calculado a partir de los valores de sus ingredientes y la fluctuación de −30 % a +30 %, aunque comparta nombre y nivel con una variante anterior.
+- Se mantiene el Registro con rango histórico aproximado para objetos de Síntesis de convergencia, el precio de venta al 90 % y el resto de la interfaz.
+- Actualizada la versión visible y la caché de la PWA a 2.8.
+
+
+## Versión 3.0 — Ultimate Edition
+
+- Se amplían los bancos de nombres de fusión por categoría, con decenas de bases temáticas por familia.
+- Los resultados combinan una base temática con prefijos, epítetos y designaciones de serie para generar una variedad mucho mayor sin concatenar nombres de ingredientes.
+- Las anomalías de fusión tienen más familias nominales y códigos de identificación de tres caracteres.
+- El historial de fusiones conserva hasta 10 resultados recientes en lugar de 3.
+- Actualizada la caché PWA a 3.0 para evitar servir el JavaScript anterior.
+
+## Versión 2.9 — Contador del Registro
+
+- El contador «Objetos registrados» de Inicio ahora muestra el número de nombres únicos descubiertos que figuran en el Registro, en lugar de contar las unidades que hay en la Bolsa.
+- El indicador de progreso también utiliza el total de entradas registradas.
+- Las partidas anteriores se migran conservando los descubrimientos ya guardados y añadiendo al Registro los nombres que sigan en el inventario.
+- El Registro no tiene un límite fijo de entradas impuesto por la interfaz: usa paginación dinámica. La cantidad real de nombres posibles sí depende de las combinaciones y reglas procedurales del juego; no es matemáticamente infinita, y los objetos con el mismo nombre se muestran como una sola entrada.
+- Actualizada la versión visible y la caché de la PWA a 2.9.
