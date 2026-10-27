@@ -400,6 +400,36 @@ function generatedRecipeCost(name,cat){
 }
 craftableGenerated.forEach((name,i)=>{const d=itemDB[name];recipes.push({id:"gen_"+i,name,icon:d.icon,desc:d.desc,cost:generatedRecipeCost(name,d.cat),out:name,category:d.cat});});
 
+// REWORK 3.0: cada receta usa materiales de la MISMA rareza/nivel que el objeto final.
+// Primero busca afinidad semántica; solo amplía la familia si no hay suficientes ingredientes.
+function recipeTheme(name,desc="",cat=""){
+ const t=(name+" "+desc).toLocaleLowerCase("es");
+ if(/anomal|paradoja|cuánt|dimensional|vacío|fase|fractal|umbral|nulo|neón|plasma|reson|eco|espectro|energ|cuánt/.test(t))return "anomaly";
+ if(/hongo|espora|resina|hoja|fibra|madera|rama|corteza|vegetal|biológ|tox|veneno|moco|gel|orgán|colmillo|criatura|caparazón|tejido|polen/.test(t))return "bio";
+ if(/cristal|prisma|lente|cuarzo|geoda|vidrio|sílice|perla|ópt|gema/.test(t))return "crystal";
+ if(/cable|circuit|electr|chip|batería|bobina|sensor|módulo|placa de datos|navegación|rastreo|holográf|conector|memoria|dron|pulso/.test(t))return "tech";
+ if(/hierro|acero|metal|mena|lingote|aleación|chatarra|titanio|cobre|níquel|cobalto|tungsteno|wolframio|blindaje|armadura|espada|pico|hacha|martillo|arma|casco|escudo|peto|grebas|herramienta|malla|válvula|rotor|tornillo|forja|mineral|metal|acero/.test(t)||["Arma","Herramienta","Equipo","Lingote"].includes(cat))return "metal";
+ return "general";
+}
+const recipeOutputs=new Set(recipes.map(r=>r.out));
+const recipeMaterialPool=Object.keys(itemDB).filter(n=>["Material","Lingote"].includes(itemDB[n].cat));
+function rebuildRecipeCosts(){
+ for(const r of recipes){
+  const out=itemDB[r.out]||{};const tier=Number(out.r)||1;const theme=recipeTheme(r.out,out.desc,r.category||out.cat);
+  let pool=recipeMaterialPool.filter(n=>n!==r.out&&!recipeOutputs.has(n)&&(Number(itemDB[n].r)||1)===tier&&recipeTheme(n,itemDB[n].desc,itemDB[n].cat)===theme);
+  if(pool.length<2)pool=recipeMaterialPool.filter(n=>n!==r.out&&!recipeOutputs.has(n)&&(Number(itemDB[n].r)||1)===tier);
+  // Último recurso: mantener el nivel exacto incluso si el catálogo de una familia es pequeño.
+  if(!pool.length)pool=recipeMaterialPool.filter(n=>n!==r.out&&(Number(itemDB[n].r)||1)===tier);
+  if(!pool.length){r.cost={};continue}
+  const hash=Array.from(r.id+"|"+r.out).reduce((a,c)=>(a*31+c.charCodeAt(0))>>>0,7);
+  const first=pool[hash%pool.length];
+  const secondPool=pool.filter(n=>n!==first);
+  const second=secondPool.length?secondPool[(hash>>>3)%secondPool.length]:first;
+  r.cost=first===second?{[first]:2}:{[first]:1,[second]:1};
+ }
+}
+rebuildRecipeCosts();
+
 const supplyPacks = [
  {id:"field",name:"Caja de campo",icon:"📦",price:35,desc:"Materiales variados y una pequeña posibilidad de equipo raro.",color:"common"},
  {id:"black",name:"Contenedor negro",icon:"🗃️",price:90,desc:"Mejores probabilidades de objetos de nivel 3 o superior.",color:"rare"},

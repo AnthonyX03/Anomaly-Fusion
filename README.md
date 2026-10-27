@@ -213,3 +213,11 @@ La fusión siempre se completa. El Valor Base resultante suma los Valores Base i
 - Icono de madera sustituido por un símbolo Unicode más compatible con fuentes de escritorio, evitando el emoji 🪵 ausente en algunos sistemas.
 - La mesa muestra seis recetas por página en escritorio (tres columnas por dos filas) y cuatro en móvil para conservar la navegación compacta.
 - Las recetas de objetos procedurales eligen materiales según el nombre y la función del objeto (madera/fibra, metal, electrónica, cristal, biomateriales o energía), en lugar de reutilizar un coste genérico por categoría.
+
+
+## Rework de recetas — Ultimate Edition 3.0
+
+- Todas las recetas se reconstruyen con ingredientes del mismo nivel/rareza que el objeto final.
+- La selección prioriza afinidad temática entre nombre, descripción y materiales (metal, tecnología, cristal, biológico o anomalía).
+- Si una familia no tiene suficientes ingredientes de ese nivel, amplía la selección a materiales del mismo nivel, sin bajar de nivel.
+- Se mantiene la versión visible 3.0; se actualizó la caché del service worker para entregar el parche.
