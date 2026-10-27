@@ -245,6 +245,10 @@ Los iconos de objetos y zonas se dibujan con SVG integrado y no dependen de emoj
 
 ## Ajuste de sonido y coherencia de nombres evolutivos
 
-- El sonido continuo de la barra de fusión tiene un nivel mucho más alto y una segunda capa de tono para mejorar su audibilidad en altavoces de móvil y PC. Sigue el ajuste general de sonido.
-- Los nombres evolutivos aplican concordancia de género y número a los adjetivos compatibles (por ejemplo, «Fronda Umbría» y «Hojas Umbrías»).
+- El sonido continuo de la barra de fusión tiene tres capas y un nivel reforzado. El nuevo control de volumen (0–100 %) afecta a todos los sonidos, se aplica en tiempo real y queda guardado en la partida.
+- Rework de nombres: los nombres se basan en materiales y propiedades realmente presentes. «Madera + Ramas» produce «Trama Leñosa», dos ingredientes de hojas producen «Manto de Hojas», y los términos eléctricos/anómalos solo aparecen cuando los ingredientes justifican esa propiedad. Se evita añadir «Voltaico», «Espectral» u otros adjetivos por azar.
 - Se mantiene la versión visible 3.0 y se renueva la caché de la PWA para que se carguen los cambios.
+
+## Rework procedural de nombres (v2)
+
+La fusión ahora prioriza vocabulario material concreto y reglas semánticas reproducibles. Las combinaciones vegetales distinguen madera, ramas y hojas; los nombres eléctricos o anómalos requieren que un ingrediente aporte realmente esa propiedad. Se corrigió además una colisión léxica por la que «batería» podía activar la detección de «bate» como arma. El volumen general ajustable continúa en Ajustes y el sonido de fusión usa el control maestro de volumen. Caché PWA actualizada para forzar la carga de esta revisión.
