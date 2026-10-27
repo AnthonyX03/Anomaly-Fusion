@@ -1,0 +1,11 @@
+{
+  "name": "JOYA CERO — Laboratorio de fusión",
+  "short_name": "JOYA CERO",
+  "description": "Explora, fabrica y fusiona objetos absurdos.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#07090c",
+  "theme_color": "#080b0f",
+  "orientation": "any",
+  "icons": []
+}
