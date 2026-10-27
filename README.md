@@ -150,9 +150,20 @@ La partida se guarda localmente en el navegador del dispositivo. Exporta una cop
 - Caché PWA renovada a `anomaly-fusion-v2-0-r1`.
 
 
-## Revisión 2.1
+## Revisión 2.2
 - Progresión ampliada hasta el nivel máximo 50.
 - Recompensas de créditos crecientes por cada nivel, con bonificaciones adicionales al alcanzar rangos.
 - Requisitos de desbloqueo de zonas escalonados hasta nivel 50, manteniendo las tres zonas iniciales abiertas.
 - Paginación unificada: solo el indicador de página queda centrado entre Anterior y Siguiente.
 - Corregidos espacios de contenido y alturas móviles que podían dejar zonas inferiores o paginadores ocultos detrás de la navegación fija.
+
+## Revisión 2.3
+- El Registro muestra `Valor Aprox.` como rango observado (mínimo–máximo) para cada objeto, actualizado al obtener ejemplares con nuevos valores.
+- El Valor Base deja de mostrarse en el Registro y permanece asociado al objeto del inventario para calcular su precio.
+- Los objetos de materiales con valores diferentes ya no se apilan entre sí, evitando perder su precio individual.
+- Caché PWA renovada a `anomaly-fusion-v2-3-r1`.
+
+
+## Economía de fusión (v2.5)
+
+La fusión siempre se completa. El Valor Base resultante suma los Valores Base individuales de ambos ingredientes, aplica una variación aleatoria entera entre −30 % y +30 % (incluido 0 %) y redondea hacia arriba. El Valor Base mínimo es 1 CR. La Central compra cada objeto por el 90 % de su Valor Base, redondeado hacia arriba, con un precio mínimo de 1 CR (se mantienen las bonificaciones de créditos que ya existan en la partida).
