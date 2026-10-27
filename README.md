@@ -241,3 +241,10 @@ Los iconos de objetos, recetas, botín, registro, fundición y suministros se di
 ## Revisión de iconografía semántica PC y móvil
 
 Los iconos de objetos y zonas se dibujan con SVG integrado y no dependen de emojis instalados. La selección prioriza la categoría del objeto (armas, equipo, criaturas, anomalías, lingotes, herramientas y consumibles) y después usa palabras del nombre para distinguir materiales, vegetales, cristales, tecnología y fluidos. Las zonas tienen iconos propios relacionados con su nombre y entorno. El número de versión visible se mantiene en 3.0.
+
+
+## Ajuste de sonido y coherencia de nombres evolutivos
+
+- El sonido continuo de la barra de fusión tiene un nivel mucho más alto y una segunda capa de tono para mejorar su audibilidad en altavoces de móvil y PC. Sigue el ajuste general de sonido.
+- Los nombres evolutivos aplican concordancia de género y número a los adjetivos compatibles (por ejemplo, «Fronda Umbría» y «Hojas Umbrías»).
+- Se mantiene la versión visible 3.0 y se renueva la caché de la PWA para que se carguen los cambios.
