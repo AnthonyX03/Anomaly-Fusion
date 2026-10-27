@@ -221,3 +221,13 @@ La fusión siempre se completa. El Valor Base resultante suma los Valores Base i
 - La selección prioriza afinidad temática entre nombre, descripción y materiales (metal, tecnología, cristal, biológico o anomalía).
 - Si una familia no tiene suficientes ingredientes de ese nivel, amplía la selección a materiales del mismo nivel, sin bajar de nivel.
 - Se mantiene la versión visible 3.0; se actualizó la caché del service worker para entregar el parche.
+
+### Generación evolutiva de nombres (revisión 3.0)
+Los nombres de síntesis se construyen con vocabulario controlado por categoría y temas semánticos heredados de los ingredientes. Las fusiones sucesivas conservan internamente los temas y el linaje de conceptos, de modo que los objetos fusionados pueden combinarse sin concatenar fragmentos aleatorios ni acumular nombres cada vez más largos. Los nombres se mantienen breves (normalmente dos palabras y como máximo tres) y los metadatos de linaje se guardan con las variantes de síntesis.
+
+
+### Revisión de fabricación y audio (3.0)
+- Recetas con cantidades variables por material (de 1 a 4 unidades), según nivel del resultado, y entre 2 y 4 tipos de componentes cuando el catálogo de ese nivel lo permite.
+- La selección de ingredientes prioriza la afinidad semántica y mantiene la coincidencia de nivel/rareza del material con el resultado.
+- La cámara de fusión tiene un zumbido electrónico continuo y suave durante el proceso, con fundido al terminar; exploración y fabricación conservan sus señales propias.
+- Se mantiene la versión visible 3.0 y la compatibilidad con partidas anteriores.

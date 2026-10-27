@@ -415,17 +415,17 @@ const recipeOutputs=new Set(recipes.map(r=>r.out));
 const recipeMaterialPool=Object.keys(itemDB).filter(n=>["Material","Lingote"].includes(itemDB[n].cat));
 function rebuildRecipeCosts(){
  for(const r of recipes){
-  const out=itemDB[r.out]||{};const tier=Number(out.r)||1;const theme=recipeTheme(r.out,out.desc,r.category||out.cat);
+  const out=itemDB[r.out]||{};const tier=Math.max(1,Number(out.r)||1);const theme=recipeTheme(r.out,out.desc,r.category||out.cat);
   let pool=recipeMaterialPool.filter(n=>n!==r.out&&!recipeOutputs.has(n)&&(Number(itemDB[n].r)||1)===tier&&recipeTheme(n,itemDB[n].desc,itemDB[n].cat)===theme);
   if(pool.length<2)pool=recipeMaterialPool.filter(n=>n!==r.out&&!recipeOutputs.has(n)&&(Number(itemDB[n].r)||1)===tier);
-  // Último recurso: mantener el nivel exacto incluso si el catálogo de una familia es pequeño.
   if(!pool.length)pool=recipeMaterialPool.filter(n=>n!==r.out&&(Number(itemDB[n].r)||1)===tier);
   if(!pool.length){r.cost={};continue}
   const hash=Array.from(r.id+"|"+r.out).reduce((a,c)=>(a*31+c.charCodeAt(0))>>>0,7);
-  const first=pool[hash%pool.length];
-  const secondPool=pool.filter(n=>n!==first);
-  const second=secondPool.length?secondPool[(hash>>>3)%secondPool.length]:first;
-  r.cost=first===second?{[first]:2}:{[first]:1,[second]:1};
+  // Recetas con más nivel exigen más componentes y más unidades por componente.
+  const kinds=Math.min(pool.length,tier>=5?4:tier>=3?3:2), chosen=[];
+  for(let i=0;i<kinds;i++)chosen.push(pool[(hash+i*7+i*i*3)%pool.length]);
+  const cost={};chosen.forEach((n,i)=>{const quantity=Math.min(4,1+((hash>>>(i*3))&1)+(tier>=3?1:0)+(tier>=5?1:0));cost[n]=(cost[n]||0)+quantity});
+  for(const n of Object.keys(cost))cost[n]=Math.min(4,cost[n]);r.cost=cost;
  }
 }
 rebuildRecipeCosts();
@@ -476,6 +476,7 @@ enemyFamilies.forEach((family,fi)=>enemyVariants.forEach((variant,vi)=>{
 
 const stateDefault = () => ({credits:0,level:1,xp:0,expeditions:0,fusions:0,inventory:[],equipped:{pick:null,axe:null,weapon:null,armor:null,anomaly:null,companion:null},history:[],pendingFusion:null,pendingSupply:null,activity:[],seen:[],discovered:{},synthesisVariants:{},valueRanges:{},settings:{sound:true,scale:"1",motion:false,layoutMode:"auto"},version:9});
 let state = loadState();
+let fusionHum=null;
 let selectedZone = "forest", zoneHudOpen=false, lootHudOpen=false, inventoryFilter="Todos", inventoryPage=1, inventorySort="rarity", zonePage=1, recipePage=1, recipeCategory="Todos", smeltPage=1, registryPage=1, registryFilter="Todos", registrySort="name", registryPageSize=10, pickerPage=1, pickerMode=null, pickerSlot=null, pickerFilter="Todos", centralSaleFilter="Todos", centralSaleSelection={}, activeTask=null, currentEnemy=null, audioCtx=null, deferredInstallPrompt=null, pendingConfirmAction=null;
 function loadState(){try{const s=JSON.parse(localStorage.getItem("anomalyFusionSave")||localStorage.getItem("joyaCeroSave"));if(s&&(s.version===2||s.version===3||s.version===4||s.version===5||s.version===6||s.version===7||s.version===8||s.version===9)&&s.inventory&&s.equipped)return Object.assign(stateDefault(),s,{version:9,equipped:{...stateDefault().equipped,...s.equipped},history:(s.history||[]).slice(0,3),pendingFusion:s.pendingFusion||null,pendingSupply:s.pendingSupply||null,seen:[...new Set([...(s.seen||[]),...(s.inventory||[]).map(x=>x.name)])],discovered:{...(s.discovered||{}),...Object.fromEntries((s.inventory||[]).map(x=>[x.name,x]))},synthesisVariants:{...(s.synthesisVariants||{})},valueRanges:{...(s.valueRanges||{})}})}catch(e){}return stateDefault()}
 function save(){try{localStorage.setItem("anomalyFusionSave",JSON.stringify(state))}catch(e){toast("No se pudo guardar la partida. Comprueba el espacio disponible del navegador.",true)}}
@@ -510,7 +511,7 @@ function saveSynthesisVariant(item){
  const lowest=[...variants].sort((a,b)=>(Number(a.r)||1)-(Number(b.r)||1))[0];
  const baseVal=Math.max(1,Math.round(Number(priorBase||lowest?.baseVal||(lowest?Number(lowest.val||1)/(1+.35*((Number(lowest.r)||1)-1)):Number(item.val||info(name).val||5)/(1+.35*(r-1))))));
  const priceForLevel=level=>Math.max(1,Math.round(baseVal*(1+.35*(Math.max(1,Number(level)||1)-1))));
- const snapshot={name,icon:item.icon||info(name).icon,cat:item.cat||info(name).cat,r,val:priceForLevel(r),baseVal,desc:item.desc||info(name).desc||"",slot:item.slot||null,trait:"Síntesis de convergencia",affix:"Síntesis de convergencia",abilities:Array.isArray(item.abilities)?item.abilities.map(a=>({...a})):[],ability:item.ability?{...item.ability}:null,damage:item.damage||0,defense:item.defense||0,gather:item.gather||0,secondaryTrait:item.secondaryTrait||"",passive:item.passive?{...item.passive}:null,sourceA:item.sourceA||"",sourceB:item.sourceB||""};
+ const snapshot={name,icon:item.icon||info(name).icon,cat:item.cat||info(name).cat,r,val:priceForLevel(r),baseVal,desc:item.desc||info(name).desc||"",slot:item.slot||null,trait:"Síntesis de convergencia",affix:"Síntesis de convergencia",abilities:Array.isArray(item.abilities)?item.abilities.map(a=>({...a})):[],ability:item.ability?{...item.ability}:null,damage:item.damage||0,defense:item.defense||0,gather:item.gather||0,secondaryTrait:item.secondaryTrait||"",passive:item.passive?{...item.passive}:null,sourceA:item.sourceA||"",sourceB:item.sourceB||"",semanticThemes:Array.isArray(item.semanticThemes)?[...item.semanticThemes]:[],lineageConcepts:Array.isArray(item.lineageConcepts)?[...item.lineageConcepts]:[]};
  // La primera versión descubierta de cada nivel conserva sus habilidades procedurales; no se sobrescriben al repetir la fusión.
  if(idx>=0)variants[idx]={...variants[idx],baseVal,val:priceForLevel(r)};else variants.push(snapshot);
  variants.sort((a,b)=>a.r-b.r);variants.forEach(v=>{v.baseVal=baseVal;v.val=priceForLevel(v.r)});state.synthesisVariants[name]=variants;
@@ -592,7 +593,9 @@ function closeZoneHud(){if(activeTask&&activeTask.type==="explore"){toast("La ex
 function renderZoneDetail(){const z=zones.find(x=>x.id===selectedZone)||zones[0];const risk=["BAJO","MODERADO","ALTO","EXTREMO"][z.risk]||"VARIABLE";const host=$("zoneHudDetail");if(!host)return;host.innerHTML=`<div class="eyebrow">DOSSIER DE CAMPO · ${escapeHtml(z.id.toUpperCase())}</div><div style="display:flex;align-items:flex-start;gap:14px;margin:12px 0"><div class="zone-art" style="width:88px;min-width:88px;height:88px;font-size:2.7rem">${z.icon}</div><div style="flex:1"><h3 style="margin:0 0 8px">${escapeHtml(z.name)}</h3><p class="small-note">${escapeHtml(z.desc)}</p><div class="small-note" style="margin-top:10px">Riesgo: <b>${risk}</b> · Probabilidad de contacto: ${Math.round(z.enemy*100)}% · Duración estimada: 10 s</div></div></div><div class="zone-hud-actions"><button id="zoneBackBtn">← Volver a exploración</button><button id="zoneLootBtn" aria-expanded="${lootHudOpen}" class="${lootHudOpen?"active":""}">▤ Loot de la zona (${z.loot.length})</button><button class="primary" id="exploreBtn" ${activeTask||currentEnemy?"disabled":""}>⌖ INICIAR EXPEDICIÓN · 10 S</button></div>`;const b=$("exploreBtn");if(b)b.onclick=beginExplore;const back=$("zoneBackBtn");if(back)back.onclick=closeZoneHud;const loot=$("zoneLootBtn");if(loot)loot.onclick=()=>{lootHudOpen=!lootHudOpen;renderZoneDetail();renderZoneLoot()}}
 function renderZoneLoot(){const host=$("zoneLootPanel");if(!host)return;const z=zones.find(x=>x.id===selectedZone)||zones[0];host.classList.toggle("hidden",!zoneHudOpen||!lootHudOpen);if(!zoneHudOpen||!lootHudOpen)return;host.innerHTML=`<div class="zone-loot-head"><div><h3>▤ LOOT DISPONIBLE</h3><p class="small-note">Objetos que puede revelar el escáner de ${escapeHtml(z.name)}. Desplázate por la lista; no tiene paginación.</p></div><span class="tag">${z.loot.length} OBJETOS</span></div><div class="zone-loot-list">${z.loot.map(n=>{const d=info(n);return `<div class="zone-loot-item"><span class="zone-loot-icon">${d.icon||"❔"}</span><div><b>${escapeHtml(n)}</b><small>Nivel ${d.r||1} · ${escapeHtml(d.cat||"Otro")} · ${d.val||0} cr.</small><p>${escapeHtml(d.desc||"Objeto recuperable en esta zona.")}</p></div></div>`}).join("")}</div>`}
 function renderZoneCards(){const overview=$("zonesOverview"),hud=$("zoneHud");if(overview)overview.classList.toggle("hidden",zoneHudOpen);if(hud)hud.classList.toggle("hidden",!zoneHudOpen);const start=(zonePage-1)*3,shown=zones.slice(start,start+3);$("zonesGrid").innerHTML=shown.map(z=>{const unlocked=zoneUnlocked(z),required=zoneRequiredLevel(z);return `<div class="zone-card ${selectedZone===z.id?"selected":""} ${unlocked?"":"zone-locked"}" data-zone-card="${z.id}"><div class="zone-art">${unlocked?z.icon:"🔒"}</div><h4>${escapeHtml(z.name)}</h4><p>${escapeHtml(z.desc)}</p><div class="loot-chips">${z.loot.slice(0,3).map(n=>`<span class="chip">${info(n).icon} ${escapeHtml(n)}</span>`).join("")}</div><div class="small-note">Riesgo: ${["BAJO","MODERADO","ALTO","EXTREMO"][z.risk]}${unlocked?"":` · BLOQUEADA · NIVEL ${required}`}</div><button data-zone="${z.id}" ${activeTask||!unlocked?"disabled":""}>${unlocked?"Entrar en zona →":`Desbloquea en nivel ${required}`}</button></div>`}).join("");$("zonesPageInfo").textContent=`Página ${zonePage} / ${Math.ceil(zones.length/3)}`;$("zonesPrev").disabled=zonePage<=1;$("zonesNext").disabled=zonePage>=Math.ceil(zones.length/3);document.querySelectorAll("[data-zone]").forEach(b=>b.onclick=e=>{e.stopPropagation();openZoneHud(b.dataset.zone)});document.querySelectorAll("[data-zone-card]").forEach(c=>c.onclick=e=>{if(e.target.closest("button"))return;openZoneHud(c.dataset.zoneCard)})}
-function beginTask(type,duration,onDone,els){if(activeTask)return;activeTask={type,start:Date.now(),duration,done:false,lastCue:0};sound(260,.11,"sawtooth");els.panel.classList.remove("hidden");els.bar.style.width="0%";els.percent.textContent="0%";els.status&&(els.status.textContent=type==="explore"?"Explorando...":type==="craft"?"Fabricando...":"Fundiendo...");els.button&&(els.button.disabled=true);const tick=()=>{if(!activeTask||activeTask.type!==type)return;const p=Math.min(1,(Date.now()-activeTask.start)/duration);els.bar.style.width=(p*100)+"%";els.percent.textContent=Math.floor(p*100)+"%";const step=Math.floor(p*5);if(step>activeTask.lastCue&&p<1){activeTask.lastCue=step;sound(760+step*35,.035,"sine")}if(p>=1){activeTask=null;sound(920,.12,"triangle");onDone();return}setTimeout(tick,100)};tick()}
+function stopFusionHum(){if(!fusionHum)return;try{const now=audioCtx?.currentTime||0;fusionHum.gain.gain.cancelScheduledValues(now);fusionHum.gain.gain.setTargetAtTime(0.0001,now,.09);fusionHum.osc.stop(now+.35)}catch(e){}fusionHum=null}
+function startFusionHum(){if(!state.settings.sound)return;try{audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==="suspended")audioCtx.resume();const osc=audioCtx.createOscillator(),gain=audioCtx.createGain(),filter=audioCtx.createBiquadFilter();osc.type="sawtooth";osc.frequency.setValueAtTime(72,audioCtx.currentTime);osc.frequency.linearRampToValueAtTime(96,audioCtx.currentTime+2.5);filter.type="lowpass";filter.frequency.value=260;gain.gain.setValueAtTime(.0001,audioCtx.currentTime);gain.gain.linearRampToValueAtTime(.018,audioCtx.currentTime+.25);osc.connect(filter);filter.connect(gain);gain.connect(audioCtx.destination);osc.start();fusionHum={osc,gain};}catch(e){fusionHum=null}}
+function beginTask(type,duration,onDone,els){if(activeTask)return;activeTask={type,start:Date.now(),duration,done:false,lastCue:0};if(type==="fusion")startFusionHum();else sound(260,.11,"sawtooth");els.panel.classList.remove("hidden");els.bar.style.width="0%";els.percent.textContent="0%";els.status&&(els.status.textContent=type==="explore"?"Explorando...":type==="craft"?"Fabricando...":"Fusionando...");els.button&&(els.button.disabled=true);const tick=()=>{if(!activeTask||activeTask.type!==type)return;const p=Math.min(1,(Date.now()-activeTask.start)/duration);els.bar.style.width=(p*100)+"%";els.percent.textContent=Math.floor(p*100)+"%";if(type!=="fusion"){const step=Math.floor(p*5);if(step>activeTask.lastCue&&p<1){activeTask.lastCue=step;sound(760+step*35,.035,"sine")}}if(p>=1){activeTask=null;if(type==="fusion"){stopFusionHum();sound(660,.16,"triangle")}else sound(920,.12,"triangle");onDone();return}setTimeout(tick,100)};tick()}
 function beginExplore(){if(activeTask||currentEnemy)return;const z=zones.find(z=>z.id===selectedZone);if(!z||!zoneUnlocked(z))return toast(`Zona bloqueada. Necesitas nivel ${zoneRequiredLevel(z||zones[0])} de Operador.`,true);$("combatPanel").classList.add("hidden");$("exploreProgressPanel").classList.remove("hidden");beginTask("explore",10000,()=>{state.expeditions++;const foundItems=[];const primary=z.loot[Math.floor(Math.random()*z.loot.length)];foundItems.push(primary);const gatherChance=Math.min(.82,Math.max(0,(stat("gather")+stat("loot"))/100));if(Math.random()<gatherChance)foundItems.push(z.loot[Math.floor(Math.random()*z.loot.length)]);const rareChance=Math.min(.35,Math.max(0,stat("luck")/200));if(Math.random()<rareChance)foundItems.push(z.loot[Math.floor(Math.random()*z.loot.length)]);foundItems.forEach(found=>addItem(found,1,{origin:"exploración"}));const found=foundItems[0];xp(12+z.risk*4);log(`Exploración completada en <b>${z.name}</b>: ${foundItems.map(n=>`${info(n).icon} ${n}`).join(", ")}.`);$("exploreStatus").textContent="Exploración completada";$("exploreHint").textContent=`Hallazgos (${foundItems.length}): ${foundItems.map(n=>`${info(n).icon} ${n}`).join(", ")}`;toast(`Botín recuperado (${foundItems.length}): <b>${foundItems.join(", ")}</b>`);const hostile=Math.random()<z.enemy;render();if(hostile)startEncounter(z);else{$("exploreStatus").textContent="Zona despejada";$("exploreHint").textContent="No se detectaron hostiles. Puedes volver a explorar.";renderZoneCards();renderZoneDetail()}save()}, {panel:$("exploreProgressPanel"),bar:$("exploreBar"),percent:$("explorePercent"),status:$("exploreStatus"),button:$("exploreBtn")});$("exploreHint").textContent="Escaneando señales, buscando materiales y comprobando amenazas...";renderZoneCards();renderZoneDetail()}
 function startEncounter(z){
  const pool=enemyCatalog.filter(e=>e.rank<=Math.min(5,2+z.risk+Math.floor(state.level/8)));
@@ -677,49 +680,67 @@ function fusionOutcome(a,b){
  const combinedBase=Math.max(1,Number(a.val??da.val??1)+Number(b.val??db.val??1));const variation=Math.floor(Math.random()*61)-30;const val=Math.max(1,Math.ceil(combinedBase*(1+variation/100)));let desc=cat==="Criatura"?"Criatura procedural creada a partir de los dos objetos fusionados. Sus habilidades varían en cada ciclo.":"Objeto procedural formado por propiedades compatibles de la materia introducida. Su calidad y parámetros varían en cada ciclo.";
  // Nombres breves y con identidad: toman pistas de ambos ingredientes sin pegar
  // frases largas ni añadir epítetos aleatorios repetidos.
- const sourceRoot=value=>{
-  const words=String(value||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().match(/[a-z0-9]+/g)||[];
-  const ignored=new Set(["de","del","la","el","los","las","y","con","para","por","en","un","una","objeto","material","herramienta","equipo","arma","consumible","anomaly","fusion","mk","nivel","viejo","vieja"]);
-  const useful=words.filter(w=>!ignored.has(w)&&w.length>2);
-  const word=useful[useful.length-1]||useful[0]||"eco";
-  return word.slice(0,6);
+ // Nombre evolutivo: hereda conceptos semánticos, nunca fragmentos aleatorios de palabras.
+ const normalizeWords=value=>String(value||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+ const classifyThemes=item=>{
+  const existing=Array.isArray(item.semanticThemes)?item.semanticThemes:[];
+  if(existing.length)return existing;
+  const raw=normalizeWords(`${item.name||""} ${item.cat||""} ${item.desc||""}`);
+  const tags=[];
+  if(/planta|vegetal|brote|raiz|hoja|hojas|flor|savia|resina|madera|rama|musgo|hongo|espora|micelio|rizoma|semilla|polen|jardin|verd|botanic|fibra viva/.test(raw))tags.push("vegetal");
+  if(/cristal|mineral|geoda|cuarzo|gema|prisma|obsidiana|cobalto|ferrita|titanio|hierro|acero|metal|lingote|chatarra|placa|aleacion|cobre|oro|plata/.test(raw))tags.push("mineral");
+  if(/energia|energetic|bateria|nucleo|pulso|volt|electr|solar|neon|cuant|fase|plasma|fotones|reactor|bobina|condensador/.test(raw))tags.push("energia");
+  if(/anomalia|vacio|singularidad|fractura|dimensional|paradoja|umbral|eclipse|entropia|espectral|abismo|distorsion|eco temporal/.test(raw))tags.push("anomalia");
+  if(/biologic|criatura|bestia|mutante|zombie|simbionte|quimera|organico|parasito|larva|hibrido|acechador/.test(raw)||item.cat==="Criatura")tags.push("biologico");
+  if(/arma|espada|sable|rifle|pistola|lanza|martillo|hacha|cuchilla|filo|canon|fusil/.test(raw)||item.cat==="Arma")tags.push("combate");
+  if(/herramienta|taladro|sonda|extractor|pico|cortador|recolector|analizador|sifon|perforador/.test(raw)||item.cat==="Herramienta")tags.push("tecnico");
+  if(/armadura|coraza|yelmo|escudo|blindaje|manto|traje|guante|botas|equipo/.test(raw)||item.cat==="Equipo")tags.push("proteccion");
+  if(item.cat==="Anomalía")tags.push("anomalia");
+  if(item.cat==="Consumible")tags.push("quimico");
+  return [...new Set(tags.length?tags:["tecnico"])];
  };
- const stemA=sourceRoot(a.name),stemB=sourceRoot(b.name);
- const compactRoots=(x,y)=>{
-  const left=x.slice(0,Math.min(3,x.length)),right=y.slice(Math.max(0,Math.floor(y.length/2)),Math.max(0,Math.floor(y.length/2))+3);
-  return (left+right).replace(/(.)\1{2,}/g,"$1$1");
+ const themesA=classifyThemes(da),themesB=classifyThemes(db);
+ const themes=[...new Set([...themesA,...themesB])];
+ const namingFamilies={
+  vegetal:{nouns:["Brote","Raíz","Savia","Micelio","Rizoma","Flor","Espora","Fronda","Semilla","Enredadera"],adjs:["Umbrío","Cristalino","Voltaico","Espectral","Simbiótico","Prismático","Abisal","Mutante","Radiante"]},
+  mineral:{nouns:["Prisma","Ferrita","Geoda","Cuarzo","Nexo","Aleación","Matriz","Fragmento","Nódulo","Cristal"],adjs:["Voltaico","Umbrío","Resonante","Fractal","Espectral","Gravitatorio","Prismático","Inestable"]},
+  energia:{nouns:["Núcleo","Pulso","Bobina","Celda","Reactor","Prisma","Condensador","Matriz","Emisor","Lente"],adjs:["Voltaico","Cuántico","Espectral","Solar","Abisal","Resonante","Inestable","Singular"]},
+  anomalia:{nouns:["Eco","Umbral","Nexo","Paradoja","Vórtice","Singularidad","Distorsión","Vestigio","Eclipse","Ancla"],adjs:["Temporal","Fractal","Viviente","Espectral","Inverso","Abisal","Errante","Inestable"]},
+  biologico:{nouns:["Quimera","Simbionte","Vástago","Mímico","Crisálida","Coloso","Larva","Centinela","Híbrido","Acechador"],adjs:["Cristalino","Voltaico","Umbrío","Simbiótico","Espectral","Abisal","Mutante","Fractal"]},
+  combate:{nouns:["Filo","Sable","Lanza","Martillo","Cortavacío","Disruptor","Guadaña","Impactador","Cañón","Ruptor"],adjs:["Resonante","Voltaico","Cuántico","Espectral","Gravitatorio","Umbrío","Fractal","Singular"]},
+  tecnico:{nouns:["Extractor","Sonda","Taladro","Analizador","Módulo","Recolector","Cortador","Sifón","Escáner","Perforador"],adjs:["Adaptativo","Resonante","Cuántico","Espectral","Magnético","Voltaico","Abisal","Prismático"]},
+  proteccion:{nouns:["Coraza","Égida","Blindaje","Manto","Bastión","Yelmo","Armazón","Peto","Escudo","Traje"],adjs:["Reactivo","Prismático","Voltaico","Espectral","Gravitatorio","Adaptativo","Abisal","Fractal"]},
+  quimico:{nouns:["Suero","Ampolla","Catalizador","Inyector","Vial","Elixir","Dosis","Reactivo","Cápsula","Compuesto"],adjs:["Simbiótico","Voltaico","Cuántico","Regenerativo","Espectral","Inestable","Abisal","Prismático"]}
  };
- const motifs={
-  plant:["Micelio","Raíz","Brote","Espora","Savia","Verdín","Rizoma","Floraz"],
-  metal:["Ferrón","Titan","Ferrox","Cobalto","Yunque","Acero","Nervio","Bastión"],
-  energy:["Prisma","Voltio","Nébula","Fulgor","Quasar","Núcleo","Pulso","Lúmen"],
-  creature:["Quimera","Mímico","Simbionte","Nómada","Cérbero","Vástago","Draco","Morfón"],
-  weapon:["Cortavacío","Filo Nexo","Ruptor","Sable Cero","Púa Solar","Vórtice","Impacto","Daga Umbral"],
-  tool:["Sonda X","Taladro Nexo","Cizalla","Sifón","Pico Delta","Rastreador","Extractor","Módulo"],
-  gear:["Égida","Bastión","Manto Cero","Coraza","Velo Prisma","Aegis","Peto Nexo","Yelmo"],
-  consumable:["Suero Nova","Dosis Cero","Ampolla","Catalux","Inyector X","Vial Nexo","Pulso Vital","Elixir"],
-  other:["Nexo","Reliquia","Prisma Roto","Eco Cero","Ancla","Vestigio","Cifra","Paradoja"]
+ const catFamily=cat==="Criatura"?"biologico":cat==="Arma"?"combate":cat==="Herramienta"?"tecnico":cat==="Equipo"?"proteccion":cat==="Consumible"?"quimico":cat==="Anomalía"?"anomalia":(themes.includes("vegetal")?"vegetal":themes.includes("energia")?"energia":themes.includes("mineral")?"mineral":energy?"energia":metal?"mineral":"tecnico");
+ const secondaryTheme=themes.find(t=>t!==catFamily&&namingFamilies[t]);
+ const stableHash=value=>{let h=2166136261;for(const ch of String(value)){h^=ch.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0};
+ const sourceKey=[a.name,b.name].sort((x,y)=>String(x).localeCompare(String(y),"es")).join("::")+`::${cat}::${r}`;
+ const familyPool=namingFamilies[catFamily]||namingFamilies.tecnico;
+ const seed=stableHash(sourceKey);
+ const noun=familyPool.nouns[seed%familyPool.nouns.length];
+ const adjPool=secondaryTheme&&namingFamilies[secondaryTheme]?namingFamilies[secondaryTheme].adjs:familyPool.adjs;
+ const adjective=adjPool[Math.floor(seed/familyPool.nouns.length)%adjPool.length];
+ const fusedNames={
+  "vegetal|mineral":["Brote Cristalino","Savia de Prisma","Raíz de Cuarzo","Flor de Ferrita"],
+  "energia|vegetal":["Brote Voltaico","Savia de Plasma","Núcleo Fotosintético","Flor de Pulso"],
+  "anomalia|vegetal":["Brote de Singularidad","Raíz del Umbral","Savia Espectral","Flor de Eclipse"],
+  "energia|mineral":["Núcleo de Fase","Prisma Voltaico","Geoda Resonante","Matriz de Plasma"],
+  "anomalia|mineral":["Prisma de Singularidad","Geoda del Umbral","Fragmento Espectral","Nódulo Fractal"],
+  "anomalia|energia":["Núcleo de Singularidad","Pulso del Umbral","Reactor Espectral","Eco Cuántico"],
+  "biologico|vegetal":["Simbionte de Savia","Crisálida Vegetal","Quimera Micelar","Vástago Umbrío"],
+  "biologico|energia":["Simbionte Voltaico","Quimera de Plasma","Núcleo Viviente","Crisálida de Fase"],
+  "combate|mineral":["Filo de Ferrita","Sable de Obsidiana","Martillo Prismático","Lanza de Cuarzo"],
+  "combate|energia":["Filo Voltaico","Sable de Fase","Lanza de Plasma","Disruptor Resonante"],
+  "proteccion|mineral":["Coraza de Ferrita","Égida de Obsidiana","Blindaje Prismático","Bastión de Cuarzo"],
+  "proteccion|energia":["Coraza Voltaica","Égida de Fase","Blindaje de Plasma","Manto Resonante"]
  };
- const family=creature?"creature":weapon?"weapon":gear?"gear":tool?"tool":consumable?"consumable":energy?"energy":plant?"plant":metal?"metal":"other";
- const pick=list=>list[Math.floor(Math.random()*list.length)];
- // El término acuñado recuerda a los dos ingredientes; el nombre principal sigue
- // siendo corto y legible. El código solo se usa si hay riesgo de colisión.
- // Evitar combinaciones redundantes o que suenen a dos sustantivos pegados sin sentido.
- const sourceWords=(String(a.name)+" "+String(b.name)).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
- let motifOptions=motifs[family].filter(m=>!sourceWords.includes(m.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase()));
- if(/resin/.test(sourceWords)&&family==="plant") motifOptions=motifOptions.filter(m=>!["Rizoma","Savia"].includes(m));
- const motif=pick(motifOptions.length?motifOptions:motifs[family]);
- const fusedRoot=compactRoots(stemA,stemB);
- const shortCode=()=>uid().replace(/[^a-z0-9]/gi,"").slice(-3).toUpperCase();
- const nameBase=Math.random()<.52?`${motif} ${fusedRoot}`:`${fusedRoot} ${motif}`;
- const titleShortName=value=>String(value||"").trim().split(/\s+/).slice(0,3).map((part,i)=>{
-  if(i===0)return part.charAt(0).toLocaleUpperCase("es-ES")+part.slice(1).toLocaleLowerCase("es-ES");
-  // Los códigos de anomalía se mantienen en mayúsculas; el resto sigue la ortografía normal.
-  return /^[A-Z0-9]{2,4}$/.test(part)?part:part.charAt(0).toLocaleLowerCase("es-ES")+part.slice(1).toLocaleLowerCase("es-ES");
- }).join(" ");
- name=titleShortName(nameBase);
- // Mantener los nombres únicos en el registro sin hacerlos largos: código discreto.
- if(itemDB[name] || (state.seen||[]).includes(name)) name=`${name} ${shortCode()}`;
+ const pairPriority=["anomalia|vegetal","anomalia|mineral","anomalia|energia","vegetal|mineral","energia|vegetal","energia|mineral","biologico|vegetal","biologico|energia","combate|mineral","combate|energia","proteccion|mineral","proteccion|energia"];
+ const pairKey=pairPriority.find(key=>{const [left,right]=key.split("|");return (themesA.includes(left)&&themesB.includes(right))||(themesA.includes(right)&&themesB.includes(left));});
+ const themedNames=pairKey?fusedNames[pairKey]:null;
+ name=themedNames?themedNames[seed%themedNames.length]:`${noun} ${adjective}`;
+ const inheritedThemes=themes;
+ const inheritedConcepts=[...new Set([...(Array.isArray(a.lineageConcepts)?a.lineageConcepts:[a.name]),...(Array.isArray(b.lineageConcepts)?b.lineageConcepts:[b.name])])].slice(0,8);
  const synthesisDescription=category=>({
   "Material":"Material sintetizado. Útil para nuevas recetas.",
   "Lingote":"Aleación sintetizada. Base para fabricar componentes.",
@@ -731,12 +752,12 @@ function fusionOutcome(a,b){
   "Anomalía":"Anomalía sintetizada. Su efecto depende de la pasiva generada."
  }[category]||"Objeto sintetizado. Sus parámetros dependen de los materiales combinados.");
  desc=synthesisDescription(cat);
- const out={name,icon,cat,r,val,desc,slot,unique:true,coherent:true,trait:"Síntesis de convergencia",affix:"Síntesis de convergencia"};
+ const out={name,icon,cat,r,val,desc,slot,unique:true,coherent:true,semanticThemes:inheritedThemes,lineageConcepts:inheritedConcepts,trait:"Síntesis de convergencia",affix:"Síntesis de convergencia"};
  if(cat==="Arma"){out.damage=Math.max(4,Math.round(r*5+(Number(a.damage)||0)*.25+(Number(b.damage)||0)*.25+Math.random()*r*2));out.secondaryTrait=choose(["Filo resonante","Impacto brutal","Pulso estable","Carga residual"]);}
  if(cat==="Herramienta"){out.gather=Math.max(5,Math.round(r*7+(Number(a.gather)||0)*.2+(Number(b.gather)||0)*.2+Math.random()*r*2));out.damage=Math.round(r*2+Math.random()*r);out.secondaryTrait=choose(["Extracción fina","Agarre adaptativo","Lectura mineral","Corte limpio"]);}
  if(cat==="Equipo"){out.defense=Math.max(3,Math.round(r*6+(Number(a.defense)||0)*.25+(Number(b.defense)||0)*.25+Math.random()*r*2));out.secondaryTrait=choose(["Blindaje reactivo","Disipación térmica","Sello hermético","Malla cinética"]);}
  if(cat==="Criatura"){out.abilities=rollCompanionAbilities(r);out.ability=out.abilities[0];out.companion=true;}
- if(r>=3&&Math.random()<Math.min(.42,.12+r*.055)){cat="Anomalía";out.cat=cat;out.name=(choose(["Nexo","Umbral","Eco","Vórtice","Paradoja","Latido","Eclipse","Marea","Aurora","Prisma","Abismo","Cero"])+" "+compactRoots(stemA,stemB)+"-"+uid().replace(/[^a-z0-9]/gi,"").slice(-3).toUpperCase()).split(/\s+/).slice(0,3).join(" ");out.icon="🧬";const passives=[["Daño",`+${2+r*2} daño pasivo`],["Defensa",`+${r*2} defensa pasiva`],["Recolección",`+${r*5}% de recolección`],["Suerte",`+${r*3}% de hallazgos`],["Créditos",`+${r*2}% de créditos`],["Captura",`+${r*2}% de captura`]];const passive=passives[Math.floor(Math.random()*passives.length)];out.passive={type:passive[0],value:passive[1]};out.slot=null;out.desc=synthesisDescription("Anomalía");out.val+=20;}
+ if(r>=3&&Math.random()<Math.min(.42,.12+r*.055)){cat="Anomalía";out.cat=cat;out.name=["Nexo de Singularidad","Umbral Espectral","Eco Temporal","Vórtice Fractal","Paradoja Cuántica","Eclipse Viviente","Marea Anómala","Prisma del Vacío"][stableHash(sourceKey+"::anomaly")%8];out.icon="🧬";const passives=[["Daño",`+${2+r*2} daño pasivo`],["Defensa",`+${r*2} defensa pasiva`],["Recolección",`+${r*5}% de recolección`],["Suerte",`+${r*3}% de hallazgos`],["Créditos",`+${r*2}% de créditos`],["Captura",`+${r*2}% de captura`]];const passive=passives[Math.floor(Math.random()*passives.length)];out.passive={type:passive[0],value:passive[1]};out.slot=null;out.desc=synthesisDescription("Anomalía");out.val+=20;}
  return out;
 }
 function doFuse(){if(activeTask||state.pendingFusion)return;if(!state.fusionSlots)return;const a=state.inventory.find(x=>x.id===state.fusionSlots?.A),b=state.inventory.find(x=>x.id===state.fusionSlots?.B);if(!a||!b)return toast("Selecciona dos objetos antes de fusionar.",true);if(a.id===b.id&&a.qty<2)return toast("Necesitas dos unidades si eliges el mismo objeto.",true);const aa={...a},bb={...b};beginTask("fusion",10000,()=>{if(aa.id===bb.id){takeById(aa.id,2)}else{takeById(aa.id,1);takeById(bb.id,1)}const out={...fusionOutcome(aa,bb),sourceA:aa.name,sourceB:bb.name,origin:"síntesis",trait:"Síntesis de convergencia",affix:"Síntesis de convergencia",unique:true};saveSynthesisVariant(out);/* No reemplazar el valor de esta fusión por el de una variante anterior con el mismo nombre: cada resultado conserva su propio valor calculado. */itemDB[out.name]=out;state.discovered=state.discovered||{};state.discovered[out.name]={...out,name:out.name};if(!state.seen.includes(out.name))state.seen.push(out.name);state.fusions++;xp(20);state.pendingFusion={a:aa.name,b:bb.name,out,createdAt:Date.now()};state.history.unshift({a:aa.name,b:bb.name,out:out.name,r:out.r,icon:out.icon});state.history=state.history.slice(0,3);log(`Fusión lista para reclamar: <b>${aa.name}</b> + <b>${bb.name}</b>.`);toast("Fusión terminada. Reclama el objeto para guardarlo.");render();save()}, {panel:$('fusionProgress'),bar:$('fusionBar'),percent:$('fusionPercent'),status:null,button:$('fuseBtn')});renderFusionSelects()}
