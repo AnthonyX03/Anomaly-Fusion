@@ -678,9 +678,56 @@ function zoneRequiredLevel(z){return zoneUnlockLevels[z.id]||1}
 function zoneUnlocked(z){return state.level>=zoneRequiredLevel(z)}
 function xp(n){const baseGain=Math.max(0,Math.floor(Number(n)||0));const gain=baseGain?Math.max(1,Math.floor(baseGain*(1+Math.max(0,stat("experience"))/100))):0;if(!gain)return;if(state.level>=50){state.level=50;state.xp=0;toast("Nivel máximo alcanzado: 50.");return}state.xp+=gain;log(`Experiencia obtenida: <b>+${gain} XP</b>.`);while(state.level<50&&state.xp>=state.level*100){state.xp-=state.level*100;state.level++;const levelReward=20+state.level*5;const rankMilestone=[2,4,6,9,12,16,20,27,31,35,39,43,47,50].includes(state.level);const rankBonus=rankMilestone?state.level*10:0;const reward=levelReward+rankBonus;state.credits+=reward;log(`¡Nivel ${state.level} alcanzado! Rango: <b>${operatorRank()}</b>. +${levelReward} créditos${rankBonus?` y +${rankBonus} por rango`:""}.`);toast(`¡Nivel ${state.level}! <b>${operatorRank()}</b> · +${reward} créditos`)}if(state.level>=50)state.xp=0;renderStats();save()}
 function log(msg){state.activity.unshift({msg,time:new Date().toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"})});state.activity=state.activity.slice(0,8)}
-function ensureAudio(){audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();if(!masterGain){masterGain=audioCtx.createGain();masterGain.gain.value=Math.max(0,Math.min(100,Number(state.settings.soundVolume??75)))/100;masterGain.connect(audioCtx.destination)}if(audioCtx.state==="suspended")audioCtx.resume().catch(()=>{});return audioCtx}
-function setSoundVolume(value){state.settings.soundVolume=Math.max(0,Math.min(100,Number(value)||0));if(masterGain&&audioCtx){masterGain.gain.setTargetAtTime(state.settings.soundVolume/100,audioCtx.currentTime,.025)}const slider=$("soundVolume"),label=$("soundVolumeValue");if(slider)slider.value=state.settings.soundVolume;if(label)label.textContent=state.settings.soundVolume+"%";save()}
-function sound(freq=500,dur=.07,type="sine"){if(!state.settings.sound||Number(state.settings.soundVolume)===0)return;try{ensureAudio();const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type=type;o.frequency.value=freq;g.gain.setValueAtTime(.12,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+dur);o.connect(g);g.connect(masterGain);o.start();o.stop(audioCtx.currentTime+dur)}catch(e){}}
+function ensureAudio(){
+ audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();
+ if(!masterGain){
+  masterGain=audioCtx.createGain();
+  // techo suave para evitar picos
+  masterGain.gain.value=Math.max(0,Math.min(100,Number(state.settings.soundVolume??75)))/100*0.85;
+  masterGain.connect(audioCtx.destination);
+ }
+ if(audioCtx.state==="suspended")audioCtx.resume().catch(()=>{});
+ return audioCtx;
+}
+function setSoundVolume(value){
+ state.settings.soundVolume=Math.max(0,Math.min(100,Number(value)||0));
+ if(masterGain&&audioCtx){
+  const now=audioCtx.currentTime;
+  masterGain.gain.cancelScheduledValues(now);
+  masterGain.gain.setTargetAtTime((state.settings.soundVolume/100)*0.85,now,.04);
+ }
+ const slider=$("soundVolume"),label=$("soundVolumeValue");
+ if(slider)slider.value=state.settings.soundVolume;
+ if(label)label.textContent=state.settings.soundVolume+"%";
+ save();
+}
+// Beep suave con ataque/release lineales (sin saltos de ganancia = sin petardeo)
+function sound(freq=520,dur=.07,type="sine"){
+ if(!state.settings.sound||Number(state.settings.soundVolume)===0)return;
+ try{
+  ensureAudio();
+  const now=audioCtx.currentTime;
+  const osc=audioCtx.createOscillator();
+  const gain=audioCtx.createGain();
+  const filter=audioCtx.createBiquadFilter();
+  osc.type=(type==="triangle")?"triangle":"sine"; // nunca sierra
+  osc.frequency.setValueAtTime(Math.max(80,Math.min(1800,Number(freq)||520)),now);
+  filter.type="lowpass";
+  filter.frequency.setValueAtTime(Math.min(2400,(Number(freq)||520)*2.8),now);
+  filter.Q.value=0.4;
+  const peak=0.04;
+  const attack=0.015;
+  const body=Math.max(0.05,Math.min(0.35,Number(dur)||.07));
+  gain.gain.setValueAtTime(0,now);
+  gain.gain.linearRampToValueAtTime(peak,now+attack);
+  gain.gain.linearRampToValueAtTime(0,now+attack+body);
+  osc.connect(filter);
+  filter.connect(gain);
+  gain.connect(masterGain);
+  osc.start(now);
+  osc.stop(now+attack+body+0.03);
+ }catch(e){}
+}
 function toast(msg,bad=false){const d=document.createElement("div");d.className="toast"+(bad?" bad":"");d.innerHTML=msg; $("toastArea").appendChild(d);sound(bad?180:620,.06,bad?"triangle":"sine");setTimeout(()=>d.remove(),3500)}
 function showConfirm(title,message,acceptLabel,action,danger=false){pendingConfirmAction=action;$ ("confirmTitle").textContent=title;$ ("confirmMessage").textContent=message;$ ("confirmAccept").textContent=acceptLabel||"Confirmar";$ ("confirmAccept").classList.toggle("danger",!!danger);$ ("confirmAccept").classList.toggle("primary",!danger);$ ("confirmModal").classList.remove("hidden");$ ("confirmCancel").focus({preventScroll:true});}
 function closeConfirm(){pendingConfirmAction=null;$ ("confirmModal").classList.add("hidden")}
@@ -712,61 +759,56 @@ function stopFusionHum(){
  if(!fusionHum)return;
  try{
   const now=audioCtx?.currentTime||0;
-  const bus=fusionHum.bus||(fusionHum.gains&&fusionHum.gains[0]);
+  const bus=fusionHum.bus;
   if(bus&&bus.gain){
    bus.gain.cancelScheduledValues(now);
-   const cur=Math.max(0,bus.gain.value||0);
+   const cur=Math.max(0,Number(bus.gain.value)||0);
    bus.gain.setValueAtTime(cur,now);
-   bus.gain.linearRampToValueAtTime(0,now+0.45);
+   bus.gain.linearRampToValueAtTime(0,now+0.5);
   }
   for(const osc of (fusionHum.oscs||[])){
-   try{osc.stop(now+0.5)}catch(e){}
+   try{osc.stop(now+0.55)}catch(e){}
   }
  }catch(e){}
- // liberar referencia tras el fade
- const ref=fusionHum;
  fusionHum=null;
- setTimeout(()=>{try{/* noop */}catch(e){}},600);
 }
 
 function startFusionHum(){
  if(!state.settings.sound||Number(state.settings.soundVolume)===0)return;
  try{
-  if(fusionHum)return; // ya suena: no reiniciar (evita petardeo)
+  if(fusionHum)return;
   ensureAudio();
   const now=audioCtx.currentTime;
-  // Pad medio suave (sin graves). Entrada lenta para no petardear.
   const bus=audioCtx.createGain();
   bus.gain.setValueAtTime(0,now);
-  bus.gain.linearRampToValueAtTime(0.09,now+1.2);
+  bus.gain.linearRampToValueAtTime(0.05,now+1.4);
   bus.connect(masterGain);
   const filter=audioCtx.createBiquadFilter();
-  filter.type="bandpass";
-  filter.frequency.value=520;
-  filter.Q.value=0.7;
+  filter.type="lowpass";
+  filter.frequency.value=900;
+  filter.Q.value=0.5;
   filter.connect(bus);
-  const mk=(freq,type,level)=>{
+  const mk=(freq,level)=>{
    const o=audioCtx.createOscillator();
    const g=audioCtx.createGain();
-   o.type=type;
+   o.type="sine";
    o.frequency.setValueAtTime(freq,now);
    g.gain.setValueAtTime(level,now);
    o.connect(g);g.connect(filter);
    o.start(now);
    return o;
   };
-  // acorde suave medio-agudo
-  const o1=mk(392,"sine",0.45);   // G4
-  const o2=mk(494,"sine",0.28);   // B4
-  const o3=mk(587,"triangle",0.12); // D5 suave
-  // leve deriva
-  o1.frequency.linearRampToValueAtTime(400,now+10);
-  o2.frequency.linearRampToValueAtTime(502,now+10);
-  fusionHum={oscs:[o1,o2,o3],gains:[bus],bus};
+  // acorde medio suave, volumen bajo
+  const o1=mk(330,0.35);
+  const o2=mk(415,0.22);
+  const o3=mk(495,0.12);
+  o1.frequency.linearRampToValueAtTime(338,now+10);
+  o2.frequency.linearRampToValueAtTime(422,now+10);
+  fusionHum={oscs:[o1,o2,o3],bus};
  }catch(e){fusionHum=null}
 }
 
-function beginTask(type,duration,onDone,els){if(activeTask)return;activeTask={type,start:Date.now(),duration,done:false,lastCue:0};if(type==="fusion")startFusionHum();else sound(260,.11,"sawtooth");els.panel.classList.remove("hidden");els.bar.style.width="0%";els.percent.textContent="0%";els.status&&(els.status.textContent=type==="explore"?"Explorando...":type==="craft"?"Fabricando...":"Fusionando...");els.button&&(els.button.disabled=true);const tick=()=>{if(!activeTask||activeTask.type!==type)return;const p=Math.min(1,(Date.now()-activeTask.start)/duration);els.bar.style.width=(p*100)+"%";els.percent.textContent=Math.floor(p*100)+"%";if(type!=="fusion"){const step=Math.floor(p*5);if(step>activeTask.lastCue&&p<1){activeTask.lastCue=step;sound(760+step*35,.035,"sine")}}if(p>=1){activeTask=null;if(type==="fusion"){stopFusionHum();sound(660,.16,"triangle")}else sound(920,.12,"triangle");onDone();return}setTimeout(tick,100)};tick()}
+function beginTask(type,duration,onDone,els){if(activeTask)return;activeTask={type,start:Date.now(),duration,done:false,lastCue:0};if(type==="fusion")startFusionHum();else sound(420,.09,"sine");els.panel.classList.remove("hidden");els.bar.style.width="0%";els.percent.textContent="0%";els.status&&(els.status.textContent=type==="explore"?"Explorando...":type==="craft"?"Fabricando...":"Fusionando...");els.button&&(els.button.disabled=true);const tick=()=>{if(!activeTask||activeTask.type!==type)return;const p=Math.min(1,(Date.now()-activeTask.start)/duration);els.bar.style.width=(p*100)+"%";els.percent.textContent=Math.floor(p*100)+"%";if(type!=="fusion"){const step=Math.floor(p*5);if(step>activeTask.lastCue&&p<1){activeTask.lastCue=step;sound(620+step*25,.04,"sine")}}if(p>=1){activeTask=null;if(type==="fusion"){stopFusionHum();sound(620,.12,"sine")}else sound(740,.1,"sine");onDone();return}setTimeout(tick,100)};tick()}
 function beginExplore(){if(activeTask||currentEnemy)return;const z=zones.find(z=>z.id===selectedZone);if(!z||!zoneUnlocked(z))return toast(`Zona bloqueada. Necesitas nivel ${zoneRequiredLevel(z||zones[0])} de Operador.`,true);$("combatPanel").classList.add("hidden");$("exploreProgressPanel").classList.remove("hidden");beginTask("explore",10000,()=>{state.expeditions++;const foundItems=[];const primary=z.loot[Math.floor(Math.random()*z.loot.length)];foundItems.push(primary);const gatherChance=Math.min(.82,Math.max(0,(stat("gather")+stat("loot"))/100));if(Math.random()<gatherChance)foundItems.push(z.loot[Math.floor(Math.random()*z.loot.length)]);const rareChance=Math.min(.35,Math.max(0,stat("luck")/200));if(Math.random()<rareChance)foundItems.push(z.loot[Math.floor(Math.random()*z.loot.length)]);// Anomalías base: baja probabilidad en cualquier zona
 if(typeof baseAnomalyNames!=="undefined"&&baseAnomalyNames.length&&Math.random()<(BASE_ANOMALY_DROP_CHANCE+Math.min(0.08,stat("luck")/400))){
   const anom=baseAnomalyNames[Math.floor(Math.random()*baseAnomalyNames.length)];
@@ -1094,7 +1136,7 @@ function makeProceduralLoot(packId){
  itemDB[out.name]=out;return out;
 }
 function renderSupplies(){const cards=supplyPacks.map(p=>`<div class="supply-card"><div class="zone-art" style="height:95px">${itemIconMarkup(p.name,p.icon)}</div><h4>${p.name}</h4><div class="gold" style="font-weight:900">◈ ${p.price} créditos</div><p>${p.desc}</p><button class="primary" data-pack="${p.id}" ${state.credits>=p.price&&!state.pendingSupply&&!activeTask?"":"disabled"}>Solicitar suministro</button></div>`).join('');if($('suppliesGridCentral'))$('suppliesGridCentral').innerHTML=cards;document.querySelectorAll('[data-pack]').forEach(b=>b.onclick=()=>buyPack(b.dataset.pack))}
-function buyPack(id){const p=supplyPacks.find(p=>p.id===id);if(activeTask||state.pendingSupply)return toast("Termina o reclama el suministro pendiente antes de pedir otro.",true);if(state.credits<p.price)return toast("Créditos insuficientes.",true);state.credits-=p.price;let pool;if(id==="field")pool=["Madera","Chatarra","Carbón","Mena de hierro","Mena de cobre","Cuchillo oxidado","Hacha de ramas","Batería vieja"];else if(id==="black")pool=["Pico de hierro","Hacha de hierro","Espada de cobre","Armadura de chatarra","Placa electrónica","Mena de oro","Zombie de bolsillo","Aleación extraña","Cañón de bolsillo"];else pool=["Espada de rayos","Pico de cristal","Hacha solar","Escudo de vacío","Núcleo energético","Gólem de carbón","Humano enlatado","Zombie jardinero","Traje de esporas","Tostadora mutante"];let n=id==="field"?2:id==="black"?3:4;let found=[];for(let i=0;i<n;i++){if(Math.random()<(id==="field"?.22:id==="black"?.38:.58)){found.push(makeProceduralLoot(id));continue;}let name=pool[Math.floor(Math.random()*pool.length)];if(id==="anomaly"&&Math.random()<.28){const heads=["Cuchilla","Núcleo","Martillo","Guante","Orbe","Pico","Motor","Escudo"];const tails=["de neón","paradójico","cuántico","del vacío","parasitario","solar","inestable","ancestral"];name=heads[Math.floor(Math.random()*heads.length)]+" "+tails[Math.floor(Math.random()*tails.length)]+" "+uid().slice(0,2).toUpperCase();const rr=3+Math.floor(Math.random()*3);const anomaly={name,icon:["🧬","⚡","🛡️","🔮","🪓"][Math.floor(Math.random()*5)],cat:"Anomalía",r:rr,val:rr*24,desc:`Hallazgo anómalo de la cápsula. Firma ${uid().toUpperCase()}.`,passive:[{type:"Daño",value:`+${rr*2} daño pasivo`},{type:"Defensa",value:`+${rr*2} defensa pasiva`},{type:"Suerte",value:`+${rr*3}% de hallazgos`},{type:"Créditos",value:`+${rr*2}% de créditos`},{type:"Recolección",value:`+${rr*4}% de recolección`},{type:"Captura",value:`+${rr*2}% de captura`}][Math.floor(Math.random()*6)],unique:true,procedural:true};itemDB[name]=anomaly;found.push(anomaly);}else found.push({name,...info(name)});}state.pendingSupply={pack:p.name,items:found,stage:"animating",startedAt:Date.now()};log(`Solicitud enviada: <b>${p.name}</b>. La Central está materializando una carga de procedencia incierta.`);render();save();sound(250,.12,"sawtooth");setTimeout(()=>sound(390,.1,"triangle"),500);setTimeout(()=>{if(!state.pendingSupply)return;state.pendingSupply.stage="ready";renderSupplyDelivery();renderSupplies();save();sound(740,.16,"triangle");},3500)}
+function buyPack(id){const p=supplyPacks.find(p=>p.id===id);if(activeTask||state.pendingSupply)return toast("Termina o reclama el suministro pendiente antes de pedir otro.",true);if(state.credits<p.price)return toast("Créditos insuficientes.",true);state.credits-=p.price;let pool;if(id==="field")pool=["Madera","Chatarra","Carbón","Mena de hierro","Mena de cobre","Cuchillo oxidado","Hacha de ramas","Batería vieja"];else if(id==="black")pool=["Pico de hierro","Hacha de hierro","Espada de cobre","Armadura de chatarra","Placa electrónica","Mena de oro","Zombie de bolsillo","Aleación extraña","Cañón de bolsillo"];else pool=["Espada de rayos","Pico de cristal","Hacha solar","Escudo de vacío","Núcleo energético","Gólem de carbón","Humano enlatado","Zombie jardinero","Traje de esporas","Tostadora mutante"];let n=id==="field"?2:id==="black"?3:4;let found=[];for(let i=0;i<n;i++){if(Math.random()<(id==="field"?.22:id==="black"?.38:.58)){found.push(makeProceduralLoot(id));continue;}let name=pool[Math.floor(Math.random()*pool.length)];if(id==="anomaly"&&Math.random()<.28){const heads=["Cuchilla","Núcleo","Martillo","Guante","Orbe","Pico","Motor","Escudo"];const tails=["de neón","paradójico","cuántico","del vacío","parasitario","solar","inestable","ancestral"];name=heads[Math.floor(Math.random()*heads.length)]+" "+tails[Math.floor(Math.random()*tails.length)]+" "+uid().slice(0,2).toUpperCase();const rr=3+Math.floor(Math.random()*3);const anomaly={name,icon:["🧬","⚡","🛡️","🔮","🪓"][Math.floor(Math.random()*5)],cat:"Anomalía",r:rr,val:rr*24,desc:`Hallazgo anómalo de la cápsula. Firma ${uid().toUpperCase()}.`,passive:[{type:"Daño",value:`+${rr*2} daño pasivo`},{type:"Defensa",value:`+${rr*2} defensa pasiva`},{type:"Suerte",value:`+${rr*3}% de hallazgos`},{type:"Créditos",value:`+${rr*2}% de créditos`},{type:"Recolección",value:`+${rr*4}% de recolección`},{type:"Captura",value:`+${rr*2}% de captura`}][Math.floor(Math.random()*6)],unique:true,procedural:true};itemDB[name]=anomaly;found.push(anomaly);}else found.push({name,...info(name)});}state.pendingSupply={pack:p.name,items:found,stage:"animating",startedAt:Date.now()};log(`Solicitud enviada: <b>${p.name}</b>. La Central está materializando una carga de procedencia incierta.`);render();save();sound(250,.12,"sine");setTimeout(()=>sound(390,.1,"triangle"),500);setTimeout(()=>{if(!state.pendingSupply)return;state.pendingSupply.stage="ready";renderSupplyDelivery();renderSupplies();save();sound(740,.16,"triangle");},3500)}
 function renderSupplyDelivery(){const pending=state.pendingSupply,modal=$("supplyHud");if(!modal)return;modal.classList.toggle("hidden",!pending);if(!pending)return;const animating=pending.stage==="animating";$("supplyHudStatus").textContent=animating?"TRANSMISIÓN EN CURSO":"CARGA VERIFICADA";$("supplyHudScan").classList.toggle("hidden",!animating);$("supplyHudManifest").classList.toggle("hidden",animating);if(animating){$("supplyHudTitle").textContent="MATERIALIZANDO SUMINISTRO";$("supplyHudScanLabel").textContent="VERIFICANDO FIRMA · CARGA EN TRÁNSITO";$("supplyHudScanText").textContent=`La Central está preparando ${pending.items.length} objetos. Mantén abierto el canal hasta completar la transmisión.`;const meter=$("supplyHudMeter");meter.style.transition="none";meter.style.width="0%";requestAnimationFrame(()=>requestAnimationFrame(()=>{meter.style.transition="width 3.4s linear";meter.style.width="100%"}));}else{$("supplyHudTitle").textContent="SUMINISTRO MATERIALIZADO";$("supplyHudManifestText").textContent=`Paquete: ${pending.pack}. Se han recibido ${pending.items.length} objetos. Revísalos y pulsa Reclamar para añadirlos al inventario.`;$("supplyHudItems").innerHTML=pending.items.map((x,i)=>`<div class="supply-hud-reward" style="animation-delay:${Math.min(i*55,350)}ms"><span class="supply-hud-reward-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><span class="supply-hud-reward-info"><b>${escapeHtml(x.name)}</b><small>N${x.r||info(x.name).r} · ${escapeHtml(x.cat||info(x.name).cat)}</small></span></div>`).join("");$("claimSupply").disabled=false;}}
 function claimSupply(){const pending=state.pendingSupply;if(!pending||pending.stage!=='ready')return;pending.items.forEach(x=>addItem(x.name,1,{origin:"suministro",icon:x.icon,cat:x.cat,r:x.r,val:x.val,desc:x.desc,damage:x.damage,defense:x.defense,gather:x.gather,slot:x.slot,unique:x.unique,passive:x.passive,procedural:x.procedural,ability:x.ability,abilities:x.abilities,affix:x.affix,companion:x.companion}));const names=pending.items.map(x=>x.name);state.pendingSupply=null;log(`Suministro reclamado: <b>${names.join(', ')}</b>.`);toast(`Añadido al inventario: <b>${names.join(', ')}</b>`);render();save()}
 

@@ -394,3 +394,12 @@ La descripción de los objetos vuelve al tamaño tipográfico original de las ta
 - Toasts/log de reclamación también usan el nombre visible limpio.
 - Sonido de fusión rehecho otra vez: pad medio (sin graves), entrada lenta, no se reinicia si ya suena, salida lineal suave.
 - Caché PWA actualizada a r33.
+
+
+### r34 — Rework global de audio (sin petardeo)
+- `sound()` rehecho con ataque y release lineales desde 0 (elimina clics al arrancar/parar).
+- Solo ondas seno/triángulo suaves; eliminada la sierra.
+- Volumen de picos más bajo y filtro low-pass en cada beep.
+- Hum de fusión más suave, sin reinicios y con fade de salida.
+- Cues de progreso de tareas más suaves.
+- Caché PWA actualizada a r34.
