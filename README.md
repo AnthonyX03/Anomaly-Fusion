@@ -295,3 +295,10 @@ La descripción de los objetos vuelve al tamaño tipográfico original de las ta
 
 ### r19 — Alineación del pie de las tarjetas
 - El bloque de categoría/valor y el enlace «Ver detalles» se mantienen al fondo de la tarjeta tanto en objetos normales como en objetos de fusión, independientemente de que tengan rasgo de síntesis.
+
+
+## r20 — nombres de equipo y desequipado
+- En el selector y en los espacios de equipo se usa el nombre corto visible, ocultando el sufijo «Herramienta de Fibra» sin modificar el nombre interno del objeto.
+- Los nombres largos se parten dentro de sus contenedores para evitar desbordamientos en móvil y escritorio.
+- Cada espacio equipado muestra un botón «Desequipar» junto al de elegir objeto; solo aparece cuando hay un objeto equipado.
+- Caché PWA actualizada a r20.
