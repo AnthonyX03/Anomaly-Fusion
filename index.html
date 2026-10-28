@@ -230,6 +230,13 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
  .mobile-nav-panel button{min-height:44px;font-size:.72rem;white-space:normal;line-height:1.2}
 }
 
+
+.settings-tabbar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 14px}
+.settings-tab{min-height:44px;border:1px solid #344955;background:#151f28;color:var(--muted);border-radius:10px;font-size:.78rem;font-weight:700}
+.settings-tab.active{border-color:var(--cyan);color:var(--cyan);background:#10201f}
+.settings-panel{display:none}
+.settings-panel.active{display:block}
+.home-clock{color:var(--cyan);font-variant-numeric:tabular-nums;letter-spacing:.04em}
 </style>
 </head>
 <body>
@@ -254,7 +261,7 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 </aside>
 <main class="main">
 <section class="page active" id="page-home">
- <div class="panel hero"><div class="eyebrow">BIENVENIDO, OPERADOR</div><h2>Todo puede convertirse en algo más.</h2><p>Explora zonas hostiles, recupera materiales, fabrica herramientas y fusiona cualquier par de objetos. La lógica es tuya. El resultado… no siempre.</p><div class="hero-actions"><button class="primary" data-goto="fusion">⟁ Iniciar fusión</button><button data-goto="explore">⌖ Salir a explorar</button><button data-goto="registry">▦ Registro de objetos</button></div></div>
+ <div class="panel hero"><div class="eyebrow">BIENVENIDO, OPERADOR · <span id="homeClock" class="home-clock">—</span></div><h2>Todo puede convertirse en algo más.</h2><p>Explora zonas hostiles, recupera materiales, fabrica herramientas y fusiona cualquier par de objetos. La lógica es tuya. El resultado… no siempre.</p><div class="hero-actions"><button class="primary" data-goto="fusion">⟁ Iniciar fusión</button><button data-goto="explore">⌖ Salir a explorar</button><button data-goto="registry">▦ Registro de objetos</button></div></div>
  <div class="grid three" style="margin-top:13px"><div class="panel"><div class="eyebrow">OBJETOS REGISTRADOS</div><div style="display:flex;gap:18px;margin:9px 0;flex-wrap:wrap"><div><div style="font-size:1.5rem;line-height:1.1" id="itemCountBase">0</div><div class="small-note" style="margin-top:2px">Registro Base</div></div><div><div style="font-size:1.5rem;line-height:1.1" id="itemCountSynth">0</div><div class="small-note" style="margin-top:2px">Registro de Síntesis</div></div></div><div class="small-note">Colección local separada por tipo de descubrimiento.</div></div><div class="panel"><div class="eyebrow">EXPEDICIONES</div><div style="font-size:1.8rem;margin:9px 0" id="expCount">0</div><div class="small-note">Cada salida puede traer recursos… o problemas.</div></div><div class="panel"><div class="eyebrow">FUSIONES COMPLETADAS</div><div style="font-size:1.8rem;margin:9px 0" id="fusionCount">0</div><div class="small-note">Dos objetos entran. Algo nuevo sale.</div></div></div>
  <div class="section-title"><h3>▰ REGISTRO RECIENTE</h3><span class="tag">ÚLTIMOS EVENTOS</span></div><div class="panel" id="activityLog"></div>
  <div class="section-title"><h3>▰ ACCESO RÁPIDO</h3></div><div class="grid three"><button data-goto="central">▦ Mesa de creación y horno</button><button data-goto="inventory">▤ Abrir inventario</button><button data-goto="supplies">▣ Solicitar suministros</button></div>
@@ -496,8 +503,12 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 <div class="modal-backdrop hidden" id="inventoryDetailModal"><div class="modal inventory-detail-modal"><div class="modal-head"><h3 id="inventoryDetailTitle">DETALLES DEL OBJETO</h3><button class="tiny" id="closeInventoryDetail" aria-label="Cerrar detalles">✕</button></div><div id="inventoryDetailBody"></div></div></div>
 <div class="modal-backdrop hidden" id="registryModal"><div class="modal"><div class="modal-head"><h3 id="registryModalTitle">REGISTRO DE OBJETO</h3><button class="tiny" id="closeRegistry">✕</button></div><div id="registryModalBody"></div></div></div>
 <div class="modal-backdrop hidden" id="settingsModal"><div class="modal"><div class="modal-head"><h3>⚙ AJUSTES DEL SISTEMA</h3><button class="tiny" id="closeSettings">✕</button></div>
-
- <section class="settings-section" aria-labelledby="settingsPartidaTitle">
+ <div class="settings-tabbar">
+  <button type="button" class="settings-tab active" data-settings-panel="partida">Partida</button>
+  <button type="button" class="settings-tab" data-settings-panel="sonido">Sonido</button>
+  <button type="button" class="settings-tab" data-settings-panel="adapt">Adaptabilidad</button>
+ </div>
+ <section class="settings-section settings-panel active" data-settings-panel="partida" aria-labelledby="settingsPartidaTitle">
   <div class="settings-section-head"><div><h4 id="settingsPartidaTitle">PARTIDA</h4><small>Copia de seguridad y datos locales</small></div></div>
   <div class="settings-section-body">
    <div class="settings-row"><div><label>Exportar / Importar</label><small>Guarda o restaura tu progreso en JSON.</small></div>
@@ -516,7 +527,7 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   </div>
  </section>
 
- <section class="settings-section" aria-labelledby="settingsSonidoTitle">
+ <section class="settings-section settings-panel" data-settings-panel="sonido" aria-labelledby="settingsSonidoTitle">
   <div class="settings-section-head"><div><h4 id="settingsSonidoTitle">SONIDO</h4><small>Efectos de interfaz sintetizados</small></div></div>
   <div class="settings-section-body">
    <div class="settings-row"><div><label for="soundToggle">Sonido</label><small>Activa o silencia todos los efectos.</small></div>
@@ -536,7 +547,7 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   </div>
  </section>
 
- <section class="settings-section" aria-labelledby="settingsAdaptTitle">
+ <section class="settings-section settings-panel" data-settings-panel="adapt" aria-labelledby="settingsAdaptTitle">
   <div class="settings-section-head"><div><h4 id="settingsAdaptTitle">ADAPTABILIDAD</h4><small>Pantalla, densidad y movimiento</small></div></div>
   <div class="settings-section-body">
    <div class="settings-row"><div><label>Pantalla completa</label><small>Usa todo el espacio disponible.</small></div>
@@ -553,20 +564,6 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
    </div>
    <div class="settings-row"><div><label for="layoutModeSelect">Modo de pantalla</label><small>Auto, móvil o PC 16:9.</small></div>
     <div class="settings-actions"><select id="layoutModeSelect" aria-label="Modo de pantalla"><option value="auto" selected>Automático</option><option value="mobile">Móvil</option><option value="pc16">PC · 16:9</option></select></div>
-   </div>
-  </div>
- </section>
-
- 
- <section class="settings-section" aria-labelledby="settingsContentTitle">
-  <div class="settings-section-head"><div><h4 id="settingsContentTitle">CONTENIDO ADICIONAL</h4><small>Expansiones activas en esta versión</small></div></div>
-  <div class="settings-section-body">
-   <div class="settings-row" style="flex-direction:column;align-items:stretch;gap:6px">
-    <div><label>Tráfico de Órganos</label><small>Expansión de la Clínica clandestina: mesa de extracción de órganos a partir de criaturas orgánicas, catálogo de órganos con rasgo Ilegal y Mercado Negro para vender mercancía prohibida fuera del envío legal de suministros.</small></div>
-    <div class="settings-actions" style="justify-content:flex-start">
-     <span class="tag" style="border-color:#ff8098;color:#ff8098">ACTIVA</span>
-     <span class="small-note" style="margin:0">Clínica · Órganos · Mercado · Engendros</span>
-    </div>
    </div>
   </div>
  </section>

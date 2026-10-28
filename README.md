@@ -507,3 +507,11 @@ La descripción de los objetos vuelve al tamaño tipográfico original de las ta
 - Extracción: Retirar criatura + paginación de órganos (10).
 - Síntesis de criatura: 5 ranuras con selector tipo fusión y Retirar.
 - Caché PWA actualizada a r47.
+
+
+### r48 — Reloj en inicio, ajustes por pestañas, estabilización
+- Inicio: fecha y hora en tiempo real junto al saludo.
+- Ajustes: botones Partida / Sonido / Adaptabilidad que muestran cada bloque.
+- Eliminado el apartado Contenido Adicional.
+- Endurecido init y eliminadas llamadas a Mercado Negro antiguo en Clínica.
+- Caché PWA actualizada a r48.
