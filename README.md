@@ -416,3 +416,12 @@ La descripción de los objetos vuelve al tamaño tipográfico original de las ta
 - La barra de fusión ya no usa hum continuo (fuente del petardeo): usa los mismos pitidos de progreso que la exploración.
 - Volumen de los beeps de barra un poco más alto.
 - Caché PWA actualizada a r36.
+
+
+### r37 — Parche anti-petardeo en móvil
+- Beeps con anti-solape (mín. 45 ms entre sonidos).
+- Envelope exponencial 0.0001→pico→0.0001 y ataque más largo (mejor en Android/iOS).
+- Compresor suave en la salida maestra para evitar picos.
+- Menos cues en barras de progreso y beep final ligeramente diferido.
+- Desbloqueo de AudioContext en el primer toque/clic.
+- Caché PWA actualizada a r37.

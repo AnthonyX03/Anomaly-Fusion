@@ -682,9 +682,21 @@ function ensureAudio(){
  audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();
  if(!masterGain){
   masterGain=audioCtx.createGain();
-  // techo suave para evitar picos
-  masterGain.gain.value=Math.max(0,Math.min(100,Number(state.settings.soundVolume??75)))/100*0.85;
-  masterGain.connect(audioCtx.destination);
+  masterGain.gain.value=Math.max(0,Math.min(100,Number(state.settings.soundVolume??75)))/100*0.8;
+  // Compresor suave: reduce picos que en móvil se oyen como petardeo
+  try{
+   const comp=audioCtx.createDynamicsCompressor();
+   comp.threshold.value=-18;
+   comp.knee.value=18;
+   comp.ratio.value=6;
+   comp.attack.value=0.003;
+   comp.release.value=0.12;
+   masterGain.connect(comp);
+   comp.connect(audioCtx.destination);
+   masterGain._comp=comp;
+  }catch(e){
+   masterGain.connect(audioCtx.destination);
+  }
  }
  if(audioCtx.state==="suspended")audioCtx.resume().catch(()=>{});
  return audioCtx;
@@ -694,65 +706,69 @@ function setSoundVolume(value){
  if(masterGain&&audioCtx){
   const now=audioCtx.currentTime;
   masterGain.gain.cancelScheduledValues(now);
-  masterGain.gain.setTargetAtTime((state.settings.soundVolume/100)*0.85,now,.04);
+  masterGain.gain.setTargetAtTime((state.settings.soundVolume/100)*0.8,now,.05);
  }
  const slider=$("soundVolume"),label=$("soundVolumeValue");
  if(slider)slider.value=state.settings.soundVolume;
  if(label)label.textContent=state.settings.soundVolume+"%";
  save();
 }
-// Beep suave con ataque/release lineales (sin saltos de ganancia = sin petardeo)
-function sound(freq=520,dur=.07,type="sine"){
+// Anti-petardeo móvil: no solapar beeps, ataque/release más largos, nunca cortar con gain>0
+let _lastBeepAt=0;
+function sound(freq=520,dur=.08,type="sine"){
  if(!state.settings.sound||Number(state.settings.soundVolume)===0)return;
  try{
   ensureAudio();
   const now=audioCtx.currentTime;
+  // limitar solapes (principal causa de clics en Android/iOS)
+  if(now-_lastBeepAt<0.045)return;
+  _lastBeepAt=now;
   const osc=audioCtx.createOscillator();
   const gain=audioCtx.createGain();
   const filter=audioCtx.createBiquadFilter();
-  osc.type=(type==="triangle")?"triangle":"sine"; // nunca sierra
-  osc.frequency.setValueAtTime(Math.max(80,Math.min(1800,Number(freq)||520)),now);
+  osc.type="sine"; // solo seno en móvil: el triángulo a veces introduce clicks
+  const f0=Math.max(120,Math.min(1400,Number(freq)||520));
+  osc.frequency.setValueAtTime(f0,now);
   filter.type="lowpass";
-  filter.frequency.setValueAtTime(Math.min(2400,(Number(freq)||520)*2.8),now);
-  filter.Q.value=0.4;
-  const peak=0.07;
-  const attack=0.015;
-  const body=Math.max(0.05,Math.min(0.35,Number(dur)||.07));
-  gain.gain.setValueAtTime(0,now);
-  gain.gain.linearRampToValueAtTime(peak,now+attack);
-  gain.gain.linearRampToValueAtTime(0,now+attack+body);
+  filter.frequency.setValueAtTime(Math.min(1600,f0*2.2),now);
+  filter.Q.value=0.3;
+  const peak=0.055;
+  const attack=0.028;
+  const body=Math.max(0.06,Math.min(0.28,Number(dur)||.08));
+  // envelope: 0.0001 -> peak -> 0.0001 (exponencial estable en WebAudio móvil)
+  gain.gain.setValueAtTime(0.0001,now);
+  gain.gain.exponentialRampToValueAtTime(peak,now+attack);
+  gain.gain.exponentialRampToValueAtTime(0.0001,now+attack+body);
   osc.connect(filter);
   filter.connect(gain);
   gain.connect(masterGain);
   osc.start(now);
-  osc.stop(now+attack+body+0.03);
+  osc.stop(now+attack+body+0.04);
  }catch(e){}
 }
-
-// Sonido de venta / envío de suministro: arpegio corto ascendente, distinto a los beeps UI
 function soundSale(){
  if(!state.settings.sound||Number(state.settings.soundVolume)===0)return;
  try{
   ensureAudio();
   const ctx=audioCtx;
   const now=ctx.currentTime;
-  const notes=[523.25,659.25,783.99]; // C5 E5 G5
+  const notes=[523.25,659.25,783.99];
   notes.forEach((freq,i)=>{
-   const t=now+i*0.07;
+   const t=now+i*0.1;
    const osc=ctx.createOscillator();
    const gain=ctx.createGain();
    const filter=ctx.createBiquadFilter();
    osc.type="sine";
    osc.frequency.setValueAtTime(freq,t);
    filter.type="lowpass";
-   filter.frequency.setValueAtTime(1800,t);
-   filter.Q.value=0.4;
-   gain.gain.setValueAtTime(0,t);
-   gain.gain.linearRampToValueAtTime(0.045,t+0.02);
-   gain.gain.linearRampToValueAtTime(0,t+0.16);
+   filter.frequency.setValueAtTime(1600,t);
+   filter.Q.value=0.3;
+   gain.gain.setValueAtTime(0.0001,t);
+   gain.gain.exponentialRampToValueAtTime(0.05,t+0.03);
+   gain.gain.exponentialRampToValueAtTime(0.0001,t+0.18);
    osc.connect(filter);filter.connect(gain);gain.connect(masterGain);
    osc.start(t);
-   osc.stop(t+0.2);
+   osc.stop(t+0.22);
   });
  }catch(e){}
 }
@@ -838,7 +854,7 @@ function startFusionHum(){
  }catch(e){fusionHum=null}
 }
 
-function beginTask(type,duration,onDone,els){if(activeTask)return;activeTask={type,start:Date.now(),duration,done:false,lastCue:0};stopFusionHum();sound(420,.1,"sine");els.panel.classList.remove("hidden");els.bar.style.width="0%";els.percent.textContent="0%";els.status&&(els.status.textContent=type==="explore"?"Explorando...":type==="craft"?"Fabricando...":"Fusionando...");els.button&&(els.button.disabled=true);const tick=()=>{if(!activeTask||activeTask.type!==type)return;const p=Math.min(1,(Date.now()-activeTask.start)/duration);els.bar.style.width=(p*100)+"%";els.percent.textContent=Math.floor(p*100)+"%";const step=Math.floor(p*5);if(step>activeTask.lastCue&&p<1){activeTask.lastCue=step;sound(620+step*25,.05,"sine")}if(p>=1){activeTask=null;sound(740,.12,"sine");onDone();return}setTimeout(tick,100)};tick()}
+function beginTask(type,duration,onDone,els){if(activeTask)return;activeTask={type,start:Date.now(),duration,done:false,lastCue:0};stopFusionHum();sound(420,.09,"sine");els.panel.classList.remove("hidden");els.bar.style.width="0%";els.percent.textContent="0%";els.status&&(els.status.textContent=type==="explore"?"Explorando...":type==="craft"?"Fabricando...":"Fusionando...");els.button&&(els.button.disabled=true);const tick=()=>{if(!activeTask||activeTask.type!==type)return;const p=Math.min(1,(Date.now()-activeTask.start)/duration);els.bar.style.width=(p*100)+"%";els.percent.textContent=Math.floor(p*100)+"%";const step=Math.floor(p*3);if(step>activeTask.lastCue&&p<1){activeTask.lastCue=step;sound(560+step*30,.07,"sine")}if(p>=1){activeTask=null;setTimeout(()=>{sound(700,.1,"sine");onDone()},40);return}setTimeout(tick,100)};tick()}
 function beginExplore(){if(activeTask||currentEnemy)return;const z=zones.find(z=>z.id===selectedZone);if(!z||!zoneUnlocked(z))return toast(`Zona bloqueada. Necesitas nivel ${zoneRequiredLevel(z||zones[0])} de Operador.`,true);$("combatPanel").classList.add("hidden");$("exploreProgressPanel").classList.remove("hidden");beginTask("explore",10000,()=>{state.expeditions++;const foundItems=[];const primary=z.loot[Math.floor(Math.random()*z.loot.length)];foundItems.push(primary);const gatherChance=Math.min(.82,Math.max(0,(stat("gather")+stat("loot"))/100));if(Math.random()<gatherChance)foundItems.push(z.loot[Math.floor(Math.random()*z.loot.length)]);const rareChance=Math.min(.35,Math.max(0,stat("luck")/200));if(Math.random()<rareChance)foundItems.push(z.loot[Math.floor(Math.random()*z.loot.length)]);// Anomalías base: baja probabilidad en cualquier zona
 if(typeof baseAnomalyNames!=="undefined"&&baseAnomalyNames.length&&Math.random()<(BASE_ANOMALY_DROP_CHANCE+Math.min(0.08,stat("luck")/400))){
   const anom=baseAnomalyNames[Math.floor(Math.random()*baseAnomalyNames.length)];
@@ -1243,6 +1259,7 @@ $("resetGame").onclick=()=>showConfirm("REINICIAR PARTIDA","Se borrará el progr
 document.addEventListener("click",e=>{const b=e.target.closest("button");if(!b||b.disabled||b.id==="soundToggle")return;if(b.id==="exploreBtn"||b.id==="zoneBackBtn")return;sound(380,.025,"sine")},true);
 async function checkForAppUpdates(registration){try{await registration.update();if(registration.waiting&&navigator.serviceWorker.controller)registration.waiting.postMessage({type:"SKIP_WAITING"})}catch(e){}}
 let recipeResizeTimer=null;window.addEventListener("resize",()=>{clearTimeout(recipeResizeTimer);recipeResizeTimer=setTimeout(()=>{recipePage=1;renderRecipes()},120)});
+function unlockAudioOnce(){try{ensureAudio();if(audioCtx&&audioCtx.state==="suspended")audioCtx.resume().catch(()=>{});}catch(e){}document.removeEventListener("touchstart",unlockAudioOnce,true);document.removeEventListener("click",unlockAudioOnce,true)}document.addEventListener("touchstart",unlockAudioOnce,true);document.addEventListener("click",unlockAudioOnce,true);
 function init(){if(!state.version){state=stateDefault();log("Sistema inicializado. Inventario y créditos a cero.")}if(!state.activity.length&&!state.inventory.length&&state.credits===0)log("Sistema inicializado. Inventario vacío. Explora para conseguir tus primeros recursos.");bindNavigation();$("soundToggle").checked=state.settings.sound;$("scaleSelect").value=state.settings.scale||"1";document.documentElement.style.setProperty("--scale",state.settings.scale||"1");$("motionToggle").checked=!!state.settings.motion;document.body.classList.toggle("reduce-motion",!!state.settings.motion);applyLayoutMode(state.settings.layoutMode||"auto");setSoundVolume(state.settings.soundVolume??75);render();if(state.pendingSupply&&state.pendingSupply.stage==="animating"){setTimeout(()=>{if(state.pendingSupply&&state.pendingSupply.stage==="animating"){state.pendingSupply.stage="ready";renderSupplyDelivery();renderSupplies();save()}},1200)}if("serviceWorker"in navigator&&location.protocol.startsWith("http")){navigator.serviceWorker.register("./sw.js",{updateViaCache:"none"}).then(reg=>{checkForAppUpdates(reg);setInterval(()=>checkForAppUpdates(reg),60000);document.addEventListener("visibilitychange",()=>{if(!document.hidden)checkForAppUpdates(reg)});window.addEventListener("focus",()=>checkForAppUpdates(reg));}).catch(()=>{});}}
 init();
 })();
