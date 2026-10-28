@@ -302,3 +302,10 @@ La descripción de los objetos vuelve al tamaño tipográfico original de las ta
 - Los nombres largos se parten dentro de sus contenedores para evitar desbordamientos en móvil y escritorio.
 - Cada espacio equipado muestra un botón «Desequipar» junto al de elegir objeto; solo aparece cuando hay un objeto equipado.
 - Caché PWA actualizada a r20.
+
+
+## r21 — síntesis azul y controles de equipo
+- El rasgo «Síntesis de convergencia» vuelve al azul en la bolsa y en las tarjetas de objetos equipados.
+- El registro muestra nombres cortos en la lista y en el detalle, conservando los nombres internos completos para búsquedas y compatibilidad.
+- Los botones «Elegir objeto» y «Desequipar» ahora están agrupados en una fila de acciones para que no aparezcan debajo del nombre del objeto.
+- Caché PWA actualizada a r21.
