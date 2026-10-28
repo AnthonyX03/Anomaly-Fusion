@@ -518,23 +518,24 @@ const BASE_ANOMALY_DROP_CHANCE=0.08; // 8% base por expedición de encontrar una
 
 
 // === EXPANSIÓN: TRÁFICO DE ÓRGANOS ===
-const ORGAN_PARTS=["Corazón","Hígado","Pulmón","Riñón","Cerebro","Ojo","Médula","Glándula","Nervio","Vesícula","Bazo","Tejido","Ganglio","Cartílago","Plasma orgánico"];
-const ORGAN_CREATURE_ROOTS=["Zombie","Mutante","Infectado","Ghoul","Híbrido","Aberración","Cosechador","Merodeador humano","Soldado desertor","Parásito","Bestia","Larva","Coloso","Simbionte","Vástago"];
+const ORGAN_PARTS=["Corazón","Hígado","Pulmón","Riñón","Cerebro","Ojo","Médula","Glándula","Nervio","Vesícula","Bazo","Tejido","Ganglio","Cartílago","Plasma orgánico","Adrenalina cristalizada","Retina","Timo","Páncreas","Tráquea","Intestino","Piel quitinosa","Cuerno visceral","Saco de esporas","Núcleo biológico","Membrana","Fibras musculares","Médula espinal","Glándula de veneno","Saco biliar"];
+const ORGAN_CREATURE_ROOTS=["Zombie","Mutante","Infectado","Ghoul","Híbrido","Aberración","Cosechador","Merodeador humano","Soldado desertor","Parásito","Bestia","Larva","Coloso","Simbionte","Vástago","Espectro carnal","Depredador","Titán menor","Engendro","Huésped","Rondador","Carroñero","Devorador","Semilla viva","Nido ambulante"];
 const baseOrganNames=[];
 (()=>{
  const seen=new Set();
- ORGAN_CREATURE_ROOTS.forEach(root=>{
+ let n=0;
+ ORGAN_CREATURE_ROOTS.forEach((root,ri)=>{
   ORGAN_PARTS.forEach((part,i)=>{
    const name=`${part} de ${root}`;
    if(seen.has(name))return;
    seen.add(name);
    baseOrganNames.push(name);
-   const r=1+(i%5===0?2:i%3===0?1:0);
+   const r=1+((i+ri)%5);
    addGenerated(name,{
     icon:"🫀",
     cat:"Órgano",
     r:Math.min(5,Math.max(1,r)),
-    val:22+r*16+(i%6)*4,
+    val:18+r*14+(i%7)*3,
     desc:`Órgano extraído de ${root.toLowerCase()}. Tejido ilegal de alto valor en el mercado negro.`,
     trait:"Ilegal",
     affix:"Ilegal",
@@ -542,19 +543,34 @@ const baseOrganNames=[];
     organPart:part,
     organRoot:root
    });
+   n++;
   });
  });
- // órganos genéricos / anómalos adicionales
- ["Corazón anómalo","Hígado irradiado","Pulmón de esporas","Ojo prismático","Médula del vacío","Glándula de fase","Nervio cuántico","Vesícula tóxica","Cerebro residual","Plasma mutante","Riñón cristalizado","Bazo espectral","Ganglio abisal","Tejido de umbral","Cartílago ferrítico"].forEach((name,i)=>{
+ // 100+ órganos adicionales con nombres propios
+ const extra=[
+  "Corazón de umbral","Hígado de ceniza","Pulmón de niebla","Riñón prismático","Cerebro de eco","Ojo de grieta","Médula de vacío","Glándula de fase","Nervio cuántico","Vesícula tóxica",
+  "Bazo espectral","Tejido de umbral","Ganglio abisal","Cartílago ferrítico","Plasma mutante","Retina de neón","Timo residual","Páncreas irradiado","Tráquea de esporas","Intestino de raíz",
+  "Piel de quitina negra","Cuerno visceral menor","Saco de esporas vivas","Núcleo biológico inestable","Membrana dimensional","Fibras de titanio orgánico","Médula del Colapso","Glándula hipervenenosa","Saco biliar anómalo","Adrenalina solidificada",
+  "Corazón gemelo","Hígado trilobulado","Pulmón de cristal","Riñón dual","Cerebro fragmentado","Ojo compuesto","Médula luminiscente","Glándula de control","Nervio de mando","Vesícula de ácido",
+  "Bazo de reserva","Tejido regenerativo","Ganglio sensorial","Cartílago de impacto","Plasma negro","Retina térmica","Timo de inmunidad rota","Páncreas de azúcar anómalo","Tráquea blindada","Intestino filtrante",
+  "Piel reflectante","Cuerno de carga","Saco de larva","Núcleo de colmena","Membrana parasitaria","Fibras de agarre","Médula de mando","Glándula de camuflaje","Saco de tinta","Adrenalina de combate",
+  "Corazón de forja","Hígado de óxido","Pulmón de azufre","Riñón de cuarzo","Cerebro de archivo","Ojo de faro","Médula de estación","Glándula de ruido","Nervio de red","Vesícula de refrigerante",
+  "Bazo de batería","Tejido de cable","Ganglio óptico","Cartílago de muelle","Plasma de reactor","Retina de escáner","Timo de filtro","Páncreas de catalizador","Tráquea de ventilación","Intestino de conducto",
+  "Piel de aislamiento","Cuerno de antena","Saco de presión","Núcleo de servo","Membrana de sello","Fibras de tracción","Médula de protocolo","Glándula de cifrado","Saco de datos","Adrenalina de sobrecarga",
+  "Corazón del pantano","Hígado del bosque","Pulmón del arrecife","Riñón del glaciar","Cerebro del búnker","Ojo del observatorio","Médula de la cantera","Glándula del vertedero","Nervio de la grieta","Vesícula del laboratorio"
+ ];
+ extra.forEach((name,i)=>{
   if(seen.has(name))return;
   seen.add(name);baseOrganNames.push(name);
-  addGenerated(name,{icon:"🫀",cat:"Órgano",r:2+(i%3),val:40+i*5,desc:"Órgano anómalo de procedencia incierta. Rasgo ilegal.",trait:"Ilegal",affix:"Ilegal",illegal:true});
+  const r=1+(i%5);
+  addGenerated(name,{icon:"🫀",cat:"Órgano",r,val:28+r*12+(i%9)*3,desc:"Órgano anómalo de procedencia incierta. Rasgo ilegal.",trait:"Ilegal",affix:"Ilegal",illegal:true});
+  n++;
  });
 })();
 
 function isIllegalItem(x){
  if(!x)return false;
- return !!(x.illegal||x.trait==="Ilegal"||x.affix==="Ilegal"||(x.cat==="Órgano")||(typeof isSynthesisItem==="function"&&isSynthesisItem(x)&&String(x.secondaryTrait||"").includes("Ilegal")));
+ return !!(x.illegal||x.trait==="Ilegal"||x.affix==="Ilegal"||(x.cat==="Órgano")||(typeof isSynthesisItem==="function"&&isSynthesisItem(x)&&(String(x.secondaryTrait||"").includes("Ilegal")||x.illegal)));
 }
 function isRoboticCreature(x){
  const n=String(x?.name||"").toLocaleLowerCase("es");
@@ -563,11 +579,9 @@ function isRoboticCreature(x){
 function organCandidatesForCreature(x){
  if(!x||x.cat!=="Criatura"||isRoboticCreature(x))return [];
  const n=String(x.name||"");
- // emparejar root conocido
  let root=ORGAN_CREATURE_ROOTS.find(r=>n.toLocaleLowerCase("es").includes(r.toLocaleLowerCase("es")));
  if(!root){
-  // fallback: usar partes genéricas con nombre de la criatura
-  return ORGAN_PARTS.slice(0,8).map(part=>{
+  return ORGAN_PARTS.slice(0,10).map(part=>{
    const name=`${part} de ${n.split(" ")[0]}`;
    if(!itemDB[name])addGenerated(name,{icon:"🫀",cat:"Órgano",r:Math.max(1,Number(x.r)||1),val:20+(Number(x.r)||1)*14,desc:`Órgano extraído de ${n}. Rasgo ilegal.`,trait:"Ilegal",affix:"Ilegal",illegal:true,organPart:part});
    return name;
@@ -1029,6 +1043,7 @@ if(pickerMode==="equip")list=list.filter(x=>pickerSlot==="anomaly"?x.cat==="Anom
 function fusionOutcome(a,b){
  const da={...info(a.name),...a},db={...info(b.name),...b},text=(a.name+" "+b.name+" "+da.cat+" "+db.cat).toLowerCase();
  const creature=da.cat==="Criatura"||db.cat==="Criatura"||/zombie|mutante|ghoul|híbrido|infectado|merodeador|aberración|cosechador|dron biológico/.test(text);
+ const organish=da.cat==="Órgano"||db.cat==="Órgano"||/corazón|higado|hígado|pulmón|riñón|médula|órgano|organo/.test(text);
  const plant=/madera|rama|hoja|resina|seta|hongo|espora|mutada|jardinero|fibra|vegetal/.test(text),metal=/chatarra|hierro|cobre|oro|lingote|tornillo|cable|placa|metal|pico|hacha|titanio|acero/.test(text),energy=/batería|núcleo|energético|cristal|geoda|eléctrica|solar|neón|cuántico|fase/.test(text);
  const weapon=[da.cat,db.cat].includes("Arma")||/espada|cuchillo|cañón|\bbate\b|colmillo|lanza|rifle/.test(text),tool=[da.cat,db.cat].includes("Herramienta"),gear=[da.cat,db.cat].includes("Equipo"),consumable=[da.cat,db.cat].includes("Consumible"),sameCat=da.cat===db.cat;let name,icon,cat,slot=null;
  const pools={
@@ -1040,11 +1055,13 @@ function fusionOutcome(a,b){
   tool:["Extractor adaptativo","Sonda de prospección","Taladro resonante","Recolector de precisión","Pico de horizonte","Cortador de fase","Analizador abisal","Sifón de plasma","Broca gravitatoria","Lector de anomalías","Perforador de titanio","Sonda espectral","Cosechador micelar","Llave dimensional","Taladro de eclipse","Pinza magnética","Extractor fantasma","Módulo cartográfico","Cortador cuántico","Recolector de vacío","Bastón de sondeo","Sonda de entropía","Separador de isótopos","Rastreador mineral","Matriz de prospección","Cizalla de neón","Compás gravitatorio","Núcleo perforador","Escáner de frontera","Herramienta imposible"],
   gear:["Blindaje reactivo","Bastión adaptable","Manto de dispersión","Escudo de fase","Coraza de eclipse","Visor espectral","Traje de vacío","Égida gravitatoria","Peto de obsidiana","Capa de neón","Arnés dimensional","Malla de plasma","Yelmo de taquiones","Escudo de horizonte","Blindaje micelar","Manto de entropía","Cúpula cinética","Traje abisal","Visor de singularidad","Coraza fantasma","Bastión de ferrita","Escudo parasitario","Malla de antimateria","Capa de tormenta","Peto cuántico","Sello de frontera","Égida de cristal","Traje de eclipse","Blindaje de aurora","Armadura imposible"],
   consumable:["Catalizador de pulso","Inyector estabilizado","Carga de sobrepresión","Baliza reactiva","Suero de eclipse","Ampolla gravitatoria","Dosis de neón","Elixir de fase","Carga de taquiones","Antídoto espectral","Estimulante abisal","Vial de plasma","Catalizador micelar","Inyector de vacío","Baliza dimensional","Cápsula de entropía","Suero de frontera","Carga de antimateria","Ampolla de aurora","Dosis cuántica","Antídoto de esporas","Elixir de singularidad","Vial de tormenta","Estimulante de eclipse","Carga de horizonte","Catalizador fantasma","Inyector de fotones","Baliza de obsidiana","Suero imposible","Ampolla de cristal"],
+  organ:["Corazón de convergencia","Hígado del umbral","Pulmón de fase","Riñón espectral","Cerebro de tráfico","Ojo del mercado","Médula ilegal","Glándula de contrabando","Nervio clandestino","Vesícula prohibida","Bazo de subasta","Tejido negro","Ganglio de calle","Cartílago de precio","Plasma de soborno","Retina del tratante","Timo de silencio","Páncreas de deuda","Tráquea de fuga","Intestino de red","Piel de camuflaje","Cuerno de amenaza","Saco de botín","Núcleo carnal","Membrana de trato","Fibras de lealtad","Médula de imperio","Glándula de miedo","Saco de oro negro","Adrenalina de caza","Corazón de cuartel","Hígado de ruta","Pulmón de sótano","Riñón de puerto","Cerebro de cartel","Ojo de vigía","Médula de cámara","Glándula de tortura","Nervio de interrogatorio","Vesícula de amenaza"],
   other:["Artefacto de convergencia","Componente singular","Módulo de resonancia","Relé transmutador","Fragmento de eclipse","Ídolo de fase","Nexo de frontera","Reliquia de vacío","Prisma errante","Sello de entropía","Matriz imposible","Esquirla de horizonte","Cubo de taquiones","Orbe parasitario","Cifra dimensional","Eco mineral","Nódulo espectral","Cápsula de singularidad","Vestigio de plasma","Ancla gravitatoria","Fragmento de aurora","Dispositivo de obsidiana","Relicario cuántico","Pieza de antimateria","Símbolo abisal","Módulo de eclipse","Artefacto fractal","Nexo silente","Componente de tormenta","Vestigio imposible"]};
  const choose=list=>list[Math.floor(Math.random()*list.length)];
  const epithets=["del Umbral","de la Aurora Negra","del Horizonte Roto","de Entropía","del Vacío Vivo","de la Marea Cuántica","del Eclipse","de la Frontera","de los Ecos","de Plasma Frío","de la Tormenta Silente","del Abismo","de la Última Luz","de Fase Inversa","de la Singularidad","de la Noche Magnética","del Jardín Muerto","de la Corona Rota","de la Gravedad","del Tiempo Quieto","de Cristal Oscuro","de la Aurora Roja","de la Dimensión Ciega","del Pulso Eterno","de la Ceniza Viva","del Laberinto","de la Estrella Muerta","de la Resonancia","del Parpadeo","de la Marea Negra","del Eco Perdido","de la Ruptura"];
  const prefixes=["Proto","Neo","Ultra","Hiper","Meta","Cero","Omega","Alfa","Delta","Sigma","Épsilon","Nexo","Vórtice","Umbral","Fase","Nómada","Soberano","Errante","Silente","Fractal","Fantasma","Radiante","Abisal","Parásito"];
- if(creature){name=choose(pools.creature);icon=metal?"🤖":plant?"🧬":"🧟";cat="Criatura";}
+ if(organish&&!(creature&&Math.random()<0.35)){name=choose(pools.organ);icon="🫀";cat="Órgano";}
+ else if(creature){name=choose(pools.creature);icon=metal?"🤖":plant?"🧬":"🧟";cat="Criatura";}
  else if(weapon){name=choose(pools.weapon);icon=energy?"⚡":"⚔️";cat="Arma";slot="weapon";}
  else if(gear){name=choose(pools.gear);icon="🛡️";cat="Equipo";slot="armor";}
  else if(tool){name=choose(pools.tool);icon="🛠️";cat="Herramienta";slot=da.slot||db.slot||"pick";}
@@ -1086,12 +1103,13 @@ function fusionOutcome(a,b){
   energia:{nouns:["Núcleo","Pulso","Bobina","Celda","Reactor","Prisma","Condensador","Matriz","Emisor","Lente"],adjs:["Voltaico","Cuántico","Espectral","Solar","Abisal","Resonante","Inestable","Singular"]},
   anomalia:{nouns:["Eco","Umbral","Nexo","Paradoja","Vórtice","Singularidad","Distorsión","Vestigio","Eclipse","Ancla"],adjs:["Temporal","Fractal","Viviente","Espectral","Inverso","Abisal","Errante","Inestable"]},
   biologico:{nouns:["Quimera","Simbionte","Vástago","Mímico","Crisálida","Coloso","Larva","Centinela","Híbrido","Acechador"],adjs:["Cristalino","Voltaico","Umbrío","Simbiótico","Espectral","Abisal","Mutante","Fractal"]},
+  organico:{nouns:["Corazón","Hígado","Pulmón","Riñón","Cerebro","Ojo","Médula","Glándula","Nervio","Vesícula","Bazo","Tejido","Ganglio","Cartílago","Plasma","Retina","Saco","Membrana","Fibra","Núcleo"],adjs:["Ilegal","Clandestino","Prohibido","Anómalo","Irradiado","Umbrío","Mutante","Abisal","Espectral","Toxicado","Crimson","Viviente","Residual","Oscuro","Corruptido","Sintético","Primario","Secreto","Negro","Sangriento"]},
   combate:{nouns:["Filo","Sable","Lanza","Martillo","Cortavacío","Disruptor","Guadaña","Impactador","Cañón","Ruptor"],adjs:["Resonante","Voltaico","Cuántico","Espectral","Gravitatorio","Umbrío","Fractal","Singular"]},
   tecnico:{nouns:["Extractor","Sonda","Taladro","Analizador","Módulo","Recolector","Cortador","Sifón","Escáner","Perforador"],adjs:["Adaptativo","Resonante","Cuántico","Espectral","Magnético","Voltaico","Abisal","Prismático"]},
   proteccion:{nouns:["Coraza","Égida","Blindaje","Manto","Bastión","Yelmo","Armazón","Peto","Escudo","Traje"],adjs:["Reactivo","Prismático","Voltaico","Espectral","Gravitatorio","Adaptativo","Abisal","Fractal"]},
   quimico:{nouns:["Suero","Ampolla","Catalizador","Inyector","Vial","Elixir","Dosis","Reactivo","Cápsula","Compuesto"],adjs:["Simbiótico","Voltaico","Cuántico","Regenerativo","Espectral","Inestable","Abisal","Prismático"]}
  };
- const catFamily=cat==="Criatura"?"biologico":cat==="Arma"?"combate":cat==="Herramienta"?"tecnico":cat==="Equipo"?"proteccion":cat==="Consumible"?"quimico":cat==="Anomalía"?"anomalia":(themes.includes("vegetal")?"vegetal":themes.includes("energia")?"energia":themes.includes("mineral")?"mineral":energy?"energia":metal?"mineral":"tecnico");
+ const catFamily=cat==="Criatura"?"biologico":cat==="Órgano"?"organico":cat==="Arma"?"combate":cat==="Herramienta"?"tecnico":cat==="Equipo"?"proteccion":cat==="Consumible"?"quimico":cat==="Anomalía"?"anomalia":(themes.includes("vegetal")?"vegetal":themes.includes("energia")?"energia":themes.includes("mineral")?"mineral":energy?"energia":metal?"mineral":"tecnico");
  const secondaryTheme=themes.find(t=>t!==catFamily&&namingFamilies[t]);
  const stableHash=value=>{let h=2166136261;for(const ch of String(value)){h^=ch.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0};
  const sourceKey=[a.name,b.name].sort((x,y)=>String(x).localeCompare(String(y),"es")).join("::")+`::${cat}::${r}`;
@@ -1430,7 +1448,8 @@ document.querySelectorAll("[data-black-filter]").forEach(b=>b.onclick=()=>{black
 if($("blackSaleSelectAll"))$("blackSaleSelectAll").onclick=()=>{const equipped=new Set(Object.values(state.equipped||{}).filter(Boolean));const search=($("blackSaleSearch")?.value||"").trim().toLowerCase();state.inventory.filter(x=>x.qty>0&&!equipped.has(x.id)&&isIllegalItem(x)&&x.name.toLowerCase().includes(search)&&(blackSaleFilter==="Todos"||(blackSaleFilter==="Órgano"?x.cat==="Órgano":blackSaleFilter==="Síntesis"?isSynthesisItem(x):blackSaleFilter==="Otro"?x.cat!=="Órgano"&&!isSynthesisItem(x):true))).forEach(x=>blackSaleSelection[x.id]=x.qty);renderBlackMarket()};
 if($("blackSaleClear"))$("blackSaleClear").onclick=()=>{blackSaleSelection={};renderBlackMarket()};
 if($("blackSaleSubmit"))$("blackSaleSubmit").onclick=sellBlackSelection;
-$("pickerPrev").onclick=()=>{pickerPage--;renderPicker()};$("pickerNext").onclick=()=>{pickerPage++;renderPicker()};$("zonesPrev").onclick=()=>{zonePage--;renderZoneCards()};$("zonesNext").onclick=()=>{zonePage++;renderZoneCards()};$("recipesPrev").onclick=()=>{recipePage--;renderRecipes()};$("recipesNext").onclick=()=>{recipePage++;renderRecipes()};$("smeltPrev").onclick=()=>{smeltPage--;renderSmelt()};$("smeltNext").onclick=()=>{smeltPage++;renderSmelt()};document.querySelectorAll("[data-central-tab]").forEach(b=>b.onclick=()=>{document.querySelectorAll("[data-central-tab]").forEach(x=>x.classList.toggle("active",x===b));document.querySelectorAll("#page-central .central-section").forEach(x=>x.classList.toggle("active",x.id==="central-"+b.dataset.centralTab))});$("inventorySearch").addEventListener("input",()=>{inventoryPage=1;renderInventory()});$("inventoryGrid").addEventListener("click",e=>{const tile=e.target.closest("[data-inventory-detail]");if(tile)openInventoryItem(tile.dataset.inventoryDetail)});$("inventoryGrid").addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){const tile=e.target.closest("[data-inventory-detail]");if(tile){e.preventDefault();openInventoryItem(tile.dataset.inventoryDetail)}}});$("prevPage").onclick=()=>{inventoryPage--;renderInventory()};$("nextPage").onclick=()=>{inventoryPage++;renderInventory()};document.querySelectorAll("[data-filter]").forEach(b=>b.onclick=()=>{inventoryFilter=b.dataset.filter;inventoryPage=1;document.querySelectorAll("[data-filter]").forEach(x=>x.classList.toggle("active",x===b));renderInventory()});
+$("pickerPrev").onclick=()=>{pickerPage--;renderPicker()};$("pickerNext").onclick=()=>{pickerPage++;renderPicker()};$("zonesPrev").onclick=()=>{zonePage--;renderZoneCards()};$("zonesNext").onclick=()=>{zonePage++;renderZoneCards()};$("recipesPrev").onclick=()=>{recipePage--;renderRecipes()};$("recipesNext").onclick=()=>{recipePage++;renderRecipes()};$("smeltPrev").onclick=()=>{smeltPage--;renderSmelt()};$("smeltNext").onclick=()=>{smeltPage++;renderSmelt()};document.querySelectorAll("[data-central-tab]").forEach(b=>b.onclick=()=>{document.querySelectorAll("[data-central-tab]").forEach(x=>x.classList.toggle("active",x===b));document.querySelectorAll("#page-central .central-section").forEach(x=>x.classList.toggle("active",x.id==="central-"+b.dataset.centralTab))});
+document.querySelectorAll("[data-clinic-tab]").forEach(b=>b.onclick=()=>{document.querySelectorAll("[data-clinic-tab]").forEach(x=>x.classList.toggle("active",x===b));document.querySelectorAll("#page-clinic .clinic-section").forEach(x=>x.classList.toggle("active",x.id==="clinic-"+b.dataset.clinicTab));if(b.dataset.clinicTab==="extract")renderExtractTable();if(b.dataset.clinicTab==="black")renderBlackMarket();});$("inventorySearch").addEventListener("input",()=>{inventoryPage=1;renderInventory()});$("inventoryGrid").addEventListener("click",e=>{const tile=e.target.closest("[data-inventory-detail]");if(tile)openInventoryItem(tile.dataset.inventoryDetail)});$("inventoryGrid").addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){const tile=e.target.closest("[data-inventory-detail]");if(tile){e.preventDefault();openInventoryItem(tile.dataset.inventoryDetail)}}});$("prevPage").onclick=()=>{inventoryPage--;renderInventory()};$("nextPage").onclick=()=>{inventoryPage++;renderInventory()};document.querySelectorAll("[data-filter]").forEach(b=>b.onclick=()=>{inventoryFilter=b.dataset.filter;inventoryPage=1;document.querySelectorAll("[data-filter]").forEach(x=>x.classList.toggle("active",x===b));renderInventory()});
 
 $("closeInventoryDetail").onclick=()=>$("inventoryDetailModal").classList.add("hidden");$("inventoryDetailModal").addEventListener("click",e=>{if(e.target===$("inventoryDetailModal"))$("inventoryDetailModal").classList.add("hidden")});$("registrySearch").addEventListener("input",()=>{registryPage=1;renderRegistry()});document.querySelectorAll("[data-registry-filter]").forEach(b=>b.onclick=()=>{registryFilter=b.dataset.registryFilter;registryPage=1;document.querySelectorAll("[data-registry-filter]").forEach(x=>x.classList.toggle("active",x===b));renderRegistry()});document.querySelectorAll("[data-registry-mode]").forEach(b=>b.onclick=()=>{registryMode=b.dataset.registryMode;registryFilter="Todos";registryPage=1;document.querySelectorAll("[data-registry-filter]").forEach(x=>x.classList.toggle("active",x.dataset.registryFilter==="Todos"));renderRegistry()});$("registryPrev").onclick=()=>{registryPage--;renderRegistry()};$("registryNext").onclick=()=>{registryPage++;renderRegistry()};$("closeRegistry").onclick=()=>$("registryModal").classList.add("hidden");$("registryModal").addEventListener("click",e=>{if(e.target===$("registryModal"))$("registryModal").classList.add("hidden")});document.querySelectorAll("[data-recipe-category]").forEach(b=>b.onclick=()=>{recipeCategory=b.dataset.recipeCategory;recipePage=1;document.querySelectorAll("[data-recipe-category]").forEach(x=>x.classList.toggle("active",x===b));renderRecipes()});
 $("installApp").onclick=async()=>{if(deferredInstallPrompt){deferredInstallPrompt.prompt();try{await deferredInstallPrompt.userChoice}catch(e){}deferredInstallPrompt=null;$("installApp").classList.add("hidden")}else{toast("Para instalar, publica Anomaly Fusion en HTTPS y usa el menú del navegador: «Instalar aplicación».");}};window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredInstallPrompt=e;$("installApp").classList.remove("hidden")});window.addEventListener("appinstalled",()=>{$("installApp").textContent="✓ Instalada";$("installApp").disabled=true});

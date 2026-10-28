@@ -443,3 +443,13 @@ La descripción de los objetos vuelve al tamaño tipográfico original de las ta
 - Filtro Órganos en inventario, registro y selector de fusión.
 - Catálogo amplio de órganos por tipo de criatura + icono propio.
 - Caché PWA actualizada a r39.
+
+
+### r40 — Clínica, filtro Órganos y más contenido ilegal
+- Filtro **Órganos** visible en inventario y registro (junto a Criaturas).
+- Nueva página **Clínica** (debajo de La Central) con:
+  - Mesa de extracción
+  - Mercado Negro
+- Catálogo de órganos ampliado (cientos de combinaciones + 100 nombres propios).
+- Nuevos nombres de fusión para órganos (pool `organ` + familia `organico`).
+- Caché PWA actualizada a r40.
