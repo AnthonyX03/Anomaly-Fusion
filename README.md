@@ -286,3 +286,8 @@ Se redujo notablemente el nivel de las tres capas del zumbido continuo, se suavi
 
 ### Ajuste de tipografía de tarjetas (r17)
 La descripción de los objetos vuelve al tamaño tipográfico original de las tarjetas (.7rem, interlineado 1.4) y el distintivo «✦ Síntesis de convergencia» conserva un tamaño pequeño, sin agrandar la tarjeta. Se redujo el espacio vertical entre elementos para que descripción, distintivo y valor entren mejor en las tarjetas de altura fija.
+
+
+### Inventario sin texto recortado (r18)
+- Las descripciones y la línea «✦ Síntesis de convergencia» ya no usan puntos suspensivos ni límites de líneas.
+- El texto puede ocupar varias líneas y las tarjetas crecen para mostrar el contenido completo.
