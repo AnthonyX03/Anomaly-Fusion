@@ -387,3 +387,10 @@ La descripción de los objetos vuelve al tamaño tipográfico original de las ta
 - Iconos de síntesis: misma forma que el objeto base; solo cambian a una paleta cian/menta/violeta según tipo. Sin círculos, flechas ni contornos extra.
 - Sonido de la barra de fusión rehecho: tres senos graves filtrados, entrada y salida exponencial para evitar clics/petardeo.
 - Caché PWA actualizada a r32.
+
+
+### r33 — Nombres limpios en fusión y pad medio sin petardeo
+- Las ranuras de la máquina de fusión usan el nombre corto (sin sufijo «· tipo»).
+- Toasts/log de reclamación también usan el nombre visible limpio.
+- Sonido de fusión rehecho otra vez: pad medio (sin graves), entrada lenta, no se reinicia si ya suena, salida lineal suave.
+- Caché PWA actualizada a r33.

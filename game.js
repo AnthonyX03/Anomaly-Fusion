@@ -712,53 +712,57 @@ function stopFusionHum(){
  if(!fusionHum)return;
  try{
   const now=audioCtx?.currentTime||0;
-  const gains=fusionHum.gains||[];
-  for(const node of gains){
-   try{
-    node.gain.cancelScheduledValues(now);
-    const cur=Math.max(0.0001,node.gain.value||0.0001);
-    node.gain.setValueAtTime(cur,now);
-    node.gain.exponentialRampToValueAtTime(0.0001,now+0.35);
-   }catch(e){}
+  const bus=fusionHum.bus||(fusionHum.gains&&fusionHum.gains[0]);
+  if(bus&&bus.gain){
+   bus.gain.cancelScheduledValues(now);
+   const cur=Math.max(0,bus.gain.value||0);
+   bus.gain.setValueAtTime(cur,now);
+   bus.gain.linearRampToValueAtTime(0,now+0.45);
   }
-  const oscs=fusionHum.oscs||[];
-  for(const osc of oscs){
-   try{osc.stop(now+0.4)}catch(e){}
+  for(const osc of (fusionHum.oscs||[])){
+   try{osc.stop(now+0.5)}catch(e){}
   }
  }catch(e){}
+ // liberar referencia tras el fade
+ const ref=fusionHum;
  fusionHum=null;
+ setTimeout(()=>{try{/* noop */}catch(e){}},600);
 }
 
 function startFusionHum(){
  if(!state.settings.sound||Number(state.settings.soundVolume)===0)return;
  try{
-  stopFusionHum();
+  if(fusionHum)return; // ya suena: no reiniciar (evita petardeo)
   ensureAudio();
   const now=audioCtx.currentTime;
-  // Hum suave: senos graves, entrada/salida exponencial para evitar petardeo
-  const master=audioCtx.createGain();
-  master.gain.setValueAtTime(0.0001,now);
-  master.gain.exponentialRampToValueAtTime(0.045,now+0.9);
-  master.connect(masterGain);
-  const makeSine=(freq,vol,filterHz)=>{
-   const osc=audioCtx.createOscillator();
+  // Pad medio suave (sin graves). Entrada lenta para no petardear.
+  const bus=audioCtx.createGain();
+  bus.gain.setValueAtTime(0,now);
+  bus.gain.linearRampToValueAtTime(0.09,now+1.2);
+  bus.connect(masterGain);
+  const filter=audioCtx.createBiquadFilter();
+  filter.type="bandpass";
+  filter.frequency.value=520;
+  filter.Q.value=0.7;
+  filter.connect(bus);
+  const mk=(freq,type,level)=>{
+   const o=audioCtx.createOscillator();
    const g=audioCtx.createGain();
-   const f=audioCtx.createBiquadFilter();
-   osc.type="sine";
-   osc.frequency.setValueAtTime(freq,now);
-   f.type="lowpass";f.frequency.value=filterHz;f.Q.value=0.5;
-   g.gain.setValueAtTime(vol,now);
-   osc.connect(f);f.connect(g);g.connect(master);
-   osc.start(now);
-   return {osc,g,f};
+   o.type=type;
+   o.frequency.setValueAtTime(freq,now);
+   g.gain.setValueAtTime(level,now);
+   o.connect(g);g.connect(filter);
+   o.start(now);
+   return o;
   };
-  const a=makeSine(78,0.55,220);
-  const b=makeSine(117,0.28,320);
-  const c=makeSine(156,0.12,400);
-  // deriva muy lenta de tono (sin saltos)
-  a.osc.frequency.linearRampToValueAtTime(86,now+10);
-  b.osc.frequency.linearRampToValueAtTime(124,now+10);
-  fusionHum={oscs:[a.osc,b.osc,c.osc],gains:[master,a.g,b.g,c.g],master};
+  // acorde suave medio-agudo
+  const o1=mk(392,"sine",0.45);   // G4
+  const o2=mk(494,"sine",0.28);   // B4
+  const o3=mk(587,"triangle",0.12); // D5 suave
+  // leve deriva
+  o1.frequency.linearRampToValueAtTime(400,now+10);
+  o2.frequency.linearRampToValueAtTime(502,now+10);
+  fusionHum={oscs:[o1,o2,o3],gains:[bus],bus};
  }catch(e){fusionHum=null}
 }
 
@@ -860,7 +864,7 @@ function fight(){
  if(retaliate>0)toast(`Recibes ${retaliate} de daño. Integridad: ${playerCombatHp}/${playerCombatMax}`,true);
  render();save();
 }
-function renderFusionSelects(){["A","B"].forEach(k=>{const id=state.fusionSlots?.[k];const x=state.inventory.find(x=>x.id===id);const slot=$("slot"+k);slot.classList.toggle("filled",!!x);slot.querySelector(".slot-icon").innerHTML=x?itemIconMarkup(x.name,x.icon||info(x.name).icon):"＋";$("fusion"+k+"Label").textContent=x?x.name:`Objeto ${k}`;$("chooseFusion"+k).textContent=x?"Cambiar objeto":"Elegir del inventario"});$("fuseBtn").disabled=!!activeTask||!!state.pendingFusion||!state.inventory.some(x=>x.id===state.fusionSlots?.A)||!state.inventory.some(x=>x.id===state.fusionSlots?.B);$("chooseFusionA").disabled=!!state.pendingFusion||!!activeTask;$("chooseFusionB").disabled=!!state.pendingFusion||!!activeTask}
+function renderFusionSelects(){["A","B"].forEach(k=>{const id=state.fusionSlots?.[k];const x=state.inventory.find(x=>x.id===id);const slot=$("slot"+k);slot.classList.toggle("filled",!!x);slot.querySelector(".slot-icon").innerHTML=x?itemIconMarkup(x.name,x.icon||info(x.name).icon):"＋";$("fusion"+k+"Label").textContent=x?inventoryDisplayName(x):`Objeto ${k}`;$("chooseFusion"+k).textContent=x?"Cambiar objeto":"Elegir del inventario"});$("fuseBtn").disabled=!!activeTask||!!state.pendingFusion||!state.inventory.some(x=>x.id===state.fusionSlots?.A)||!state.inventory.some(x=>x.id===state.fusionSlots?.B);$("chooseFusionA").disabled=!!state.pendingFusion||!!activeTask;$("chooseFusionB").disabled=!!state.pendingFusion||!!activeTask}
 function openPicker(mode,slot=null){pickerMode=mode;pickerSlot=slot;pickerFilter="Todos";pickerPage=1;$("pickerSearch").value="";$("pickerTitle").textContent=mode==="fusion"?`▤ INVENTARIO · OBJETO ${slot}`:mode==="sell"?"▤ INVENTARIO · VENDER":"▤ INVENTARIO · EQUIPAR";$("pickerDescription").textContent=mode==="fusion"?"Selecciona un objeto propio del juego para la cámara de fusión.":mode==="sell"?"Selecciona el objeto que quieres vender.":"Selecciona una pieza compatible con el espacio de equipo.";$("pickerFilterMenu").classList.toggle("hidden",mode!=="fusion");$("pickerFilterLabel").textContent=pickerFilter;$("inventoryPicker").classList.remove("hidden");renderPicker()}
 function renderPicker(){let list=state.inventory.filter(x=>x.qty>0&&x.name.toLowerCase().includes($("pickerSearch").value.toLowerCase()));if(pickerMode==="fusion"&&pickerFilter!=="Todos")list=list.filter(x=>pickerFilter==="Síntesis"?isSynthesisItem(x):pickerFilter==="Lingote"?(x.cat==="Lingote"||x.name.startsWith("Lingote de ")):pickerFilter==="Otro"?!( ["Material","Lingote","Herramienta","Arma","Equipo","Consumible","Criatura","Anomalía"].includes(x.cat)):x.cat===pickerFilter);if(pickerMode==="equip")list=list.filter(x=>pickerSlot==="anomaly"?x.cat==="Anomalía":pickerSlot==="companion"?x.cat==="Criatura":info(x.name).slot===pickerSlot||x.slot===pickerSlot);const pages=Math.max(1,Math.ceil(list.length/10));pickerPage=Math.min(pickerPage,pages);const shown=list.slice((pickerPage-1)*10,pickerPage*10);$("pickerGrid").innerHTML=shown.length?shown.map(x=>`<button class="picker-item" data-pick-id="${x.id}"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><span style="min-width:0"><b title="${escapeHtml(x.name)}">${escapeHtml(inventoryDisplayName(x))}</b><small>N${x.r} · ${escapeHtml(x.cat)} · ×${x.qty}</small></span></button>`).join(""):'<div class="empty" style="grid-column:1/-1">No hay objetos disponibles en esta categoría.</div>';$ ("pickerPageInfo").textContent=`Página ${pickerPage} / ${pages}`;$("pickerPrev").disabled=pickerPage<=1;$("pickerNext").disabled=pickerPage>=pages;document.querySelectorAll("[data-pick-id]").forEach(b=>b.onclick=()=>{const x=state.inventory.find(i=>i.id===b.dataset.pickId);if(!x)return;if(pickerMode==="fusion"){state.fusionSlots=state.fusionSlots||{A:null,B:null};state.fusionSlots[pickerSlot]=x.id;renderFusionSelects()}else if(pickerMode==="equip"){if(pickerSlot==="companion"&&!x.abilities?.length&&!x.ability){x.abilities=rollCompanionAbilities(x.r||1);x.ability=x.abilities[0];x.desc=`Compañero de campo. Habilidades procedurales: ${x.abilities.map(a=>a.name+" ("+a.desc+")").join(" · ")}.`}state.equipped[pickerSlot]=x.id;log(`Equipo actualizado: ${x.name}.`);renderEquipment();renderStats();renderBonus()}$("inventoryPicker").classList.add("hidden");save();sound(500)})}
 function fusionOutcome(a,b){
@@ -1061,7 +1065,7 @@ function fusionOutcome(a,b){
  return out;
 }
 function doFuse(){if(activeTask||state.pendingFusion)return;if(!state.fusionSlots)return;const a=state.inventory.find(x=>x.id===state.fusionSlots?.A),b=state.inventory.find(x=>x.id===state.fusionSlots?.B);if(!a||!b)return toast("Selecciona dos objetos antes de fusionar.",true);if(a.id===b.id&&a.qty<2)return toast("Necesitas dos unidades si eliges el mismo objeto.",true);const aa={...a},bb={...b};beginTask("fusion",10000,()=>{if(aa.id===bb.id){takeById(aa.id,2)}else{takeById(aa.id,1);takeById(bb.id,1)}const out={...fusionOutcome(aa,bb),sourceA:aa.name,sourceB:bb.name,origin:"síntesis",trait:"Síntesis de convergencia",affix:"Síntesis de convergencia",unique:true};saveSynthesisVariant(out);/* No reemplazar el valor de esta fusión por el de una variante anterior con el mismo nombre: cada resultado conserva su propio valor calculado. */itemDB[out.name]=out;state.discovered=state.discovered||{};state.discovered[out.name]={...out,name:out.name};if(!state.seen.includes(out.name))state.seen.push(out.name);state.fusions++;xp(20);state.pendingFusion={a:aa.name,b:bb.name,out,createdAt:Date.now()};state.history.unshift({a:aa.name,b:bb.name,out:out.name,r:out.r,icon:out.icon});state.history=state.history.slice(0,3);log(`Fusión lista para reclamar: <b>${aa.name}</b> + <b>${bb.name}</b>.`);toast("Fusión terminada. Reclama el objeto para guardarlo.");render();save()}, {panel:$('fusionProgress'),bar:$('fusionBar'),percent:$('fusionPercent'),status:null,button:$('fuseBtn')});renderFusionSelects()}
-function claimFusion(){if(!state.pendingFusion)return;const out=state.pendingFusion.out;itemDB[out.name]=out;addItem(out.name,1,{...out,origin:"síntesis",trait:"Síntesis de convergencia",affix:"Síntesis de convergencia",unique:true});state.pendingFusion=null;state.fusionSlots={A:null,B:null};$('fusionResult').innerHTML='';$('fusionProgress').classList.add('hidden');log(`Objeto de fusión reclamado: <b>${out.name}</b>. Máquina reiniciada.`);toast(`Añadido al inventario: <b>${out.name}</b>`);render();save()}
+function claimFusion(){if(!state.pendingFusion)return;const out=state.pendingFusion.out;itemDB[out.name]=out;addItem(out.name,1,{...out,origin:"síntesis",trait:"Síntesis de convergencia",affix:"Síntesis de convergencia",unique:true});state.pendingFusion=null;state.fusionSlots={A:null,B:null};$('fusionResult').innerHTML='';$('fusionProgress').classList.add('hidden');log(`Objeto de fusión reclamado: <b>${inventoryDisplayName(out)}</b>. Máquina reiniciada.`);toast(`Añadido al inventario: <b>${inventoryDisplayName(out)}</b>`);render();save()}
 function recipePageSize(){const desktop=window.matchMedia("(min-width: 901px)").matches&&!document.body.classList.contains("layout-mobile");return desktop?6:4}
 function renderRecipes(){const pageSize=recipePageSize();let filtered=recipes.filter(r=>recipeCategory==="Todos"||(r.category||info(r.out).cat)===recipeCategory).sort((a,b)=>info(a.out).r-info(b.out).r||a.name.localeCompare(b.name,"es"));const pages=Math.max(1,Math.ceil(filtered.length/pageSize));recipePage=Math.min(Math.max(1,recipePage),pages);const shown=filtered.slice((recipePage-1)*pageSize,(recipePage-1)*pageSize+pageSize);const canCraft=r=>Object.entries(r.cost).every(([n,q])=>count(n)>=q);$("recipesGrid").innerHTML=shown.length?shown.map(r=>{const can=canCraft(r);return `<div class="recipe-card"><div style="display:flex;gap:9px;align-items:center"><span class="recipe-icon">${itemIconMarkup(r.out,r.icon)}</span><div><h4>${escapeHtml(r.name)}</h4><div class="rarity r${info(r.out).r}">NIVEL ${info(r.out).r} · ${escapeHtml(r.category||info(r.out).cat)}</div></div></div><p>${escapeHtml(r.desc)}</p><div class="loot-chips">${Object.entries(r.cost).map(([n,q])=>`<span class="chip ${count(n)>=q?"common":""}">${itemIconMarkup(n,info(n).icon)} ${escapeHtml(n)} ${count(n)}/${q}</span>`).join("")}</div><button data-craft="${r.id}" ${can&&!activeTask?"":"disabled"}>Fabricar · 10 s</button></div>`}).join(""):'<div class="empty" style="grid-column:1/-1">No hay recetas en esta categoría.</div>';$("recipesPageInfo").textContent=`Página ${recipePage} / ${pages}`;$("recipesPrev").disabled=recipePage<=1;$("recipesNext").disabled=recipePage>=pages;document.querySelectorAll("[data-craft]").forEach(b=>b.onclick=()=>craft(b.dataset.craft))}
 function craft(id){const r=recipes.find(x=>x.id===id);if(activeTask)return;if(!Object.entries(r.cost).every(([n,q])=>count(n)>=q))return toast("Faltan materiales para esa receta.",true);beginTask("craft",10000,()=>{Object.entries(r.cost).forEach(([n,q])=>take(n,q));addItem(r.out,1,{origin:"fabricación"});xp(8);log(`Fabricación completada: <b>${r.out}</b>.`);$("craftMessage").textContent=`Fabricado: ${r.out}. Ya está en el inventario.`;toast(`Objeto fabricado: <b>${r.out}</b>`);render();save()}, {panel:$("craftProgress"),bar:$("craftBar"),percent:$("craftPercent"),button:null})}
