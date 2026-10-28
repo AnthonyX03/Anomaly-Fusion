@@ -341,3 +341,11 @@ La descripción de los objetos vuelve al tamaño tipográfico original de las ta
 - En la pantalla de Inicio los descubiertos se muestran por separado: contador de Registro Base y contador de Registro de Síntesis.
 - El contador de la pestaña Registro indica el total del modo activo (BASE o SÍNTESIS).
 - Caché PWA actualizada a r26.
+
+
+### r27 — Nombres de síntesis sin sufijo «· tipo»
+- Los nombres de objetos fusionados ya no muestran el sufijo tras «·» (ej. «Prisma Abisal · Madera Compuesta» → «Prisma Abisal»).
+- Ese descriptor se muestra en «Tipo de objeto» dentro de la información del objeto (válido para todos los objetos de síntesis, incluidos los ya guardados).
+- Las fusiones nuevas generan nombres limpios sin el separador «·».
+- Historial de fusiones, resultado pendiente de reclamar y títulos de tarjetas usan el nombre visible limpio.
+- Caché PWA actualizada a r27.
