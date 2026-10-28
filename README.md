@@ -359,3 +359,12 @@ La descripción de los objetos vuelve al tamaño tipográfico original de las ta
 - Al ganar se conserva el botín y se mantienen las recompensas / posibilidad de captura.
 - Interfaz de combate más visual: avatar de operador y enemigo, barras de integridad de ambos lados y aviso del botín en riesgo.
 - Caché PWA actualizada a r28.
+
+
+### r29 — Equipo, iconos de fusión y anomalías base
+- En Objetos equipados, las herramientas/armas de síntesis muestran sus habilidades o rasgos útiles (recolección, daño, rasgo secundario) como las criaturas, no solo «Síntesis de convergencia».
+- El rasgo de síntesis sigue apareciendo como línea secundaria (◇ Rasgo).
+- En las ranuras de equipo (incluido compañero) solo se muestra el nombre del objeto, sin el sufijo «· habilidad».
+- Iconos de criaturas fusionadas: misma base visual de criatura con anillo de fusión, ojo en cian y marca de síntesis para distinguirlas.
+- Añadidas ~200 **Anomalías Base** al catálogo. Pueden aparecer en cualquier zona de exploración con probabilidad baja (~8%, ligeramente mejorada por Suerte).
+- Caché PWA actualizada a r29.
