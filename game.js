@@ -1,5 +1,6 @@
 (() => {
 "use strict";
+let pendingConfirmAction=null;
 let registrySort="Todos";
 let spawnSelected={};
 let smeltPage=1;
@@ -1191,8 +1192,16 @@ function soundSale(){
  }catch(e){}
 }
 function toast(msg,bad=false){const d=document.createElement("div");d.className="toast"+(bad?" bad":"");d.innerHTML=msg; $("toastArea").appendChild(d);sound(bad?180:620,.06,bad?"triangle":"sine");setTimeout(()=>d.remove(),3500)}
-function showConfirm(title,message,acceptLabel,action,danger=false){pendingConfirmAction=action;$ ("confirmTitle").textContent=title;$ ("confirmMessage").textContent=message;$ ("confirmAccept").textContent=acceptLabel||"Confirmar";$ ("confirmAccept").classList.toggle("danger",!!danger);$ ("confirmAccept").classList.toggle("primary",!danger);$ ("confirmModal").classList.remove("hidden");$ ("confirmCancel").focus({preventScroll:true});}
-function closeConfirm(){pendingConfirmAction=null;$ ("confirmModal").classList.add("hidden")}
+function showConfirm(title,message,acceptLabel,action,danger=false){
+ pendingConfirmAction=action;
+ const t=$("confirmTitle"),m=$("confirmMessage"),a=$("confirmAccept"),modal=$("confirmModal");
+ if(t)t.textContent=title;
+ if(m)m.textContent=message;
+ if(a){a.textContent=acceptLabel||"Confirmar";a.classList.toggle("danger",!!danger);a.classList.toggle("primary",!danger)}
+ if(modal)modal.classList.remove("hidden");
+ const cancel=$("confirmCancel");if(cancel)try{cancel.focus({preventScroll:true})}catch(_){}
+}
+function closeConfirm(){pendingConfirmAction=null;const modal=$("confirmModal");if(modal)modal.classList.add("hidden")}
 function closeSortMenus(except){document.querySelectorAll(".sort-options").forEach(menu=>{if(menu.id!==except)menu.classList.add("hidden")});document.querySelectorAll(".sort-trigger").forEach(button=>{if(button.nextElementSibling?.id!==except)button.setAttribute("aria-expanded","false")})}
 function setSortMenu(target,value){const options={inventory:{rarity:"Nivel: mayor primero",name:"Nombre A-Z",value:"Valor: mayor primero"},registry:{name:"Nombre A-Z",rarity:"Nivel: mayor primero",value:"Valor: mayor primero"}};if(target==="inventory"){inventorySort=value;$("sortInventoryLabel").textContent=options.inventory[value];inventoryPage=1;renderInventory()}else{registrySort=value;$("registrySortLabel").textContent=options.registry[value];registryPage=1;renderRegistry()}document.querySelectorAll(`[data-sort-target="${target}"]`).forEach(button=>button.setAttribute("aria-selected",String(button.dataset.sortValue===value)));closeSortMenus()}
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
@@ -1865,7 +1874,7 @@ document.addEventListener("fullscreenchange",()=>syncSettingsUI());
 $("exportSave").onclick=exportSave;
 $("importSave").onclick=()=>$("importSaveFile").click();
 $("importSaveFile").addEventListener("change",async e=>{const file=e.target.files&&e.target.files[0];if(!file)return;try{if(file.size>10*1024*1024)throw new Error("El archivo supera el límite de 10 MB.");let text;try{text=await file.text()}catch(_){throw new Error("No se pudo leer el archivo.")}let parsed;try{parsed=JSON.parse(text)}catch(_){throw new Error("El archivo no es un JSON válido.")}const raw=parsed&&parsed.save?parsed.save:parsed;const imported=normalizeImportedState(raw);showConfirm("IMPORTAR PARTIDA","Sustituirá el progreso actual de este dispositivo por los datos del archivo seleccionado. Esta acción no se puede deshacer.","Importar",()=>{try{state=imported;localStorage.removeItem("joyaCeroSave");save();if($("settingsModal"))$("settingsModal").classList.add("hidden");render();if($("soundToggle"))$("soundToggle").checked=!!state.settings.sound;if($("scaleSelect"))$("scaleSelect").value=state.settings.scale||"1";document.documentElement.style.setProperty("--scale",state.settings.scale||"1");if($("motionToggle"))$("motionToggle").checked=!!state.settings.motion;document.body.classList.toggle("reduce-motion",!!state.settings.motion);applyLayoutMode(state.settings.layoutMode||"auto");setSoundVolume(state.settings.soundVolume??75);syncSettingsUI();toast("Partida importada correctamente.")}catch(err2){console.error(err2);toast(err2.message||"Error al aplicar la partida importada.",true)}});}catch(err){console.error(err);toast(err.message||"No se pudo importar el archivo.",true)}finally{e.target.value=""}});
-$("resetGame").onclick=()=>showConfirm("REINICIAR PARTIDA","Se borrará el progreso local y se limpiará la caché de Anomaly Fusion. No se puede deshacer. Se recargará la aplicación al terminar.","Reiniciar",async()=>{localStorage.removeItem("joyaCeroSave");localStorage.removeItem("anomalyFusionSave");state=stateDefault();state.activity=[];save();await clearAppCache();location.reload()},true);
+$("resetGame").onclick=()=>showConfirm("REINICIAR PARTIDA","Se borrará el progreso local y se limpiará la caché de Anomaly Fusion. No se puede deshacer. Se recargará la aplicación al terminar.","Reiniciar",async()=>{try{localStorage.removeItem("joyaCeroSave");localStorage.removeItem("anomalyFusionSave");state=stateDefault();state.activity=[];save();if(typeof clearAppCache==="function")await clearAppCache();location.reload()}catch(err){console.error(err);toast(err.message||"No se pudo borrar la partida.",true)}},true);
 // Sonido corto de interfaz para botones, incluidos controles creados dinámicamente.
 document.addEventListener("click",e=>{const b=e.target.closest("button");if(!b||b.disabled||b.id==="soundToggle")return;if(b.id==="exploreBtn"||b.id==="zoneBackBtn")return;sound(380,.025,"sine")},true);
 async function checkForAppUpdates(registration){try{await registration.update();if(registration.waiting&&navigator.serviceWorker.controller)registration.waiting.postMessage({type:"SKIP_WAITING"})}catch(e){}}

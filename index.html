@@ -245,6 +245,29 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 @media(max-height:720px){
  #settingsModal .modal{max-height:none}
 }
+
+/* Modal: esquinas redondeadas sin recorte */
+.overlay{align-items:center;padding:18px 12px;overflow:auto;-webkit-overflow-scrolling:touch}
+.overlay .modal{border-radius:16px;overflow:hidden;max-width:min(560px,100%);box-sizing:border-box}
+#settingsModal .modal{max-height:min(92vh,900px);overflow:auto;border-radius:16px}
+#settingsModal .settings-tabbar{padding:0;margin:0 0 12px}
+#settingsModal .settings-tab{border-radius:12px}
+#confirmModal .modal{border-radius:16px;overflow:hidden}
+
+/* Nav móvil más clara */
+@media(max-width:900px){
+ .mobile-nav{display:flex;flex-direction:column;gap:8px;position:sticky;bottom:0;z-index:40;background:linear-gradient(180deg,#0a0f14f2,#0a0f14ee);border-top:1px solid var(--line);padding:10px 12px calc(10px + env(safe-area-inset-bottom));backdrop-filter:blur(10px)}
+ .mobile-nav-groups{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+ .mobile-nav-group-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:100%;min-height:56px;border:1px solid #2c3d4a;background:#121a22;color:var(--text);border-radius:14px;font-size:.72rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;padding:8px 6px}
+ .mobile-nav-group-btn .ico{font-size:1.15rem;color:var(--cyan);line-height:1}
+ .mobile-nav-group-btn small{display:block;font-size:.62rem;font-weight:600;letter-spacing:.02em;text-transform:none;color:var(--muted)}
+ .mobile-nav-group-btn[aria-expanded="true"]{border-color:var(--cyan);color:var(--cyan);background:#10201f;box-shadow:0 0 0 1px #53f2d133 inset}
+ .mobile-nav-panel{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding-top:4px}
+ .mobile-nav-panel.hidden{display:none}
+ .mobile-nav-panel button{min-height:48px;font-size:.72rem;white-space:normal;line-height:1.2;border-radius:12px;border:1px solid #2a3943;background:#0e151c}
+ .mobile-nav-panel button .ico{color:var(--cyan);margin-right:4px}
+}
+
 </style>
 </head>
 <body>
@@ -489,8 +512,8 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 </main></div>
 <nav class="mobile-nav">
  <div class="mobile-nav-groups">
-  <button type="button" class="mobile-nav-group-btn" id="mobileGroupSystems" aria-expanded="false"><span class="ico">⌂</span>Sistemas</button>
-  <button type="button" class="mobile-nav-group-btn" id="mobileGroupManage" aria-expanded="false"><span class="ico">▤</span>Gestión</button>
+  <button type="button" class="mobile-nav-group-btn" id="mobileGroupSystems" aria-expanded="false"><span class="ico">⌂</span>Sistemas principales<small>Juego y módulos</small></button>
+  <button type="button" class="mobile-nav-group-btn" id="mobileGroupManage" aria-expanded="false"><span class="ico">▤</span>Gestión de objetos<small>Bolsa, mercado y equipo</small></button>
  </div>
  <div class="mobile-nav-panel hidden" id="mobilePanelSystems">
   <button data-page="home"><span class="ico">⌂</span>Centro de control</button>

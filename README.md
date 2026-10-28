@@ -528,3 +528,11 @@ La descripción de los objetos vuelve al tamaño tipográfico original de las ta
 - Importar partida más tolerante (con o sin contenedor save, equipped opcional).
 - Mensajes de error más claros y aplicación null-safe tras importar.
 - Caché PWA actualizada a r50.
+
+
+### r51 — Confirmaciones, esquinas del modal y nav móvil
+- Declarado `pendingConfirmAction` (fallo en strict mode que rompía Importar y Borrar partida).
+- showConfirm más seguro.
+- Modal de ajustes/confirmación con esquinas redondeadas sin recorte.
+- Nav móvil: botones «Sistemas principales» y «Gestión de objetos» más claros y visuales.
+- Caché PWA actualizada a r51.
