@@ -1,5 +1,23 @@
 (() => {
 "use strict";
+let registrySort="Todos";
+let spawnSelected={};
+let smeltPage=1;
+let recipeCategory="Todos";
+let selectedZone=null;
+let audioCtx=null,masterGain=null,lastSoundAt=0,fusionHum=null;
+let zoneHudOpen=false,activeTask=null,currentEnemy=null;
+let pickerMode=null,pickerSlot=null,pickerFilter="Todos",pickerPage=1;
+let centralSaleFilter="Todos",centralSaleSelection={};
+
+let extractSelected={},marketBlackBuyMode="catalog";
+let marketBuyPage=1,marketBlackBuyPage=1,extractOrgansPage=1;
+let marketBlackSellSelection={};
+let playerCombatHp=0,playerCombatMax=0,pendingExploreLoot=[];
+let deferredInstallPrompt=null,recipePage=1;
+let zonePage=1,inventoryPage=1,inventoryFilter="Todos",inventorySort="rarity",registryPage=1,registryFilter="Todos",registryMode="base",recipeFilter="Todos",lootHudOpen=false,marketBuyMode="catalog",marketSellSelection={};
+
+
 const $ = id => document.getElementById(id);
 const rarityNames = ["","COMÚN","POCO COMÚN","RARO","ÉPICO","LEGENDARIO"];
 const rarityColors = ["","#b9c4cb","#72e48b","#55baff","#c18bff","#ffc857"];
@@ -616,7 +634,7 @@ function recipeRequiredLevel(r){
 }
 function recipeUnlocked(r){return state.level>=recipeRequiredLevel(r)}
 
-let extractCreatureId=null, extractSelected={}, blackSaleFilter="Todos", blackSaleSelection={};
+let extractCreatureId=null;
 
 
 // Pinzas de extracción (equipo slot tongs)
@@ -648,9 +666,9 @@ TONGS_CATALOG.forEach(t=>{
 
 // === MERCADO ===
 const MARKET_RATES=[50,75,100,150,200];
-let marketBuyMode="catalog", marketBlackBuyMode="catalog", marketBuyPage=1, marketBlackBuyPage=1, extractOrgansPage=1;
-let marketSellSelection={}, marketBlackSellSelection={};
-let spawnSelected={}; // slot index -> inventory id
+
+
+
 
 function marketDayKey(){
  const d=new Date();
@@ -877,12 +895,28 @@ function startCreatureSpawn(){
  },{panel:$("spawnProgress"),bar:$("spawnBar"),percent:$("spawnPercent"),status:null,button:$("spawnStartBtn")});
 }
 
-function loadState(){try{const s=JSON.parse(localStorage.getItem("anomalyFusionSave")||localStorage.getItem("joyaCeroSave"));if(s&&(s.version===2||s.version===3||s.version===4||s.version===5||s.version===6||s.version===7||s.version===8||s.version===9)&&s.inventory&&s.equipped)return Object.assign(stateDefault(),s,{version:9,equipped:{...stateDefault().equipped,...s.equipped},history:(s.history||[]).slice(0,3),pendingFusion:s.pendingFusion||null,pendingSupply:s.pendingSupply||null,seen:[...new Set([...(s.seen||[]),...(s.inventory||[]).map(x=>x.name)])],discovered:{...(s.discovered||{}),...Object.fromEntries((s.inventory||[]).map(x=>[x.name,x]))},synthesisVariants:{...(s.synthesisVariants||{})},valueRanges:{...(s.valueRanges||{})}})}catch(e){}return stateDefault()}
+
+const stateDefault=()=>({
+ credits:0,level:1,xp:0,expeditions:0,fusions:0,
+ inventory:[],
+ equipped:{pick:null,axe:null,tongs:null,weapon:null,armor:null,anomaly:null,companion:null},
+ history:[],pendingFusion:null,pendingSupply:null,activity:[],seen:[],discovered:{},synthesisVariants:{},valueRanges:{},
+ settings:{sound:true,soundVolume:75,scale:"1",motion:false,layoutMode:"auto"},
+ market:null,
+ version:10
+});
+function loadState(){try{const s=JSON.parse(localStorage.getItem("anomalyFusionSave")||localStorage.getItem("joyaCeroSave"));if(s&&(s.version===2||s.version===3||s.version===4||s.version===5||s.version===6||s.version===7||s.version===8||s.version===9||s.version===10)&&s.inventory&&s.equipped)return Object.assign(stateDefault(),s,{version:10,equipped:{...stateDefault().equipped,...s.equipped},history:(s.history||[]).slice(0,3),pendingFusion:s.pendingFusion||null,pendingSupply:s.pendingSupply||null,seen:[...new Set([...(s.seen||[]),...(s.inventory||[]).map(x=>x.name)])],discovered:{...(s.discovered||{}),...Object.fromEntries((s.inventory||[]).map(x=>[x.name,x]))},synthesisVariants:{...(s.synthesisVariants||{})},valueRanges:{...(s.valueRanges||{})}})}catch(e){}return stateDefault()}
 function save(){try{localStorage.setItem("anomalyFusionSave",JSON.stringify(state))}catch(e){toast("No se pudo guardar la partida. Comprueba el espacio disponible del navegador.",true)}}
+let state=loadState();
+// Migra al registro los niveles de síntesis ya existentes en partidas anteriores.
+Object.entries(state.discovered||{}).forEach(([name,item])=>{if(isSynthesisItem(item)&&!state.synthesisVariants?.[name]?.length)saveSynthesisVariant({...item,name});});
+// Conserva los valores ya conocidos en partidas anteriores como primer rango observado.
+state.valueRanges=state.valueRanges||{};state.inventory.forEach(recordObservedValue);Object.entries(state.discovered||{}).forEach(([name,item])=>{if(item&&item.name)recordObservedValue({...item,name})});Object.entries(state.synthesisVariants||{}).forEach(([name,variants])=>(Array.isArray(variants)?variants:[]).forEach(v=>recordObservedValue({...v,name,trait:v.trait||"Síntesis de convergencia"})));
+
 function normalizeImportedState(raw){
  if(!raw||typeof raw!=="object"||!Array.isArray(raw.inventory)||!raw.equipped||typeof raw.equipped!=="object")throw new Error("El archivo no contiene una partida válida.");
  const base=stateDefault();
- const next={...base,...raw,version:9};
+ const next={...base,...raw,version:10};
  next.credits=Math.max(0,Number(next.credits)||0);next.level=Math.max(1,Number(next.level)||1);next.xp=Math.max(0,Number(next.xp)||0);
  next.inventory=raw.inventory.filter(x=>x&&typeof x==="object"&&typeof x.name==="string").map(x=>({...x,qty:Math.max(1,Math.floor(Number(x.qty)||1))}));
  next.equipped={...base.equipped,...raw.equipped};next.history=Array.isArray(raw.history)?raw.history.slice(0,3):[];
@@ -986,13 +1020,9 @@ function saveSynthesisVariant(item){
  variants.sort((a,b)=>a.r-b.r);variants.forEach(v=>{v.baseVal=baseVal;v.val=priceForLevel(v.r)});state.synthesisVariants[name]=variants;
  return variants.find(v=>Number(v.r)===r);
 }
-// Migra al registro los niveles de síntesis ya existentes en partidas anteriores.
-Object.entries(state.discovered||{}).forEach(([name,item])=>{if(isSynthesisItem(item)&&!state.synthesisVariants?.[name]?.length)saveSynthesisVariant({...item,name});});
 function valueRangeKey(item){const name=typeof item==="string"?item:item?.name||"";const data=typeof item==="string"?knownInfo(name):item;return isSynthesisItem(data)?`${name}::N${Math.max(1,Number(data.r)||1)}`:name}
 function recordObservedValue(item){if(!item||!item.name)return;state.valueRanges=state.valueRanges||{};const key=valueRangeKey(item),v=Math.max(1,Number(item.val)||Number(info(item.name).val)||1),prior=state.valueRanges[key];state.valueRanges[key]=prior?{min:Math.min(Number(prior.min)||v,v),max:Math.max(Number(prior.max)||v,v)}:{min:v,max:v}}
 function getObservedRange(item){const key=valueRangeKey(item),range=state.valueRanges?.[key];if(range)return {min:Number(range.min)||Number(item.val)||1,max:Number(range.max)||Number(item.val)||1};const v=Math.max(1,Number(item.val)||Number(info(item.name).val)||1);return {min:v,max:v}}
-// Conserva los valores ya conocidos en partidas anteriores como primer rango observado.
-state.valueRanges=state.valueRanges||{};state.inventory.forEach(recordObservedValue);Object.entries(state.discovered||{}).forEach(([name,item])=>{if(item&&item.name)recordObservedValue({...item,name})});Object.entries(state.synthesisVariants||{}).forEach(([name,variants])=>(Array.isArray(variants)?variants:[]).forEach(v=>recordObservedValue({...v,name,trait:v.trait||"Síntesis de convergencia"})));
 function addItem(name,qty=1,opts={}){
  const d=info(name),resolved={...opts};resolved.origin=resolved.origin||"general";const cat=resolved.cat||d.cat,slot=resolved.slot||d.slot,r=Math.max(1,Math.min(5,Number(resolved.r||d.r||1)));
  // Cada instancia de arma, herramienta o equipo recibe variaciones propias al entrar al inventario.

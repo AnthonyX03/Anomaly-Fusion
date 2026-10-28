@@ -515,3 +515,9 @@ La descripción de los objetos vuelve al tamaño tipográfico original de las ta
 - Eliminado el apartado Contenido Adicional.
 - Endurecido init y eliminadas llamadas a Mercado Negro antiguo en Clínica.
 - Caché PWA actualizada a r48.
+
+
+### r49 — Reparación crítica de arranque
+- Restaurado `stateDefault` y `let state = loadState()` (habían desaparecido y rompían toda la app).
+- Migraciones de partida movidas después de cargar el estado.
+- Caché PWA actualizada a r49.
