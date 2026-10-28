@@ -276,3 +276,9 @@ Se redujo notablemente el nivel de las tres capas del zumbido continuo, se suavi
 - Se muestra el nombre corto sin el sufijo «Herramienta de Fibra» en la tarjeta y en el encabezado de la ficha.
 - «Herramienta de Fibra» se conserva en la ficha ampliada como tipo de objeto.
 - Se actualizó la caché de la PWA a r15.
+
+
+## Inventario: descripción y síntesis restauradas (r16)
+- Las tarjetas de la Bolsa vuelven a mostrar la descripción breve del objeto, limitada a dos líneas para evitar desbordamientos.
+- Los objetos fusionados muestran explícitamente «✦ Síntesis de convergencia» en la tarjeta.
+- Se conserva el HUD de detalles al pulsar la tarjeta.
