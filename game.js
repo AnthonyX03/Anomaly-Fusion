@@ -648,9 +648,9 @@ TONGS_CATALOG.forEach(t=>{
 
 // === MERCADO ===
 const MARKET_RATES=[50,75,100,150,200];
-let marketBuyMode="catalog", marketBlackBuyMode="catalog";
+let marketBuyMode="catalog", marketBlackBuyMode="catalog", marketBuyPage=1, marketBlackBuyPage=1, extractOrgansPage=1;
 let marketSellSelection={}, marketBlackSellSelection={};
-let spawnSelected={};
+let spawnSelected={}; // slot index -> inventory id
 
 function marketDayKey(){
  const d=new Date();
@@ -718,24 +718,39 @@ function renderMarketBuy(isBlack){
    if(!d||!d.cat||!d.val)return false;
    if(isBlack)return d.illegal||d.cat==="Órgano"||d.cat==="Criatura"||d.cat==="Arma"||/rifle|ak|pistola|bala|balíst|fusil|escopeta/i.test(n);
    return !d.illegal&&d.cat!=="Órgano";
-  }).filter(n=>n.toLowerCase().includes(search)).slice(0,80);
+  }).filter(n=>n.toLowerCase().includes(search));
   rows=pool.map(n=>{
    const data=itemDB[n];
    const need=marketRequiredLevel(data);
    return {name:n,data,stock:null,daily:false,price:marketBuyPrice(data,false),needLevel:need,unlocked:state.level>=need};
   }).sort((a,b)=>(a.data.r||1)-(b.data.r||1)||a.name.localeCompare(b.name,"es"));
  }
- box.innerHTML=rows.length?rows.map(row=>{
+ const pageSize=10;
+ const page=isBlack?marketBlackBuyPage:marketBuyPage;
+ const pages=Math.max(1,Math.ceil(rows.length/pageSize));
+ const cur=Math.min(Math.max(1,page),pages);
+ if(isBlack)marketBlackBuyPage=cur;else marketBuyPage=cur;
+ const shown=daily?rows:rows.slice((cur-1)*pageSize,cur*pageSize);
+ const pager=$(isBlack?"marketBlackBuyPager":"marketBuyPager");
+ if(pager)pager.classList.toggle("hidden",daily||rows.length<=pageSize);
+ const infoEl=$(isBlack?"marketBlackBuyPageInfo":"marketBuyPageInfo");
+ const prev=$(isBlack?"marketBlackBuyPrev":"marketBuyPrev");
+ const next=$(isBlack?"marketBlackBuyNext":"marketBuyNext");
+ if(infoEl)infoEl.textContent=`Página ${cur} / ${pages}`;
+ if(prev)prev.disabled=cur<=1;
+ if(next)next.disabled=cur>=pages;
+ box.innerHTML=shown.length?shown.map(row=>{
   const locked=!row.unlocked;
   const noStock=row.daily&&row.stock<=0;
-  const can= !locked&&!noStock&&state.credits>=row.price&&!activeTask;
-  return `<div class="market-buy-row"><span class="item-icon">${itemIconMarkup(row.name,row.data.icon)}</span><div style="min-width:0"><b title="${escapeHtml(row.name)}">${escapeHtml(inventoryDisplayName({name:row.name}))}</b><small>N${row.data.r||1} · ${escapeHtml(row.data.cat||"?")} · ${row.price.toLocaleString("es-ES")} cr.${row.daily?` · <span class="market-stock">Stock ${row.stock}</span>`:""}${locked?` · 🔒 Nivel ${row.needLevel}`:""}</small></div><button class="tiny ${isBlack?"danger":"primary"}" data-market-buy="${escapeHtml(row.name)}" data-black="${isBlack?"1":"0"}" data-daily="${row.daily?"1":"0"}" ${can?"":"disabled"}>Comprar</button></div>`;
- }).join(""):'<div class="empty">No hay productos en este listado.</div>';
+  const can=!locked&&!noStock&&state.credits>=row.price&&!activeTask;
+  return `<div class="market-card"><div class="market-card-top"><span class="item-icon">${itemIconMarkup(row.name,row.data.icon)}</span><div style="min-width:0"><b title="${escapeHtml(row.name)}">${escapeHtml(inventoryDisplayName({name:row.name}))}</b><small>N${row.data.r||1} · ${escapeHtml(row.data.cat||"?")}</small></div></div><small><b style="color:var(--cyan)">${row.price.toLocaleString("es-ES")} cr.</b>${row.daily?` · Stock ${row.stock}`:""}${locked?` · 🔒 Nv ${row.needLevel}`:""}</small><button class="tiny ${isBlack?"danger":""}" data-market-buy="${escapeHtml(row.name)}" data-black="${isBlack?"1":"0"}" data-daily="${row.daily?"1":"0"}" ${can?"":"disabled"}>Comprar</button></div>`;
+ }).join(""):'<div class="empty" style="grid-column:1/-1">No hay productos en este listado.</div>';
  box.querySelectorAll("[data-market-buy]").forEach(b=>b.onclick=()=>buyMarketItem(b.dataset.marketBuy,b.dataset.black==="1",b.dataset.daily==="1"));
  if($("marketDayTag"))$("marketDayTag").textContent="DÍA · "+(state.market.day||"—");
- if($("marketSellRateLabel"))$("marketSellRateLabel").textContent=state.market.sellRate+"%";
- if($("marketBlackSellRateLabel"))$("marketBlackSellRateLabel").textContent=state.market.blackSellRate+"%";
+ if($("marketSellRateLabel"))$("marketSellRateLabel").textContent=(state.market.sellRate||"—")+"%";
+ if($("marketBlackSellRateLabel"))$("marketBlackSellRateLabel").textContent=(state.market.blackSellRate||"—")+"%";
 }
+
 function buyMarketItem(name,isBlack,daily){
  ensureMarketDay();
  const data=info(name);
@@ -816,35 +831,33 @@ function submitMarketSell(isBlack){
  renderMarketSell(isBlack);renderStats();save();
 }
 function renderSpawnTable(){
- const host=$("spawnOrganChoices");if(!host)return;
- const organs=state.inventory.filter(x=>x.qty>0&&x.cat==="Órgano");
- const selected=Object.keys(spawnSelected);
- host.innerHTML=organs.length?organs.map(x=>{
-  const on=!!spawnSelected[x.id];
-  const max=x.qty;
-  return `<label class="extract-organ-opt ${on?"on":""}"><input type="checkbox" data-spawn-id="${x.id}" ${on?"checked":""} ${!on&&selected.length>=5?"disabled":""}><span><b>${escapeHtml(inventoryDisplayName(x))}</b><small style="display:block;color:var(--muted)">N${x.r||1} · ×${max}</small></span></label>`;
- }).join(""):'<div class="empty">No tienes órganos en el inventario.</div>';
- if($("spawnSummary"))$("spawnSummary").innerHTML=`Órganos seleccionados: <b>${selected.length} / 5</b>`;
- if($("spawnStartBtn"))$("spawnStartBtn").disabled=selected.length!==5||!!activeTask;
- host.querySelectorAll("[data-spawn-id]").forEach(inp=>{
-  inp.onchange=()=>{
-   const id=inp.dataset.spawnId;
-   if(inp.checked){
-    if(Object.keys(spawnSelected).length>=5){inp.checked=false;return;}
-    spawnSelected[id]=true;
-   }else delete spawnSelected[id];
-   renderSpawnTable();
-  };
- });
+ // spawnSelected: {0:itemId,1:itemId,...}
+ if(typeof spawnSelected!=="object"||Array.isArray(spawnSelected))spawnSelected={};
+ for(let i=0;i<5;i++){
+  const id=spawnSelected[i];
+  const x=id?state.inventory.find(it=>it.id===id):null;
+  const slot=$("spawnSlot"+i);
+  if(slot)slot.classList.toggle("filled",!!x);
+  const icon=slot&&slot.querySelector(".slot-icon");
+  if(icon)icon.innerHTML=x?itemIconMarkup(x.name,x.icon||info(x.name).icon):"＋";
+  if($("spawnLabel"+i))$("spawnLabel"+i).textContent=x?inventoryDisplayName(x):("Órgano "+(i+1));
+  const choose=$("chooseSpawn"+i),clear=$("clearSpawn"+i);
+  if(choose){choose.textContent=x?"Cambiar":"Elegir";choose.disabled=!!activeTask}
+  if(clear){clear.classList.toggle("hidden",!x);clear.disabled=!!activeTask}
+ }
+ const filled=Object.values(spawnSelected).filter(Boolean).length;
+ if($("spawnStartBtn"))$("spawnStartBtn").disabled=filled!==5||!!activeTask;
 }
+
 function startCreatureSpawn(){
  if(activeTask)return;
- const ids=Object.keys(spawnSelected);
- if(ids.length!==5)return toast("Selecciona exactamente 5 órganos.",true);
+ const ids=[0,1,2,3,4].map(i=>spawnSelected[i]).filter(Boolean);
+ if(ids.length!==5)return toast("Coloca exactamente 5 órganos.",true);
+ // unique inventory rows required
+ if(new Set(ids).size!==5)return toast("Cada ranura debe usar un órgano distinto del inventario.",true);
  const organs=ids.map(id=>state.inventory.find(x=>x.id===id)).filter(Boolean);
- if(organs.length!==5)return toast("Selección inválida.",true);
+ if(organs.length!==5||organs.some(o=>o.cat!=="Órgano"))return toast("Selección inválida.",true);
  beginTask("spawn",10000,()=>{
-  // consume one of each
   for(const o of organs){if(!takeById(o.id,1)){toast("Faltan órganos.",true);return;}}
   const avgR=Math.max(1,Math.min(5,Math.round(organs.reduce((s,o)=>s+(Number(o.r)||1),0)/5)));
   const roots=["Engendro","Quimera","Vástago sintético","Simbionte ilegal","Coloso menor","Híbrido de clínica"];
@@ -864,15 +877,6 @@ function startCreatureSpawn(){
  },{panel:$("spawnProgress"),bar:$("spawnBar"),percent:$("spawnPercent"),status:null,button:$("spawnStartBtn")});
 }
 
-
-[["AK oxidada",3,90],["Rifle de chatarra",2,55],["Pistola de tubos",1,30],["Escopeta de cañería",3,85],["Fusil de francotirador improvisado",4,140],["SMG de vertedero",3,95],["Rifle de asalto clandestino",4,150],["Revólver de pernos",2,48],["Ballesta metálica",2,52],["Lanzagranadas artesanal",5,200]].forEach(([name,r,val])=>{
- if(!itemDB[name])addGenerated(name,{icon:"🔫",cat:"Arma",r,val,desc:"Arma balística de contrabando. Ilegal.",slot:"weapon",damage:8+r*6,illegal:true,trait:"Ilegal",affix:"Ilegal"});
-});
-const stateDefault = () => ({credits:0,level:1,xp:0,expeditions:0,fusions:0,inventory:[],equipped:{pick:null,axe:null,tongs:null,weapon:null,armor:null,anomaly:null,companion:null},history:[],pendingFusion:null,pendingSupply:null,activity:[],seen:[],discovered:{},synthesisVariants:{},valueRanges:{},settings:{sound:true,soundVolume:75,scale:"1",motion:false,layoutMode:"auto"},market:null,version:10});
-let state = loadState();
-state.settings=state.settings||{};if(state.settings.soundVolume==null)state.settings.soundVolume=75;
-let fusionHum=null, masterGain=null;
-let selectedZone = "forest", zoneHudOpen=false, lootHudOpen=false, inventoryFilter="Todos", inventoryPage=1, inventorySort="rarity", zonePage=1, recipePage=1, recipeCategory="Todos", smeltPage=1, registryPage=1, registryFilter="Todos", registrySort="name", registryPageSize=10, registryMode="base", pickerPage=1, pickerMode=null, pickerSlot=null, pickerFilter="Todos", centralSaleFilter="Todos", centralSaleSelection={}, activeTask=null, currentEnemy=null, pendingExploreLoot=[], playerCombatHp=0, playerCombatMax=0, audioCtx=null, deferredInstallPrompt=null, pendingConfirmAction=null;
 function loadState(){try{const s=JSON.parse(localStorage.getItem("anomalyFusionSave")||localStorage.getItem("joyaCeroSave"));if(s&&(s.version===2||s.version===3||s.version===4||s.version===5||s.version===6||s.version===7||s.version===8||s.version===9)&&s.inventory&&s.equipped)return Object.assign(stateDefault(),s,{version:9,equipped:{...stateDefault().equipped,...s.equipped},history:(s.history||[]).slice(0,3),pendingFusion:s.pendingFusion||null,pendingSupply:s.pendingSupply||null,seen:[...new Set([...(s.seen||[]),...(s.inventory||[]).map(x=>x.name)])],discovered:{...(s.discovered||{}),...Object.fromEntries((s.inventory||[]).map(x=>[x.name,x]))},synthesisVariants:{...(s.synthesisVariants||{})},valueRanges:{...(s.valueRanges||{})}})}catch(e){}return stateDefault()}
 function save(){try{localStorage.setItem("anomalyFusionSave",JSON.stringify(state))}catch(e){toast("No se pudo guardar la partida. Comprueba el espacio disponible del navegador.",true)}}
 function normalizeImportedState(raw){
@@ -1155,7 +1159,7 @@ if(x.defense)skillLines.push(`Defensa +${x.defense}`);
 if(x.passive&&(x.passive.value||x.passive.type))skillLines.push(String(x.passive.value||x.passive.type));
 const skillHtml=skillLines.length?`<div class="small-note" style="margin-top:7px;color:var(--cyan)">✦ ${skillLines.map(escapeHtml).join(" / ")}</div>`:"";
 const synthesisHtml=isSynthesisItem(x)?`<div class="small-note" style="margin-top:5px;color:var(--cyan)">◇ Rasgo: Síntesis de convergencia</div>`:"";return `<div class="item-card rarity-${r}"><div class="item-top"><div class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</div><div style="min-width:0"><h4 title="${escapeHtml(inventoryDisplayName(x))}">${escapeHtml(inventoryDisplayName(x))} ${x.qty>1?`<span class="muted">×${x.qty}</span>`:""}</h4><div class="rarity r${r}">NIVEL ${r} · ${rarityNames[r]}</div></div></div><div class="desc">${escapeHtml(x.desc||info(x.name).desc||"Objeto sin descripción.")}</div>${skillHtml}${synthesisHtml}<div class="item-bottom"><span class="muted" style="font-size:.68rem">${escapeHtml(x.cat||info(x.name).cat)} · Valor base (100%): ${Number(x.val||info(x.name).val)} cr.</span>${opts.sell?`<span class="muted" style="font-size:.62rem">Envío de suministro</span>`:""}</div>${opts.equip?`<button class="tiny" style="width:100%;margin-top:8px" data-equip-id="${x.id}">Equipar</button>`:""}</div>`}
-function nav(page){if(currentEnemy){toast("Hay un combate en curso. Resuélvelo antes de cambiar de pantalla.",true);return}const requestedSupplies=page==="supplies";if(requestedSupplies)page="central";document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id==="page-"+page));document.querySelectorAll("[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===page));if(requestedSupplies){document.querySelectorAll("[data-central-tab]").forEach(b=>b.classList.toggle("active",b.dataset.centralTab==="supplies"));document.querySelectorAll("#page-central .central-section").forEach(x=>x.classList.toggle("active",x.id==="central-supplies"))}if(page==="clinic"){renderExtractTable();renderSpawnTable()}if(page==="market"){ensureMarketDay();renderMarketBuy(false);renderMarketBuy(true);renderMarketSell(false);renderMarketSell(true)}window.scrollTo({top:0,behavior:state.settings.motion?"auto":"smooth"});render()}
+function nav(page){if(currentEnemy){toast("Hay un combate en curso. Resuélvelo antes de cambiar de pantalla.",true);return}const requestedSupplies=page==="supplies";if(requestedSupplies)page="central";document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id==="page-"+page));document.querySelectorAll("[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===page));if(typeof closeMobileNavPanels==="function")closeMobileNavPanels();if(requestedSupplies){document.querySelectorAll("[data-central-tab]").forEach(b=>b.classList.toggle("active",b.dataset.centralTab==="supplies"));document.querySelectorAll("#page-central .central-section").forEach(x=>x.classList.toggle("active",x.id==="central-supplies"))}if(page==="clinic"){renderExtractTable();renderSpawnTable()}if(page==="market"){ensureMarketDay();renderMarketBuy(false);renderMarketBuy(true);renderMarketSell(false);renderMarketSell(true)}window.scrollTo({top:0,behavior:state.settings.motion?"auto":"smooth"});render()}
 function bindNavigation(){document.querySelectorAll("[data-page]").forEach(b=>b.addEventListener("click",()=>nav(b.dataset.page)));document.querySelectorAll("[data-goto]").forEach(b=>b.addEventListener("click",()=>nav(b.dataset.goto)))}
 function renderStats(){if($("operatorRank"))$("operatorRank").textContent=operatorRank();if($("profileRank"))$("profileRank").textContent=operatorRank();$("credits").textContent=state.credits.toLocaleString("es-ES");$("level").textContent=state.level;const seenNames=[...new Set((state.seen||[]).filter(Boolean))];let baseCount=0,synthCount=0;seenNames.forEach(name=>{const item={name,...knownInfo(name)};if(isSynthesisItem(item))synthCount++;else baseCount++});if($("itemCountBase"))$("itemCountBase").textContent=baseCount;if($("itemCountSynth"))$("itemCountSynth").textContent=synthCount;if($("itemCount"))$("itemCount").textContent=baseCount+synthCount;$("expCount").textContent=state.expeditions;$("fusionCount").textContent=state.fusions;$("activityLog").innerHTML=state.activity.length?state.activity.map(a=>`<div class="activity"><span class="muted">[${a.time}]</span> ${a.msg}</div>`).join(""):'<div class="empty">Sin actividad registrada. Tu historia empieza ahora.</div>';$("profileLevel").textContent=state.level;$("xpText").textContent=`${state.xp} / ${state.level*100} XP`;$("xpBar").style.width=(state.xp/(state.level*100)*100)+"%";$("statDamage").textContent=damage();$("statDefense").textContent=defense();$("statGather").textContent=stat("gather")+"%";$("statLuck").textContent=Math.max(0,(state.level-1)*2+stat("luck"))+"%";$("statCredits").textContent=state.credits}
 function openZoneHud(zoneId){const target=zones.find(z=>z.id===zoneId);if(!target)return;if(!zoneUnlocked(target)){toast(`Zona bloqueada. Necesitas nivel ${zoneRequiredLevel(target)} de Operador.`,true);return}selectedZone=zoneId;zoneHudOpen=true;lootHudOpen=false;renderZoneCards();renderZoneDetail();renderZoneLoot();sound(470,.07,"triangle");window.scrollTo({top:0,behavior:state.settings.motion?"auto":"smooth"})}
@@ -1318,9 +1322,10 @@ function fight(){
  render();save();
 }
 function renderFusionSelects(){["A","B"].forEach(k=>{const id=state.fusionSlots?.[k];const x=state.inventory.find(x=>x.id===id);const slot=$("slot"+k);slot.classList.toggle("filled",!!x);slot.querySelector(".slot-icon").innerHTML=x?itemIconMarkup(x.name,x.icon||info(x.name).icon):"＋";$("fusion"+k+"Label").textContent=x?inventoryDisplayName(x):`Objeto ${k}`;$("chooseFusion"+k).textContent=x?"Cambiar objeto":"Elegir del inventario";const clearBtn=$("clearFusion"+k);if(clearBtn){clearBtn.classList.toggle("hidden",!x);clearBtn.disabled=!!activeTask||!!state.pendingFusion}});$("fuseBtn").disabled=!!activeTask||!!state.pendingFusion||!state.inventory.some(x=>x.id===state.fusionSlots?.A)||!state.inventory.some(x=>x.id===state.fusionSlots?.B);$("chooseFusionA").disabled=!!state.pendingFusion||!!activeTask;$("chooseFusionB").disabled=!!state.pendingFusion||!!activeTask}
-function openPicker(mode,slot=null){pickerMode=mode;pickerSlot=slot;pickerFilter="Todos";pickerPage=1;$("pickerSearch").value="";$("pickerTitle").textContent=mode==="fusion"?`▤ INVENTARIO · OBJETO ${slot}`:mode==="extract"?"▤ INVENTARIO · EXTRACCIÓN":mode==="sell"?"▤ INVENTARIO · VENDER":"▤ INVENTARIO · EQUIPAR";$("pickerDescription").textContent=mode==="fusion"?"Selecciona un objeto propio del juego para la cámara de fusión.":mode==="extract"?"Selecciona una criatura orgánica. Las unidades robóticas no sirven.":mode==="sell"?"Selecciona el objeto que quieres vender.":"Selecciona una pieza compatible con el espacio de equipo.";$("pickerFilterMenu").classList.toggle("hidden",mode!=="fusion");$("pickerFilterLabel").textContent=pickerFilter;$("inventoryPicker").classList.remove("hidden");renderPicker()}
+function openPicker(mode,slot=null){pickerMode=mode;pickerSlot=slot;pickerFilter="Todos";pickerPage=1;$("pickerSearch").value="";$("pickerTitle").textContent=mode==="fusion"?`▤ INVENTARIO · OBJETO ${slot}`:mode==="spawn"?`▤ INVENTARIO · ÓRGANO ${Number(slot)+1}`:mode==="extract"?"▤ INVENTARIO · EXTRACCIÓN":mode==="sell"?"▤ INVENTARIO · VENDER":"▤ INVENTARIO · EQUIPAR";$("pickerDescription").textContent=mode==="fusion"?"Selecciona un objeto propio del juego para la cámara de fusión.":mode==="spawn"?"Selecciona un órgano del inventario.":mode==="extract"?"Selecciona una criatura orgánica. Las unidades robóticas no sirven.":mode==="sell"?"Selecciona el objeto que quieres vender.":"Selecciona una pieza compatible con el espacio de equipo.";$("pickerFilterMenu").classList.toggle("hidden",mode!=="fusion");$("pickerFilterLabel").textContent=pickerFilter;$("inventoryPicker").classList.remove("hidden");renderPicker()}
 function renderPicker(){let list=state.inventory.filter(x=>x.qty>0&&x.name.toLowerCase().includes($("pickerSearch").value.toLowerCase()));if(pickerMode==="fusion"&&pickerFilter!=="Todos")list=list.filter(x=>pickerFilter==="Síntesis"?isSynthesisItem(x):pickerFilter==="Lingote"?(x.cat==="Lingote"||x.name.startsWith("Lingote de ")):pickerFilter==="Otro"?!( ["Material","Lingote","Herramienta","Arma","Equipo","Consumible","Criatura","Órgano","Anomalía"].includes(x.cat)):x.cat===pickerFilter);if(pickerMode==="extract")list=list.filter(x=>x.cat==="Criatura"&&!isRoboticCreature(x));
-if(pickerMode==="equip")list=list.filter(x=>pickerSlot==="anomaly"?x.cat==="Anomalía":pickerSlot==="companion"?x.cat==="Criatura":info(x.name).slot===pickerSlot||x.slot===pickerSlot);const pages=Math.max(1,Math.ceil(list.length/10));pickerPage=Math.min(pickerPage,pages);const shown=list.slice((pickerPage-1)*10,pickerPage*10);$("pickerGrid").innerHTML=shown.length?shown.map(x=>`<button class="picker-item" data-pick-id="${x.id}"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><span style="min-width:0"><b title="${escapeHtml(x.name)}">${escapeHtml(inventoryDisplayName(x))}</b><small>N${x.r} · ${escapeHtml(x.cat)} · ×${x.qty}</small></span></button>`).join(""):'<div class="empty" style="grid-column:1/-1">No hay objetos disponibles en esta categoría.</div>';$ ("pickerPageInfo").textContent=`Página ${pickerPage} / ${pages}`;$("pickerPrev").disabled=pickerPage<=1;$("pickerNext").disabled=pickerPage>=pages;document.querySelectorAll("[data-pick-id]").forEach(b=>b.onclick=()=>{const x=state.inventory.find(i=>i.id===b.dataset.pickId);if(!x)return;if(pickerMode==="fusion"){state.fusionSlots=state.fusionSlots||{A:null,B:null};state.fusionSlots[pickerSlot]=x.id;renderFusionSelects()}else if(pickerMode==="extract"){extractCreatureId=x.id;extractSelected={};renderExtractTable()}else if(pickerMode==="equip"){if(pickerSlot==="companion"&&!x.abilities?.length&&!x.ability){x.abilities=rollCompanionAbilities(x.r||1);x.ability=x.abilities[0];x.desc=`Compañero de campo. Habilidades procedurales: ${x.abilities.map(a=>a.name+" ("+a.desc+")").join(" · ")}.`}state.equipped[pickerSlot]=x.id;log(`Equipo actualizado: ${x.name}.`);renderEquipment();renderStats();renderBonus()}$("inventoryPicker").classList.add("hidden");save();sound(500)})}
+if(pickerMode==="spawn")list=list.filter(x=>x.cat==="Órgano"&&!Object.values(spawnSelected||{}).includes(x.id));
+if(pickerMode==="equip")list=list.filter(x=>pickerSlot==="anomaly"?x.cat==="Anomalía":pickerSlot==="companion"?x.cat==="Criatura":info(x.name).slot===pickerSlot||x.slot===pickerSlot);const pages=Math.max(1,Math.ceil(list.length/10));pickerPage=Math.min(pickerPage,pages);const shown=list.slice((pickerPage-1)*10,pickerPage*10);$("pickerGrid").innerHTML=shown.length?shown.map(x=>`<button class="picker-item" data-pick-id="${x.id}"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><span style="min-width:0"><b title="${escapeHtml(x.name)}">${escapeHtml(inventoryDisplayName(x))}</b><small>N${x.r} · ${escapeHtml(x.cat)} · ×${x.qty}</small></span></button>`).join(""):'<div class="empty" style="grid-column:1/-1">No hay objetos disponibles en esta categoría.</div>';$ ("pickerPageInfo").textContent=`Página ${pickerPage} / ${pages}`;$("pickerPrev").disabled=pickerPage<=1;$("pickerNext").disabled=pickerPage>=pages;document.querySelectorAll("[data-pick-id]").forEach(b=>b.onclick=()=>{const x=state.inventory.find(i=>i.id===b.dataset.pickId);if(!x)return;if(pickerMode==="fusion"){state.fusionSlots=state.fusionSlots||{A:null,B:null};state.fusionSlots[pickerSlot]=x.id;renderFusionSelects()}else if(pickerMode==="extract"){extractCreatureId=x.id;extractSelected={};extractOrgansPage=1;renderExtractTable()}else if(pickerMode==="spawn"){spawnSelected[pickerSlot]=x.id;renderSpawnTable()}else if(pickerMode==="equip"){if(pickerSlot==="companion"&&!x.abilities?.length&&!x.ability){x.abilities=rollCompanionAbilities(x.r||1);x.ability=x.abilities[0];x.desc=`Compañero de campo. Habilidades procedurales: ${x.abilities.map(a=>a.name+" ("+a.desc+")").join(" · ")}.`}state.equipped[pickerSlot]=x.id;log(`Equipo actualizado: ${x.name}.`);renderEquipment();renderStats();renderBonus()}$("inventoryPicker").classList.add("hidden");save();sound(500)})}
 function fusionOutcome(a,b){
  const da={...info(a.name),...a},db={...info(b.name),...b},text=(a.name+" "+b.name+" "+da.cat+" "+db.cat).toLowerCase();
  const creature=da.cat==="Criatura"||db.cat==="Criatura"||/zombie|mutante|ghoul|híbrido|infectado|merodeador|aberración|cosechador|dron biológico/.test(text);
@@ -1581,12 +1586,14 @@ function renderExtractTable(){
  const host=$("extractOrganChoices");
  if(!host)return;
  const x=state.inventory.find(i=>i.id===extractCreatureId);
- const icon=$("extractSlotIcon"),label=$("extractSlotLabel"),btn=$("extractStartBtn");
+ const icon=$("extractSlotIcon"),label=$("extractSlotLabel"),btn=$("extractStartBtn"),clearBtn=$("clearExtractCreature");
+ if(clearBtn){clearBtn.classList.toggle("hidden",!x);clearBtn.disabled=!!activeTask}
  if(!x){
   if(icon)icon.innerHTML="＋";
   if(label)label.textContent="Sin criatura";
   host.innerHTML='<div class="empty">Elige una criatura orgánica del inventario.</div>';
   if(btn)btn.disabled=true;
+  if($("extractOrgansPager"))$("extractOrgansPager").classList.add("hidden");
   return;
  }
  if(icon)icon.innerHTML=itemIconMarkup(x.name,x.icon||info(x.name).icon);
@@ -1594,24 +1601,32 @@ function renderExtractTable(){
  if(isRoboticCreature(x)){
   host.innerHTML='<div class="empty">Esta unidad es mecánica/robótica: no tiene órganos extraíbles.</div>';
   if(btn)btn.disabled=true;
+  if($("extractOrgansPager"))$("extractOrgansPager").classList.add("hidden");
   return;
  }
  const opts=organCandidatesForCreature(x);
  if(!opts.length){
   host.innerHTML='<div class="empty">No se detectan órganos extraíbles en esta criatura.</div>';
   if(btn)btn.disabled=true;
+  if($("extractOrgansPager"))$("extractOrgansPager").classList.add("hidden");
   return;
  }
  Object.keys(extractSelected).forEach(k=>{if(!opts.includes(k))delete extractSelected[k]});
  const selectedNames=Object.keys(extractSelected);
- const nSel=Math.max(1,selectedNames.length||1);
  const bonus=equippedExtractBonus();
- host.innerHTML=opts.map(name=>{
+ const pages=Math.max(1,Math.ceil(opts.length/10));
+ extractOrgansPage=Math.min(Math.max(1,extractOrgansPage||1),pages);
+ const shown=opts.slice((extractOrgansPage-1)*10,extractOrgansPage*10);
+ if($("extractOrgansPager"))$("extractOrgansPager").classList.toggle("hidden",opts.length<=10);
+ if($("extractOrgansPageInfo"))$("extractOrgansPageInfo").textContent=`Página ${extractOrgansPage} / ${pages}`;
+ if($("extractOrgansPrev"))$("extractOrgansPrev").disabled=extractOrgansPage<=1;
+ if($("extractOrgansNext"))$("extractOrgansNext").disabled=extractOrgansPage>=pages;
+ host.innerHTML=shown.map(name=>{
   const on=!!extractSelected[name];
   const r=Math.max(1,Number(info(name).r)||1);
   const chance=organExtractChance(name,selectedNames.length||1);
   return `<label class="extract-organ-opt ${on?"on":""}"><input type="checkbox" data-extract-organ="${escapeHtml(name)}" ${on?"checked":""}><span><b>${escapeHtml(name)}</b><small style="display:block;color:var(--muted)">N${r} · Órgano</small><div class="extract-chance">Éxito: ${chance}%</div></span></label>`;
- }).join("")+`<div class="extract-summary" style="grid-column:1/-1">Seleccionados: <b>${selectedNames.length}</b> · Bonus pinzas: <b>+${bonus}%</b> · Cuantos más órganos, menor éxito por cada uno. La criatura se consume siempre.</div>`;
+ }).join("")+`<div class="extract-summary" style="grid-column:1/-1">Seleccionados: <b>${selectedNames.length}</b> · Bonus pinzas: <b>+${bonus}%</b> · Cuantos más órganos, menor éxito. La criatura se consume siempre.</div>`;
  host.querySelectorAll("[data-extract-organ]").forEach(inp=>{
   inp.onchange=()=>{
    const n=inp.dataset.extractOrgan;
@@ -1736,6 +1751,23 @@ if($("chooseExtractCreature"))$("chooseExtractCreature").onclick=()=>openPicker(
 if($("extractStartBtn"))$("extractStartBtn").onclick=startExtraction;
 
 if($("spawnStartBtn"))$("spawnStartBtn").onclick=startCreatureSpawn;
+
+if($("clearExtractCreature"))$("clearExtractCreature").onclick=()=>{extractCreatureId=null;extractSelected={};extractOrgansPage=1;renderExtractTable();sound(400,.05,"sine")};
+if($("extractOrgansPrev"))$("extractOrgansPrev").onclick=()=>{extractOrgansPage=Math.max(1,(extractOrgansPage||1)-1);renderExtractTable()};
+if($("extractOrgansNext"))$("extractOrgansNext").onclick=()=>{extractOrgansPage=(extractOrgansPage||1)+1;renderExtractTable()};
+for(let i=0;i<5;i++){
+ const ii=i;
+ if($("chooseSpawn"+ii))$("chooseSpawn"+ii).onclick=()=>openPicker("spawn",ii);
+ if($("clearSpawn"+ii))$("clearSpawn"+ii).onclick=()=>{delete spawnSelected[ii];renderSpawnTable();sound(400,.05,"sine")};
+}
+if($("marketBuyPrev"))$("marketBuyPrev").onclick=()=>{marketBuyPage=Math.max(1,marketBuyPage-1);renderMarketBuy(false)};
+if($("marketBuyNext"))$("marketBuyNext").onclick=()=>{marketBuyPage++;renderMarketBuy(false)};
+if($("marketBlackBuyPrev"))$("marketBlackBuyPrev").onclick=()=>{marketBlackBuyPage=Math.max(1,marketBlackBuyPage-1);renderMarketBuy(true)};
+if($("marketBlackBuyNext"))$("marketBlackBuyNext").onclick=()=>{marketBlackBuyPage++;renderMarketBuy(true)};
+function closeMobileNavPanels(){["mobilePanelSystems","mobilePanelManage"].forEach(id=>{const p=$(id);if(p)p.classList.add("hidden")});["mobileGroupSystems","mobileGroupManage"].forEach(id=>{const b=$(id);if(b)b.setAttribute("aria-expanded","false")});}
+if($("mobileGroupSystems"))$("mobileGroupSystems").onclick=()=>{const p=$("mobilePanelSystems");const open=p&&p.classList.contains("hidden");closeMobileNavPanels();if(open&&p){p.classList.remove("hidden");$("mobileGroupSystems").setAttribute("aria-expanded","true")}};
+if($("mobileGroupManage"))$("mobileGroupManage").onclick=()=>{const p=$("mobilePanelManage");const open=p&&p.classList.contains("hidden");closeMobileNavPanels();if(open&&p){p.classList.remove("hidden");$("mobileGroupManage").setAttribute("aria-expanded","true")}};
+
 document.querySelectorAll("[data-market-tab]").forEach(b=>b.onclick=()=>{document.querySelectorAll("[data-market-tab]").forEach(x=>x.classList.toggle("active",x===b));document.querySelectorAll("#page-market .market-section").forEach(x=>x.classList.toggle("active",x.id==="market-"+b.dataset.marketTab));if(b.dataset.marketTab==="buy")renderMarketBuy(false);if(b.dataset.marketTab==="buyBlack")renderMarketBuy(true);if(b.dataset.marketTab==="sell")renderMarketSell(false);if(b.dataset.marketTab==="sellBlack")renderMarketSell(true);});
 document.querySelectorAll("[data-market-buy-mode]").forEach(b=>b.onclick=()=>{marketBuyMode=b.dataset.marketBuyMode;document.querySelectorAll("[data-market-buy-mode]").forEach(x=>x.classList.toggle("active",x===b));renderMarketBuy(false)});
 document.querySelectorAll("[data-market-bbuy-mode]").forEach(b=>b.onclick=()=>{marketBlackBuyMode=b.dataset.marketBbuyMode;document.querySelectorAll("[data-market-bbuy-mode]").forEach(x=>x.classList.toggle("active",x===b));renderMarketBuy(true)});

@@ -497,3 +497,13 @@ La descripción de los objetos vuelve al tamaño tipográfico original de las ta
 - Mercado negro de compra: todo ilegal (órganos, armas balísticas, criaturas…).
 - Clínica: Mercado Negro sustituido por **Síntesis de Criatura** (5 órganos → engendro ilegal, 10 s).
 - Caché PWA actualizada a r46.
+
+
+### r47 — Mercado en rejilla, nav móvil y síntesis por ranuras
+- Mercado movido bajo Inventario en el menú.
+- Catálogo de compra en tarjetas con paginación de 10 (diario sin páginas).
+- Textos de venta reducidos al % actual visible.
+- Nav móvil: botones Sistemas / Gestión que despliegan destinos.
+- Extracción: Retirar criatura + paginación de órganos (10).
+- Síntesis de criatura: 5 ranuras con selector tipo fusión y Retirar.
+- Caché PWA actualizada a r47.

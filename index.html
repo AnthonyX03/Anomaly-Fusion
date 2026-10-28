@@ -207,6 +207,29 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 .market-buy-row b{font-size:.82rem}
 .market-buy-row small{display:block;color:var(--muted);font-size:.68rem;margin-top:3px}
 .market-stock{color:#ffb86b;font-size:.68rem}
+
+.market-rate-badge{display:inline-block;padding:2px 10px;border-radius:999px;border:1px solid var(--cyan);color:var(--cyan);background:#10201f;font-weight:800;letter-spacing:.04em}
+.black-market-panel .market-rate-badge{border-color:#ff8098;color:#ff8098;background:#1a1016}
+.market-catalog-grid{margin-top:12px;min-height:200px}
+.market-card{display:flex;flex-direction:column;gap:8px;padding:12px;border:1px solid var(--line);border-radius:10px;background:#0b1117;min-height:140px}
+.market-card .market-card-top{display:flex;gap:10px;align-items:center}
+.market-card b{font-size:.8rem;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.market-card small{color:var(--muted);font-size:.66rem}
+.market-card button{margin-top:auto;width:100%}
+.spawn-slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-top:14px}
+.spawn-slots .slot{min-height:120px}
+/* Mobile nav groups */
+.mobile-nav{display:none}
+@media(max-width:900px){
+ .mobile-nav{display:flex;flex-direction:column;gap:0;position:sticky;bottom:0;z-index:40;background:#0a0f14ee;border-top:1px solid var(--line);padding:8px 10px calc(8px + env(safe-area-inset-bottom));backdrop-filter:blur(8px)}
+ .mobile-nav-groups{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+ .mobile-nav-group-btn{width:100%;min-height:46px;border:1px solid #344955;background:#151f28;color:var(--text);border-radius:10px;font-size:.78rem}
+ .mobile-nav-group-btn[aria-expanded="true"]{border-color:var(--cyan);color:var(--cyan);background:#10201f}
+ .mobile-nav-panel{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;padding-top:8px}
+ .mobile-nav-panel.hidden{display:none}
+ .mobile-nav-panel button{min-height:44px;font-size:.72rem;white-space:normal;line-height:1.2}
+}
+
 </style>
 </head>
 <body>
@@ -222,9 +245,9 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
  <button class="nav" data-page="explore"><span class="ico">⌖</span> Exploración</button>
  <button class="nav" data-page="central"><span class="ico">▦</span> La Central</button>
  <button class="nav" data-page="clinic"><span class="ico">⚕</span> Clínica</button>
- <button class="nav" data-page="market"><span class="ico">⚖</span> Mercado</button>
  <div class="nav-label">GESTIÓN DE OBJETOS</div>
  <button class="nav" data-page="inventory"><span class="ico">▤</span> Inventario</button>
+ <button class="nav" data-page="market"><span class="ico">⚖</span> Mercado</button>
  <button class="nav" data-page="registry"><span class="ico">▦</span> Registro de objetos</button>
  <button class="nav" data-page="equipment"><span class="ico">◈</span> Equipo y estadísticas</button>
  <div class="side-foot">SISTEMA ONLINE<br><span class="cyan">●</span> ENERGÍA ESTABLE<br>ÚLTIMO GUARDADO: LOCAL</div>
@@ -303,9 +326,9 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
    <h3>⚗ MESA DE EXTRACCIÓN · TRÁFICO DE ÓRGANOS</h3>
    <p class="small-note">Introduce una criatura orgánica y selecciona qué órganos extraer. Las unidades robóticas o mecánicas no tienen órganos. El proceso dura 10 segundos y consume la criatura.</p>
    <div class="slot-row" style="margin-top:14px">
-    <div class="slot" id="extractSlot"><div class="slot-icon" id="extractSlotIcon">＋</div><b id="extractSlotLabel">Sin criatura</b><button class="tiny" id="chooseExtractCreature">Elegir criatura</button></div>
+    <div class="slot" id="extractSlot"><div class="slot-icon" id="extractSlotIcon">＋</div><b id="extractSlotLabel">Sin criatura</b><div class="slot-actions"><button class="tiny" id="chooseExtractCreature">Elegir criatura</button><button class="tiny hidden" id="clearExtractCreature">Retirar</button></div></div>
    </div>
-   <div id="extractOrganChoices" class="extract-organs" style="margin-top:14px"></div>
+   <div id="extractOrganChoices" class="extract-organs" style="margin-top:14px"></div><div class="pagination" id="extractOrgansPager" style="margin-top:10px"><button class="tiny" id="extractOrgansPrev">← Anterior</button><span class="muted" id="extractOrgansPageInfo">Página 1</span><button class="tiny" id="extractOrgansNext">Siguiente →</button></div>
    <div class="bar-wrap hidden" id="extractProgress" style="margin-top:12px"><div class="bar-label"><b class="cyan">Extrayendo...</b><span id="extractPercent">0%</span></div><div class="meter progress"><span id="extractBar"></span></div></div>
    <button class="danger" id="extractStartBtn" style="width:100%;margin-top:12px" disabled>⚗ Iniciar extracción · 10 s</button>
    <p class="small-note" id="extractMessage" style="margin-top:10px">Cada órgano tiene un <b>% de éxito</b> según su nivel y cuántos intentes a la vez. Las <b>Pinzas</b> equipadas mejoran la tasa. La criatura se consume siempre. Los órganos llevan rasgo <b>Ilegal</b>.</p>
@@ -314,9 +337,14 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
  <div class="clinic-section" id="clinic-spawn">
   <div class="panel extract-panel">
    <h3>🧬 SÍNTESIS DE CRIATURA · ENGENDRO</h3>
-   <p class="small-note">Selecciona exactamente <b>5 órganos</b> para sintetizar un engendro. El resultado es una criatura con rasgo <b>Engendro</b> e <b>Ilegal</b>. Proceso de 10 segundos.</p>
-   <div id="spawnOrganChoices" class="extract-organs" style="margin-top:14px"></div>
-   <div class="extract-summary" id="spawnSummary" style="margin-top:10px">Órganos seleccionados: <b>0 / 5</b></div>
+   <p class="small-note">Coloca <b>5 órganos</b> en las ranuras. El resultado es una criatura <b>Engendro</b> e <b>Ilegal</b>. Proceso de 10 segundos.</p>
+   <div class="spawn-slots" id="spawnSlots">
+    <div class="slot" id="spawnSlot0"><div class="slot-icon">＋</div><b id="spawnLabel0">Órgano 1</b><div class="slot-actions"><button class="tiny" id="chooseSpawn0">Elegir</button><button class="tiny hidden" id="clearSpawn0">Retirar</button></div></div>
+    <div class="slot" id="spawnSlot1"><div class="slot-icon">＋</div><b id="spawnLabel1">Órgano 2</b><div class="slot-actions"><button class="tiny" id="chooseSpawn1">Elegir</button><button class="tiny hidden" id="clearSpawn1">Retirar</button></div></div>
+    <div class="slot" id="spawnSlot2"><div class="slot-icon">＋</div><b id="spawnLabel2">Órgano 3</b><div class="slot-actions"><button class="tiny" id="chooseSpawn2">Elegir</button><button class="tiny hidden" id="clearSpawn2">Retirar</button></div></div>
+    <div class="slot" id="spawnSlot3"><div class="slot-icon">＋</div><b id="spawnLabel3">Órgano 4</b><div class="slot-actions"><button class="tiny" id="chooseSpawn3">Elegir</button><button class="tiny hidden" id="clearSpawn3">Retirar</button></div></div>
+    <div class="slot" id="spawnSlot4"><div class="slot-icon">＋</div><b id="spawnLabel4">Órgano 5</b><div class="slot-actions"><button class="tiny" id="chooseSpawn4">Elegir</button><button class="tiny hidden" id="clearSpawn4">Retirar</button></div></div>
+   </div>
    <div class="bar-wrap hidden" id="spawnProgress" style="margin-top:12px"><div class="bar-label"><b class="cyan">Sintetizando engendro...</b><span id="spawnPercent">0%</span></div><div class="meter progress"><span id="spawnBar"></span></div></div>
    <button class="danger" id="spawnStartBtn" style="width:100%;margin-top:12px" disabled>🧬 Iniciar síntesis · 10 s</button>
    <p class="small-note" id="spawnMessage" style="margin-top:10px">Los engendros solo pueden venderse en el Mercado Negro.</p>
@@ -343,7 +371,7 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
     <button data-market-buy-mode="daily">Diario (10)</button>
    </div>
    <div class="toolbar" style="margin:12px 0"><input id="marketBuySearch" placeholder="Buscar en el mercado..." aria-label="Buscar en el mercado"></div>
-   <div id="marketBuyList" class="central-sale-list"></div>
+   <div id="marketBuyList" class="grid three market-catalog-grid"></div><div class="pagination" id="marketBuyPager"><button class="tiny" id="marketBuyPrev">← Anterior</button><span class="muted" id="marketBuyPageInfo">Página 1</span><button class="tiny" id="marketBuyNext">Siguiente →</button></div>
    <p class="small-note" id="marketBuyNote" style="margin-top:10px">Elige un objeto y pulsa Comprar.</p>
   </div>
  </div>
@@ -357,7 +385,7 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
     <button data-market-bbuy-mode="daily">Diario negro (10)</button>
    </div>
    <div class="toolbar" style="margin:12px 0"><input id="marketBlackBuySearch" placeholder="Buscar contrabando..." aria-label="Buscar contrabando"></div>
-   <div id="marketBlackBuyList" class="central-sale-list"></div>
+   <div id="marketBlackBuyList" class="grid three market-catalog-grid"></div><div class="pagination" id="marketBlackBuyPager"><button class="tiny" id="marketBlackBuyPrev">← Anterior</button><span class="muted" id="marketBlackBuyPageInfo">Página 1</span><button class="tiny" id="marketBlackBuyNext">Siguiente →</button></div>
    <p class="small-note" id="marketBlackBuyNote" style="margin-top:10px">Contrabando con rasgo Ilegal al adquirir.</p>
   </div>
  </div>
@@ -365,7 +393,7 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
  <div class="market-section" id="market-sell">
   <div class="panel" id="marketSellPanel">
    <h3>⇢ MERCADO · VENTA</h3>
-   <p class="small-note">Igual que el Envío de suministro, pero el pago diario fluctúa: <b>50% / 75% / 100% / 150% / 200%</b> del valor base. Hoy: <b id="marketSellRateLabel">—</b>. Se reinicia a las 00:00. No acepta ilegal.</p>
+   <p class="small-note">Pago de hoy: <b id="marketSellRateLabel" class="market-rate-badge">—</b> · Cambia a las 00:00 · No acepta ilegal.</p>
    <div class="toolbar central-sale-toolbar" style="margin:12px 0">
     <input id="marketSellSearch" placeholder="Buscar objetos para vender..." aria-label="Buscar objetos para vender en mercado">
     <button type="button" id="marketSellSelectAll" class="tiny">Seleccionar visibles</button>
@@ -381,7 +409,7 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
  <div class="market-section" id="market-sellBlack">
   <div class="panel black-market-panel">
    <h3>☠ MERCADO NEGRO · VENTA</h3>
-   <p class="small-note">Solo mercancía ilegal. Fluctuación diaria del pago: <b id="marketBlackSellRateLabel">—</b> (50–200%). Se reinicia a las 00:00.</p>
+   <p class="small-note">Pago de hoy: <b id="marketBlackSellRateLabel" class="market-rate-badge">—</b> · Cambia a las 00:00 · Solo ilegal.</p>
    <div class="toolbar central-sale-toolbar" style="margin:12px 0">
     <input id="marketBlackSellSearch" placeholder="Buscar mercancía ilegal..." aria-label="Buscar mercancía ilegal">
     <button type="button" id="marketBlackSellSelectAll" class="tiny">Seleccionar visibles</button>
@@ -445,7 +473,23 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 <div class="footer-note">ANOMALY FUSION // NOTHING IS EVER JUST ONE THING</div>
 </main></div>
 <nav class="mobile-nav">
- <button class="active" data-page="home"><span class="ico">⌂</span>Inicio</button><button data-page="fusion"><span class="ico">⟁</span>Fusión</button><button data-page="explore"><span class="ico">⌖</span>Explorar</button><button data-page="central"><span class="ico">▦</span>Central</button><button data-page="clinic"><span class="ico">⚕</span>Clínica</button><button data-page="market"><span class="ico">⚖</span>Mercado</button><button data-page="inventory"><span class="ico">▤</span>Bolsa</button><button data-page="registry"><span class="ico">▦</span>Registro</button><button data-page="equipment"><span class="ico">◈</span>Equipo</button>
+ <div class="mobile-nav-groups">
+  <button type="button" class="mobile-nav-group-btn" id="mobileGroupSystems" aria-expanded="false"><span class="ico">⌂</span>Sistemas</button>
+  <button type="button" class="mobile-nav-group-btn" id="mobileGroupManage" aria-expanded="false"><span class="ico">▤</span>Gestión</button>
+ </div>
+ <div class="mobile-nav-panel hidden" id="mobilePanelSystems">
+  <button data-page="home"><span class="ico">⌂</span>Centro de control</button>
+  <button data-page="fusion"><span class="ico">⟁</span>Máquina de fusión</button>
+  <button data-page="explore"><span class="ico">⌖</span>Exploración</button>
+  <button data-page="central"><span class="ico">▦</span>La Central</button>
+  <button data-page="clinic"><span class="ico">⚕</span>Clínica</button>
+ </div>
+ <div class="mobile-nav-panel hidden" id="mobilePanelManage">
+  <button data-page="inventory"><span class="ico">▤</span>Inventario</button>
+  <button data-page="market"><span class="ico">⚖</span>Mercado</button>
+  <button data-page="registry"><span class="ico">▦</span>Registro</button>
+  <button data-page="equipment"><span class="ico">◈</span>Equipo</button>
+ </div>
 </nav>
 <div class="toast-area" id="toastArea"></div>
 <div class="modal-backdrop hidden" id="inventoryPicker"><div class="modal"><div class="modal-head"><h3 id="pickerTitle">▤ INVENTARIO</h3><button class="tiny" id="closePicker">✕</button></div><p class="small-note" id="pickerDescription">Selecciona un objeto.</p><div class="toolbar"><input id="pickerSearch" placeholder="Buscar objeto..." aria-label="Buscar objeto"><div class="sort-menu hidden" id="pickerFilterMenu"><button type="button" class="sort-trigger" id="pickerFilterTrigger" aria-haspopup="listbox" aria-expanded="false"><span>Filtro: <span class="sort-current" id="pickerFilterLabel">Todos</span></span><span aria-hidden="true">⌄</span></button><div class="sort-options hidden" id="pickerFilterOptions" role="listbox" aria-label="Filtrar objetos de fusión"><button type="button" data-picker-filter="Todos" aria-selected="true">Todos</button><button type="button" data-picker-filter="Material" aria-selected="false">Materiales</button><button type="button" data-picker-filter="Lingote" aria-selected="false">Lingotes</button><button type="button" data-picker-filter="Herramienta" aria-selected="false">Herramientas</button><button type="button" data-picker-filter="Arma" aria-selected="false">Armas</button><button type="button" data-picker-filter="Equipo" aria-selected="false">Equipo</button><button type="button" data-picker-filter="Consumible" aria-selected="false">Consumibles</button><button type="button" data-picker-filter="Criatura" aria-selected="false">Criaturas</button><button type="button" data-picker-filter="Órgano" aria-selected="false">Órganos</button><button type="button" data-picker-filter="Anomalía" aria-selected="false">Anomalías</button><button type="button" data-picker-filter="Otro" aria-selected="false">Otros</button><button type="button" data-picker-filter="Síntesis" aria-selected="false">Síntesis</button></div></div></div><div class="picker-grid" id="pickerGrid"></div><div class="pagination"><button class="tiny" id="pickerPrev">← Anterior</button><span id="pickerPageInfo">Página 1</span><button class="tiny" id="pickerNext">Siguiente →</button></div></div></div>
