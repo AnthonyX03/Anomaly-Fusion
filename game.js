@@ -914,18 +914,38 @@ Object.entries(state.discovered||{}).forEach(([name,item])=>{if(isSynthesisItem(
 state.valueRanges=state.valueRanges||{};state.inventory.forEach(recordObservedValue);Object.entries(state.discovered||{}).forEach(([name,item])=>{if(item&&item.name)recordObservedValue({...item,name})});Object.entries(state.synthesisVariants||{}).forEach(([name,variants])=>(Array.isArray(variants)?variants:[]).forEach(v=>recordObservedValue({...v,name,trait:v.trait||"Síntesis de convergencia"})));
 
 function normalizeImportedState(raw){
- if(!raw||typeof raw!=="object"||!Array.isArray(raw.inventory)||!raw.equipped||typeof raw.equipped!=="object")throw new Error("El archivo no contiene una partida válida.");
+ if(!raw||typeof raw!=="object")throw new Error("El archivo no contiene una partida válida.");
+ if(raw.save&&typeof raw.save==="object")raw=raw.save;
  const base=stateDefault();
+ const inventory=Array.isArray(raw.inventory)?raw.inventory:Array.isArray(raw.items)?raw.items:[];
+ const equipped=raw.equipped&&typeof raw.equipped==="object"?raw.equipped:{};
  const next={...base,...raw,version:10};
- next.credits=Math.max(0,Number(next.credits)||0);next.level=Math.max(1,Number(next.level)||1);next.xp=Math.max(0,Number(next.xp)||0);
- next.inventory=raw.inventory.filter(x=>x&&typeof x==="object"&&typeof x.name==="string").map(x=>({...x,qty:Math.max(1,Math.floor(Number(x.qty)||1))}));
- next.equipped={...base.equipped,...raw.equipped};next.history=Array.isArray(raw.history)?raw.history.slice(0,3):[];
- next.pendingFusion=raw.pendingFusion&&typeof raw.pendingFusion==="object"?raw.pendingFusion:null;next.pendingSupply=raw.pendingSupply&&typeof raw.pendingSupply==="object"?raw.pendingSupply:null;
- next.activity=Array.isArray(raw.activity)?raw.activity.slice(-100):[];next.seen=[...new Set([...(Array.isArray(raw.seen)?raw.seen.filter(x=>typeof x==="string"):[]),...next.inventory.map(x=>x.name)])];
- next.discovered={...(raw.discovered&&typeof raw.discovered==="object"?raw.discovered:{}),...Object.fromEntries(next.inventory.map(x=>[x.name,x]))};next.synthesisVariants=raw.synthesisVariants&&typeof raw.synthesisVariants==="object"?raw.synthesisVariants:{};next.valueRanges=raw.valueRanges&&typeof raw.valueRanges==="object"?raw.valueRanges:{};
+ next.credits=Math.max(0,Number(next.credits)||0);
+ next.level=Math.max(1,Number(next.level)||1);
+ next.xp=Math.max(0,Number(next.xp)||0);
+ next.expeditions=Math.max(0,Number(next.expeditions)||0);
+ next.fusions=Math.max(0,Number(next.fusions)||0);
+ next.inventory=inventory.filter(x=>x&&typeof x==="object"&&typeof x.name==="string").map(x=>({...x,id:x.id||uid(),qty:Math.max(1,Math.floor(Number(x.qty)||1)),r:Math.max(1,Math.min(5,Number(x.r)||1))}));
+ next.equipped={...base.equipped};
+ Object.keys(base.equipped).forEach(slot=>{
+  const id=equipped[slot];
+  next.equipped[slot]=id&&next.inventory.some(i=>i.id===id)?id:null;
+ });
+ next.history=Array.isArray(raw.history)?raw.history.slice(0,3):[];
+ next.pendingFusion=raw.pendingFusion&&typeof raw.pendingFusion==="object"?raw.pendingFusion:null;
+ next.pendingSupply=raw.pendingSupply&&typeof raw.pendingSupply==="object"?raw.pendingSupply:null;
+ next.activity=Array.isArray(raw.activity)?raw.activity.slice(-100):[];
+ next.seen=[...new Set([...(Array.isArray(raw.seen)?raw.seen.filter(x=>typeof x==="string"):[]),...next.inventory.map(x=>x.name)])];
+ next.discovered={...(raw.discovered&&typeof raw.discovered==="object"?raw.discovered:{}),...Object.fromEntries(next.inventory.map(x=>[x.name,x]))};
+ next.synthesisVariants=raw.synthesisVariants&&typeof raw.synthesisVariants==="object"?raw.synthesisVariants:{};
+ next.valueRanges=raw.valueRanges&&typeof raw.valueRanges==="object"?raw.valueRanges:{};
+ next.market=raw.market&&typeof raw.market==="object"?raw.market:null;
  next.settings={...base.settings,...(raw.settings&&typeof raw.settings==="object"?raw.settings:{})};
  if(!["0.9","1","1.1"].includes(String(next.settings.scale)))next.settings.scale="1";
- next.settings.sound=next.settings.sound!==false;next.settings.soundVolume=Math.max(0,Math.min(100,Number(next.settings.soundVolume??75)||0));next.settings.motion=!!next.settings.motion;if(!["auto","mobile","pc16"].includes(next.settings.layoutMode))next.settings.layoutMode="auto";
+ next.settings.sound=next.settings.sound!==false;
+ next.settings.soundVolume=Math.max(0,Math.min(100,Number(next.settings.soundVolume??75)||0));
+ next.settings.motion=!!next.settings.motion;
+ if(!["auto","mobile","pc16"].includes(next.settings.layoutMode))next.settings.layoutMode="auto";
  return next;
 }
 function exportSave(){try{const payload={app:"Anomaly Fusion",format:1,exportedAt:new Date().toISOString(),save:state};const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=`anomaly-fusion-partida-${new Date().toISOString().slice(0,10)}.json`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);toast("Copia de seguridad exportada.")}catch(e){toast("No se pudo exportar la partida.",true)}}
@@ -1844,7 +1864,7 @@ $("fullscreenToggle").onclick=async()=>{try{if(!document.fullscreenElement){awai
 document.addEventListener("fullscreenchange",()=>syncSettingsUI());
 $("exportSave").onclick=exportSave;
 $("importSave").onclick=()=>$("importSaveFile").click();
-$("importSaveFile").addEventListener("change",async e=>{const file=e.target.files&&e.target.files[0];if(!file)return;try{if(file.size>10*1024*1024)throw new Error("El archivo supera el límite de 10 MB.");const parsed=JSON.parse(await file.text());const raw=parsed&&parsed.save?parsed.save:parsed;const imported=normalizeImportedState(raw);showConfirm("IMPORTAR PARTIDA","Sustituirá el progreso actual de este dispositivo por los datos del archivo seleccionado. Esta acción no se puede deshacer.","Importar",()=>{state=imported;localStorage.removeItem("joyaCeroSave");save();$("settingsModal").classList.add("hidden");render();$("soundToggle").checked=state.settings.sound;$("scaleSelect").value=state.settings.scale;document.documentElement.style.setProperty("--scale",state.settings.scale);$("motionToggle").checked=state.settings.motion;document.body.classList.toggle("reduce-motion",state.settings.motion);applyLayoutMode(state.settings.layoutMode);setSoundVolume(state.settings.soundVolume??75);syncSettingsUI();toast("Partida importada correctamente.")});}catch(err){toast(err.message||"No se pudo importar el archivo.",true)}finally{e.target.value=""}});
+$("importSaveFile").addEventListener("change",async e=>{const file=e.target.files&&e.target.files[0];if(!file)return;try{if(file.size>10*1024*1024)throw new Error("El archivo supera el límite de 10 MB.");let text;try{text=await file.text()}catch(_){throw new Error("No se pudo leer el archivo.")}let parsed;try{parsed=JSON.parse(text)}catch(_){throw new Error("El archivo no es un JSON válido.")}const raw=parsed&&parsed.save?parsed.save:parsed;const imported=normalizeImportedState(raw);showConfirm("IMPORTAR PARTIDA","Sustituirá el progreso actual de este dispositivo por los datos del archivo seleccionado. Esta acción no se puede deshacer.","Importar",()=>{try{state=imported;localStorage.removeItem("joyaCeroSave");save();if($("settingsModal"))$("settingsModal").classList.add("hidden");render();if($("soundToggle"))$("soundToggle").checked=!!state.settings.sound;if($("scaleSelect"))$("scaleSelect").value=state.settings.scale||"1";document.documentElement.style.setProperty("--scale",state.settings.scale||"1");if($("motionToggle"))$("motionToggle").checked=!!state.settings.motion;document.body.classList.toggle("reduce-motion",!!state.settings.motion);applyLayoutMode(state.settings.layoutMode||"auto");setSoundVolume(state.settings.soundVolume??75);syncSettingsUI();toast("Partida importada correctamente.")}catch(err2){console.error(err2);toast(err2.message||"Error al aplicar la partida importada.",true)}});}catch(err){console.error(err);toast(err.message||"No se pudo importar el archivo.",true)}finally{e.target.value=""}});
 $("resetGame").onclick=()=>showConfirm("REINICIAR PARTIDA","Se borrará el progreso local y se limpiará la caché de Anomaly Fusion. No se puede deshacer. Se recargará la aplicación al terminar.","Reiniciar",async()=>{localStorage.removeItem("joyaCeroSave");localStorage.removeItem("anomalyFusionSave");state=stateDefault();state.activity=[];save();await clearAppCache();location.reload()},true);
 // Sonido corto de interfaz para botones, incluidos controles creados dinámicamente.
 document.addEventListener("click",e=>{const b=e.target.closest("button");if(!b||b.disabled||b.id==="soundToggle")return;if(b.id==="exploreBtn"||b.id==="zoneBackBtn")return;sound(380,.025,"sine")},true);

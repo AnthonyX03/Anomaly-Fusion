@@ -237,6 +237,14 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 .settings-panel{display:none}
 .settings-panel.active{display:block}
 .home-clock{color:var(--cyan);font-variant-numeric:tabular-nums;letter-spacing:.04em}
+
+#settingsModal .modal{max-height:none;overflow:visible;width:min(560px,100%)}
+#settingsModal{align-items:flex-start;padding:24px 12px;overflow:auto}
+#settingsModal .settings-panel{overflow:visible}
+#settingsModal .settings-section{margin-bottom:0}
+@media(max-height:720px){
+ #settingsModal .modal{max-height:none}
+}
 </style>
 </head>
 <body>

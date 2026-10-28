@@ -521,3 +521,10 @@ La descripción de los objetos vuelve al tamaño tipográfico original de las ta
 - Restaurado `stateDefault` y `let state = loadState()` (habían desaparecido y rompían toda la app).
 - Migraciones de partida movidas después de cargar el estado.
 - Caché PWA actualizada a r49.
+
+
+### r50 — Ajustes sin scroll + importación reparada
+- Modal de ajustes sin barra de scroll interna en Partida/Sonido/Adaptabilidad.
+- Importar partida más tolerante (con o sin contenedor save, equipped opcional).
+- Mensajes de error más claros y aplicación null-safe tras importar.
+- Caché PWA actualizada a r50.
