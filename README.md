@@ -291,3 +291,7 @@ La descripción de los objetos vuelve al tamaño tipográfico original de las ta
 ### Inventario sin texto recortado (r18)
 - Las descripciones y la línea «✦ Síntesis de convergencia» ya no usan puntos suspensivos ni límites de líneas.
 - El texto puede ocupar varias líneas y las tarjetas crecen para mostrar el contenido completo.
+
+
+### r19 — Alineación del pie de las tarjetas
+- El bloque de categoría/valor y el enlace «Ver detalles» se mantienen al fondo de la tarjeta tanto en objetos normales como en objetos de fusión, independientemente de que tengan rasgo de síntesis.

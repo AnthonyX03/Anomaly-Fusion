@@ -104,11 +104,11 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 /* r18: no truncar descripción ni el texto de síntesis en las tarjetas del inventario */
 #inventoryGrid{grid-auto-rows:auto!important;align-content:start}
 #inventoryGrid .item-card{height:auto!important;min-height:180px;overflow:visible!important}
-#inventoryGrid .inventory-tile{height:auto!important;min-height:180px;overflow:visible!important}
+#inventoryGrid .inventory-tile{height:auto!important;min-height:180px;overflow:visible!important;display:flex!important;flex-direction:column!important}
 #inventoryGrid .inventory-tile-description{display:block!important;-webkit-line-clamp:unset!important;overflow:visible!important;max-height:none!important;white-space:normal!important;overflow-wrap:anywhere;word-break:normal}
 #inventoryGrid .inventory-tile-trait{display:block!important;overflow:visible!important;text-overflow:clip!important;white-space:normal!important;max-height:none!important;overflow-wrap:anywhere;word-break:normal;flex-shrink:1}
-#inventoryGrid .inventory-tile-meta{margin-top:4px;flex-wrap:wrap}
-#inventoryGrid .inventory-tile-open{margin-top:2px}
+#inventoryGrid .inventory-tile-meta{margin-top:auto!important;padding-top:8px;flex-wrap:wrap;flex-shrink:0}
+#inventoryGrid .inventory-tile-open{margin-top:2px;flex-shrink:0}
 </style>
 </head>
 <body>
@@ -216,3 +216,7 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 .fusion-history .item-svg-icon,.activity .item-svg-icon{width:1.2em;height:1.2em;vertical-align:middle;}
 .supply-card .zone-art .item-svg-icon{width:58px;height:58px;}
 @media(max-width:600px){.zone-art .item-svg-icon{width:44px;height:44px;}.supply-card .zone-art .item-svg-icon{width:48px;height:48px;}}
+
+/* r19: alinear el bloque de valor y el enlace al fondo en todos los objetos */
+#inventoryGrid .inventory-tile-meta{margin-top:auto!important}
+#inventoryGrid .inventory-tile-open{margin-top:2px!important}
