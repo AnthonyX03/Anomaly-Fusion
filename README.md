@@ -460,3 +460,10 @@ La descripción de los objetos vuelve al tamaño tipográfico original de las ta
 - Mesa de extracción y Mercado Negro operativos con estructura completa.
 - En Ajustes: apartado **Contenido Adicional** con el título de la expansión «Tráfico de Órganos» y descripción breve.
 - Caché PWA actualizada a r41.
+
+
+### r42 — Estructura Clínica/Central corregida
+- Eliminados restos del Mercado Negro anidados dentro de La Central (IDs duplicados y HTML roto).
+- Página Clínica independiente y equilibrada (divs correctos).
+- La Central vuelve a contener solo creación, horno, suministros, envío y bonus.
+- Caché PWA actualizada a r42.

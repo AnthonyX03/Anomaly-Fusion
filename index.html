@@ -169,6 +169,19 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 
 #page-clinic .clinic-section{display:none}#page-clinic .clinic-section.active{display:block}
 .clinic-tabs button.active{border-color:#ff8098;color:#ff8098;background:#1a1016}
+
+
+/* Iconografía vectorial coherente en PC y móvil: no depende de emojis del sistema. */
+.zone-art .item-svg-icon{width:54px;height:54px;max-width:80%;}
+.zone-loot-icon .item-svg-icon{width:30px;height:30px;}
+.fusion-history .item-svg-icon,.activity .item-svg-icon{width:1.2em;height:1.2em;vertical-align:middle;}
+.supply-card .zone-art .item-svg-icon{width:58px;height:58px;}
+@media(max-width:600px){.zone-art .item-svg-icon{width:44px;height:44px;}.supply-card .zone-art .item-svg-icon{width:48px;height:48px;}}
+
+/* r19: alinear el bloque de valor y el enlace al fondo en todos los objetos */
+#inventoryGrid .inventory-tile-meta{margin-top:auto!important}
+#inventoryGrid .inventory-tile-open{margin-top:2px!important}
+
 </style>
 </head>
 <body>
@@ -245,31 +258,13 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 </section>
 <section class="page" id="page-central">
  <div class="page-head"><div><div class="eyebrow">SISTEMA 03 / PRODUCCIÓN</div><h2>La Central</h2><p>Elige un módulo de trabajo. Cada proceso tarda 10 segundos.</p></div><span class="tag">TALLER ACTIVO</span></div>
- <div class="central-tabs"><button class="active" data-central-tab="craft">▦ Mesa de creación</button><button data-central-tab="smelt">♨ Horno industrial</button><button data-central-tab="supplies">▣ Solicitar suministros</button><button data-central-tab="send">⇢ Envío de suministro</button></div>
- <div class="central-section active" id="central-craft"><div class="panel"><h3>▦ MESA DE CREACIÓN</h3><p class="small-note">Consulta planos recuperados, fabrica objetos y procesa materiales. Las recetas se ordenan por nivel: N1 primero y después N2–N5. Cada ficha indica los recursos necesarios antes de fabricar.</p><div class="inventory-controls" id="recipeCategories"><button class="active" data-recipe-category="Todos">Todas</button><button data-recipe-category="Material">Materiales</button><button data-recipe-category="Herramienta">Herramientas</button><button data-recipe-category="Arma">Armas</button><button data-recipe-category="Equipo">Equipo</button><button data-recipe-category="Consumible">Consumibles</button><button data-recipe-category="Otro">Otros</button></div><div id="recipesGrid" class="grid three" style="margin-top:12px"></div><div class="recipe-pagination"><button class="tiny" id="recipesPrev">← Anterior</button><span class="muted" id="recipesPageInfo">Página 1 / 3</span><button class="tiny" id="recipesNext">Siguiente →</button></div><div class="bar-wrap hidden" id="craftProgress"><div class="bar-label"><b class="cyan">Fabricando...</b><span id="craftPercent">0%</span></div><div class="meter progress"><span id="craftBar"></span></div></div><div id="craftMessage" class="small-note" style="margin-top:10px"></div></div></div>
- <div class="central-section" id="central-smelt"><div class="panel"><h3>♨ HORNO INDUSTRIAL</h3><div class="zone-art" style="height:100px;font-size:2.8rem">♨</div><p class="small-note" style="margin:12px 0">Funde menas para obtener lingotes. Cada lote requiere dos unidades de mena del mismo tipo y una unidad de carbón. Algunas menas pueden producir residuos adicionales.</p><div id="smeltOptions" class="grid"></div><div class="recipe-pagination"><button class="tiny" id="smeltPrev">← Anterior</button><span class="muted" id="smeltPageInfo">Página 1 / 1</span><button class="tiny" id="smeltNext">Siguiente →</button></div><div class="bar-wrap hidden" id="smeltProgress"><div class="bar-label"><b class="gold">Fundiendo...</b><span id="smeltPercent">0%</span></div><div class="meter"><span id="smeltBar"></span></div></div><div id="smeltMessage" class="small-note" style="margin-top:10px"></div></div></div>
- <div class="central-section" id="central-supplies"><div class="panel" id="centralSupplyRequest"><h3>▣ SOLICITAR SUMINISTROS</h3><p class="small-note">Elige un paquete y gasta créditos para recibir materiales, equipo y objetos aleatorios. Reclama el contenido cuando termine la entrega.</p><div class="grid three" id="suppliesGridCentral" style="margin-top:12px"></div></div></div><div class="central-section" id="central-send"><div class="panel" id="centralSupplySend"><h3>⇢ ENVÍO DE SUMINISTRO · VENTA DE OBJETOS</h3><p class="small-note">Vende una unidad o varias a la vez. El inventario muestra el Valor Base (100%); la venta estándar paga el 90%, redondeado hacia arriba y con un mínimo de 1 CR. Los objetos equipados no se pueden vender.</p><div class="toolbar central-sale-toolbar" style="margin:12px 0"><input id="centralSaleSearch" placeholder="Buscar objetos para vender..." aria-label="Buscar objetos para vender"><div class="sort-menu" id="centralSaleFilterMenu"><button type="button" class="sort-trigger" id="centralSaleFilterTrigger" aria-haspopup="listbox" aria-expanded="false"><span>Filtro: <span class="sort-current" id="centralSaleFilterLabel">Todos</span></span><span aria-hidden="true">⌄</span></button><div class="sort-options hidden" id="centralSaleFilterOptions" role="listbox" aria-label="Filtrar objetos para vender"><button type="button" data-sale-filter="Todos" aria-selected="true">Todos</button><button type="button" data-sale-filter="Material" aria-selected="false">Materiales</button><button type="button" data-sale-filter="Lingote" aria-selected="false">Lingotes</button><button type="button" data-sale-filter="Herramienta" aria-selected="false">Herramientas</button><button type="button" data-sale-filter="Arma" aria-selected="false">Armas</button><button type="button" data-sale-filter="Equipo" aria-selected="false">Equipo</button><button type="button" data-sale-filter="Consumible" aria-selected="false">Consumibles</button><button type="button" data-sale-filter="Criatura" aria-selected="false">Criaturas</button><button type="button" data-sale-filter="Anomalía" aria-selected="false">Anomalías</button><button type="button" data-sale-filter="Síntesis" aria-selected="false">Síntesis</button><button type="button" data-sale-filter="Otro" aria-selected="false">Otros</button></div></div><button type="button" id="centralSaleSelectAll" class="tiny">Seleccionar visibles</button><button type="button" id="centralSaleClear" class="tiny">Limpiar selección</button></div><div id="centralSaleList" class="central-sale-list"></div><div class="central-sale-summary"><div><span class="muted">Unidades seleccionadas</span><b id="centralSaleUnits">0</b></div><div><span class="muted">Pago total estimado</span><b class="gold" id="centralSaleTotal">0 créditos</b></div></div><button class="primary" id="centralSaleSubmit" style="width:100%;margin-top:12px" disabled>⇢ Vender selección y recibir créditos</button><p class="small-note" id="centralSaleNote" style="margin-top:9px">Selecciona una unidad para una venta individual o varias para venderlas en lote.</p></div></div>
-
-   <div id="extractOrganChoices" class="extract-organs" style="margin-top:14px"></div>
-   <div class="bar-wrap hidden" id="extractProgress" style="margin-top:12px"><div class="bar-label"><b class="cyan">Extrayendo...</b><span id="extractPercent">0%</span></div><div class="meter progress"><span id="extractBar"></span></div></div>
-   <button class="danger" id="extractStartBtn" style="width:100%;margin-top:12px" disabled>⚗ Iniciar extracción · 10 s</button>
-   <p class="small-note" id="extractMessage" style="margin-top:10px">Los órganos obtenidos llevan el rasgo <b>Ilegal</b> y solo se pueden vender en el Mercado Negro.</p>
-  </div>
- </div>
-
-    <button type="button" id="blackSaleSelectAll" class="tiny">Seleccionar visible</button>
-    <button type="button" id="blackSaleClear" class="tiny">Limpiar</button>
-   </div>
-   <div id="blackSaleList" class="central-sale-list"></div>
-   <div class="statline" style="margin-top:12px"><span>Pago del mercado negro</span><b id="blackSaleTotal">0 cr.</b></div>
-   <button class="danger" id="blackSaleSubmit" style="width:100%;margin-top:12px" disabled>☠ Vender en el Mercado Negro</button>
-   <p class="small-note" id="blackSaleNote" style="margin-top:9px">Solo órganos y objetos con rasgo Ilegal.</p>
-  </div>
- </div>
-
+<div class="central-tabs"><button class="active" data-central-tab="craft">▦ Mesa de creación</button><button data-central-tab="smelt">♨ Horno industrial</button><button data-central-tab="supplies">▣ Solicitar suministros</button><button data-central-tab="send">⇢ Envío de suministro</button></div>
+<div class="central-section active" id="central-craft"><div class="panel"><h3>▦ MESA DE CREACIÓN</h3><p class="small-note">Consulta planos recuperados, fabrica objetos y procesa materiales. Las recetas se ordenan por nivel: N1 primero y después N2–N5. Cada ficha indica los recursos necesarios antes de fabricar.</p><div class="inventory-controls" id="recipeCategories"><button class="active" data-recipe-category="Todos">Todas</button><button data-recipe-category="Material">Materiales</button><button data-recipe-category="Herramienta">Herramientas</button><button data-recipe-category="Arma">Armas</button><button data-recipe-category="Equipo">Equipo</button><button data-recipe-category="Consumible">Consumibles</button><button data-recipe-category="Otro">Otros</button></div><div id="recipesGrid" class="grid three" style="margin-top:12px"></div><div class="recipe-pagination"><button class="tiny" id="recipesPrev">← Anterior</button><span class="muted" id="recipesPageInfo">Página 1 / 3</span><button class="tiny" id="recipesNext">Siguiente →</button></div><div class="bar-wrap hidden" id="craftProgress"><div class="bar-label"><b class="cyan">Fabricando...</b><span id="craftPercent">0%</span></div><div class="meter progress"><span id="craftBar"></span></div></div><div id="craftMessage" class="small-note" style="margin-top:10px"></div></div></div>
+<div class="central-section" id="central-smelt"><div class="panel"><h3>♨ HORNO INDUSTRIAL</h3><div class="zone-art" style="height:100px;font-size:2.8rem">♨</div><p class="small-note" style="margin:12px 0">Funde menas para obtener lingotes. Cada lote requiere dos unidades de mena del mismo tipo y una unidad de carbón. Algunas menas pueden producir residuos adicionales.</p><div id="smeltOptions" class="grid"></div><div class="recipe-pagination"><button class="tiny" id="smeltPrev">← Anterior</button><span class="muted" id="smeltPageInfo">Página 1 / 1</span><button class="tiny" id="smeltNext">Siguiente →</button></div><div class="bar-wrap hidden" id="smeltProgress"><div class="bar-label"><b class="gold">Fundiendo...</b><span id="smeltPercent">0%</span></div><div class="meter"><span id="smeltBar"></span></div></div><div id="smeltMessage" class="small-note" style="margin-top:10px"></div></div></div>
+<div class="central-section" id="central-supplies"><div class="panel" id="centralSupplyRequest"><h3>▣ SOLICITAR SUMINISTROS</h3><p class="small-note">Elige un paquete y gasta créditos para recibir materiales, equipo y objetos aleatorios. Reclama el contenido cuando termine la entrega.</p><div class="grid three" id="suppliesGridCentral" style="margin-top:12px"></div></div></div>
+<div class="central-section" id="central-send"><div class="panel" id="centralSupplySend"><h3>⇢ ENVÍO DE SUMINISTRO · VENTA DE OBJETOS</h3><p class="small-note">Vende una unidad o varias a la vez. El inventario muestra el Valor Base (100%); la venta estándar paga el 90%, redondeado hacia arriba y con un mínimo de 1 CR. Los objetos equipados no se pueden vender.</p><div class="toolbar central-sale-toolbar" style="margin:12px 0"><input id="centralSaleSearch" placeholder="Buscar objetos para vender..." aria-label="Buscar objetos para vender"><div class="sort-menu" id="centralSaleFilterMenu"><button type="button" class="sort-trigger" id="centralSaleFilterTrigger" aria-haspopup="listbox" aria-expanded="false"><span>Filtro: <span class="sort-current" id="centralSaleFilterLabel">Todos</span></span><span aria-hidden="true">⌄</span></button><div class="sort-options hidden" id="centralSaleFilterOptions" role="listbox" aria-label="Filtrar objetos para vender"><button type="button" data-sale-filter="Todos" aria-selected="true">Todos</button><button type="button" data-sale-filter="Material" aria-selected="false">Materiales</button><button type="button" data-sale-filter="Lingote" aria-selected="false">Lingotes</button><button type="button" data-sale-filter="Herramienta" aria-selected="false">Herramientas</button><button type="button" data-sale-filter="Arma" aria-selected="false">Armas</button><button type="button" data-sale-filter="Equipo" aria-selected="false">Equipo</button><button type="button" data-sale-filter="Consumible" aria-selected="false">Consumibles</button><button type="button" data-sale-filter="Criatura" aria-selected="false">Criaturas</button><button type="button" data-sale-filter="Anomalía" aria-selected="false">Anomalías</button><button type="button" data-sale-filter="Síntesis" aria-selected="false">Síntesis</button><button type="button" data-sale-filter="Otro" aria-selected="false">Otros</button></div></div><button type="button" id="centralSaleSelectAll" class="tiny">Seleccionar visibles</button><button type="button" id="centralSaleClear" class="tiny">Limpiar selección</button></div><div id="centralSaleList" class="central-sale-list"></div><div class="central-sale-summary"><div><span class="muted">Unidades seleccionadas</span><b id="centralSaleUnits">0</b></div><div><span class="muted">Pago total estimado</span><b class="gold" id="centralSaleTotal">0 créditos</b></div></div><button class="primary" id="centralSaleSubmit" style="width:100%;margin-top:12px" disabled>⇢ Vender selección y recibir créditos</button><p class="small-note" id="centralSaleNote" style="margin-top:9px">Selecciona una unidad para una venta individual o varias para venderlas en lote.</p></div></div>
  <div class="section-title"><h3>▰ BONIFICACIONES ACTIVAS</h3></div><div class="panel" id="bonusPanel"></div>
 </section>
-
 
 <section class="page" id="page-clinic">
  <div class="page-head"><div><div class="eyebrow">SISTEMA 04 / CLÍNICA CLANDESTINA</div><h2>Clínica</h2><p>Extracción de órganos y tráfico ilegal. Separado de los canales legales de La Central.</p></div><span class="tag">EXPANSIÓN · TRÁFICO</span></div>
@@ -277,7 +272,6 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   <button class="active" data-clinic-tab="extract">⚗ Mesa de extracción</button>
   <button data-clinic-tab="black">☠ Mercado Negro</button>
  </div>
-
  <div class="clinic-section active" id="clinic-extract">
   <div class="panel extract-panel">
    <h3>⚗ MESA DE EXTRACCIÓN · TRÁFICO DE ÓRGANOS</h3>
@@ -291,7 +285,6 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
    <p class="small-note" id="extractMessage" style="margin-top:10px">Los órganos obtenidos llevan el rasgo <b>Ilegal</b> y solo se pueden vender en el Mercado Negro.</p>
   </div>
  </div>
-
  <div class="clinic-section" id="clinic-black">
   <div class="panel black-market-panel" id="centralBlackMarket">
    <h3>☠ MERCADO NEGRO · TRÁFICO ILEGAL</h3>
@@ -462,14 +455,3 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 <div class="modal-backdrop hidden" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle"><div class="modal"><div class="modal-head"><h3 id="confirmTitle">CONFIRMAR ACCIÓN</h3><span class="tag">HUD · SISTEMA</span></div><p class="confirm-copy" id="confirmMessage"></p><div class="confirm-actions"><button id="confirmCancel">Cancelar</button><button class="primary" id="confirmAccept">Confirmar</button></div></div></div>
 <script src="game.js"></script>
 </body></html>
-<style>
-/* Iconografía vectorial coherente en PC y móvil: no depende de emojis del sistema. */
-.zone-art .item-svg-icon{width:54px;height:54px;max-width:80%;}
-.zone-loot-icon .item-svg-icon{width:30px;height:30px;}
-.fusion-history .item-svg-icon,.activity .item-svg-icon{width:1.2em;height:1.2em;vertical-align:middle;}
-.supply-card .zone-art .item-svg-icon{width:58px;height:58px;}
-@media(max-width:600px){.zone-art .item-svg-icon{width:44px;height:44px;}.supply-card .zone-art .item-svg-icon{width:48px;height:48px;}}
-
-/* r19: alinear el bloque de valor y el enlace al fondo en todos los objetos */
-#inventoryGrid .inventory-tile-meta{margin-top:auto!important}
-#inventoryGrid .inventory-tile-open{margin-top:2px!important}
