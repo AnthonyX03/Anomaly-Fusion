@@ -728,6 +728,34 @@ function sound(freq=520,dur=.07,type="sine"){
   osc.stop(now+attack+body+0.03);
  }catch(e){}
 }
+
+// Sonido de venta / envío de suministro: arpegio corto ascendente, distinto a los beeps UI
+function soundSale(){
+ if(!state.settings.sound||Number(state.settings.soundVolume)===0)return;
+ try{
+  ensureAudio();
+  const ctx=audioCtx;
+  const now=ctx.currentTime;
+  const notes=[523.25,659.25,783.99]; // C5 E5 G5
+  notes.forEach((freq,i)=>{
+   const t=now+i*0.07;
+   const osc=ctx.createOscillator();
+   const gain=ctx.createGain();
+   const filter=ctx.createBiquadFilter();
+   osc.type="sine";
+   osc.frequency.setValueAtTime(freq,t);
+   filter.type="lowpass";
+   filter.frequency.setValueAtTime(1800,t);
+   filter.Q.value=0.4;
+   gain.gain.setValueAtTime(0,t);
+   gain.gain.linearRampToValueAtTime(0.045,t+0.02);
+   gain.gain.linearRampToValueAtTime(0,t+0.16);
+   osc.connect(filter);filter.connect(gain);gain.connect(masterGain);
+   osc.start(t);
+   osc.stop(t+0.2);
+  });
+ }catch(e){}
+}
 function toast(msg,bad=false){const d=document.createElement("div");d.className="toast"+(bad?" bad":"");d.innerHTML=msg; $("toastArea").appendChild(d);sound(bad?180:620,.06,bad?"triangle":"sine");setTimeout(()=>d.remove(),3500)}
 function showConfirm(title,message,acceptLabel,action,danger=false){pendingConfirmAction=action;$ ("confirmTitle").textContent=title;$ ("confirmMessage").textContent=message;$ ("confirmAccept").textContent=acceptLabel||"Confirmar";$ ("confirmAccept").classList.toggle("danger",!!danger);$ ("confirmAccept").classList.toggle("primary",!danger);$ ("confirmModal").classList.remove("hidden");$ ("confirmCancel").focus({preventScroll:true});}
 function closeConfirm(){pendingConfirmAction=null;$ ("confirmModal").classList.add("hidden")}
@@ -757,20 +785,20 @@ function renderZoneLoot(){const host=$("zoneLootPanel");if(!host)return;const z=
 function renderZoneCards(){const overview=$("zonesOverview"),hud=$("zoneHud");if(overview)overview.classList.toggle("hidden",zoneHudOpen);if(hud)hud.classList.toggle("hidden",!zoneHudOpen);const start=(zonePage-1)*3,shown=zones.slice(start,start+3);$("zonesGrid").innerHTML=shown.map(z=>{const unlocked=zoneUnlocked(z),required=zoneRequiredLevel(z);return `<div class="zone-card ${selectedZone===z.id?"selected":""} ${unlocked?"":"zone-locked"}" data-zone-card="${z.id}"><div class="zone-art">${unlocked?itemIconMarkup(z.name,z.icon):'<span aria-label="Bloqueada">■</span>'}</div><h4>${escapeHtml(z.name)}</h4><p>${escapeHtml(z.desc)}</p><div class="loot-chips">${z.loot.slice(0,3).map(n=>`<span class="chip">${itemIconMarkup(n,info(n).icon)} ${escapeHtml(n)}</span>`).join("")}</div><div class="small-note">Riesgo: ${["BAJO","MODERADO","ALTO","EXTREMO"][z.risk]}${unlocked?"":` · BLOQUEADA · NIVEL ${required}`}</div><button data-zone="${z.id}" ${activeTask||!unlocked?"disabled":""}>${unlocked?"Entrar en zona →":`Desbloquea en nivel ${required}`}</button></div>`}).join("");$("zonesPageInfo").textContent=`Página ${zonePage} / ${Math.ceil(zones.length/3)}`;$("zonesPrev").disabled=zonePage<=1;$("zonesNext").disabled=zonePage>=Math.ceil(zones.length/3);document.querySelectorAll("[data-zone]").forEach(b=>b.onclick=e=>{e.stopPropagation();openZoneHud(b.dataset.zone)});document.querySelectorAll("[data-zone-card]").forEach(c=>c.onclick=e=>{if(e.target.closest("button"))return;openZoneHud(c.dataset.zoneCard)})}
 function stopFusionHum(){
  if(!fusionHum)return;
+ const hum=fusionHum;
+ fusionHum=null; // permitir un nuevo hum solo tras liberar
  try{
   const now=audioCtx?.currentTime||0;
-  const bus=fusionHum.bus;
-  if(bus&&bus.gain){
-   bus.gain.cancelScheduledValues(now);
-   const cur=Math.max(0,Number(bus.gain.value)||0);
-   bus.gain.setValueAtTime(cur,now);
-   bus.gain.linearRampToValueAtTime(0,now+0.5);
+  if(hum.bus&&hum.bus.gain){
+   hum.bus.gain.cancelScheduledValues(now);
+   const cur=Math.max(0.00001,Number(hum.bus.gain.value)||0.00001);
+   hum.bus.gain.setValueAtTime(cur,now);
+   hum.bus.gain.linearRampToValueAtTime(0.00001,now+0.7);
   }
-  for(const osc of (fusionHum.oscs||[])){
-   try{osc.stop(now+0.55)}catch(e){}
+  for(const osc of (hum.oscs||[])){
+   try{osc.stop(now+0.75)}catch(e){}
   }
  }catch(e){}
- fusionHum=null;
 }
 
 function startFusionHum(){
@@ -778,37 +806,39 @@ function startFusionHum(){
  try{
   if(fusionHum)return;
   ensureAudio();
-  const now=audioCtx.currentTime;
-  const bus=audioCtx.createGain();
+  const ctx=audioCtx;
+  const now=ctx.currentTime;
+  // Un solo tono medio muy suave + armónico leve; fades largos = sin petardeo
+  const bus=ctx.createGain();
   bus.gain.setValueAtTime(0,now);
-  bus.gain.linearRampToValueAtTime(0.05,now+1.4);
+  bus.gain.linearRampToValueAtTime(0.028,now+1.8);
   bus.connect(masterGain);
-  const filter=audioCtx.createBiquadFilter();
-  filter.type="lowpass";
-  filter.frequency.value=900;
-  filter.Q.value=0.5;
-  filter.connect(bus);
-  const mk=(freq,level)=>{
-   const o=audioCtx.createOscillator();
-   const g=audioCtx.createGain();
-   o.type="sine";
-   o.frequency.setValueAtTime(freq,now);
-   g.gain.setValueAtTime(level,now);
-   o.connect(g);g.connect(filter);
-   o.start(now);
-   return o;
-  };
-  // acorde medio suave, volumen bajo
-  const o1=mk(330,0.35);
-  const o2=mk(415,0.22);
-  const o3=mk(495,0.12);
-  o1.frequency.linearRampToValueAtTime(338,now+10);
-  o2.frequency.linearRampToValueAtTime(422,now+10);
-  fusionHum={oscs:[o1,o2,o3],bus};
+  const lp=ctx.createBiquadFilter();
+  lp.type="lowpass";
+  lp.frequency.setValueAtTime(700,now);
+  lp.Q.setValueAtTime(0.3,now);
+  lp.connect(bus);
+  const o1=ctx.createOscillator();
+  const g1=ctx.createGain();
+  o1.type="sine";
+  o1.frequency.setValueAtTime(349.23,now); // F4
+  g1.gain.setValueAtTime(0.7,now);
+  o1.connect(g1);g1.connect(lp);
+  const o2=ctx.createOscillator();
+  const g2=ctx.createGain();
+  o2.type="sine";
+  o2.frequency.setValueAtTime(440,now); // A4 suave
+  g2.gain.setValueAtTime(0.25,now);
+  o2.connect(g2);g2.connect(lp);
+  o1.start(now);o2.start(now);
+  // deriva mínima
+  o1.frequency.linearRampToValueAtTime(356,now+10);
+  o2.frequency.linearRampToValueAtTime(448,now+10);
+  fusionHum={oscs:[o1,o2],bus,startedAt:now};
  }catch(e){fusionHum=null}
 }
 
-function beginTask(type,duration,onDone,els){if(activeTask)return;activeTask={type,start:Date.now(),duration,done:false,lastCue:0};if(type==="fusion")startFusionHum();else sound(420,.09,"sine");els.panel.classList.remove("hidden");els.bar.style.width="0%";els.percent.textContent="0%";els.status&&(els.status.textContent=type==="explore"?"Explorando...":type==="craft"?"Fabricando...":"Fusionando...");els.button&&(els.button.disabled=true);const tick=()=>{if(!activeTask||activeTask.type!==type)return;const p=Math.min(1,(Date.now()-activeTask.start)/duration);els.bar.style.width=(p*100)+"%";els.percent.textContent=Math.floor(p*100)+"%";if(type!=="fusion"){const step=Math.floor(p*5);if(step>activeTask.lastCue&&p<1){activeTask.lastCue=step;sound(620+step*25,.04,"sine")}}if(p>=1){activeTask=null;if(type==="fusion"){stopFusionHum();sound(620,.12,"sine")}else sound(740,.1,"sine");onDone();return}setTimeout(tick,100)};tick()}
+function beginTask(type,duration,onDone,els){if(activeTask)return;activeTask={type,start:Date.now(),duration,done:false,lastCue:0};if(type==="fusion")startFusionHum();else sound(420,.09,"sine");els.panel.classList.remove("hidden");els.bar.style.width="0%";els.percent.textContent="0%";els.status&&(els.status.textContent=type==="explore"?"Explorando...":type==="craft"?"Fabricando...":"Fusionando...");els.button&&(els.button.disabled=true);const tick=()=>{if(!activeTask||activeTask.type!==type)return;const p=Math.min(1,(Date.now()-activeTask.start)/duration);els.bar.style.width=(p*100)+"%";els.percent.textContent=Math.floor(p*100)+"%";if(type!=="fusion"){const step=Math.floor(p*5);if(step>activeTask.lastCue&&p<1){activeTask.lastCue=step;sound(620+step*25,.04,"sine")}}if(p>=1){activeTask=null;if(type==="fusion"){stopFusionHum();setTimeout(()=>sound(580,.14,"sine"),120)}else sound(740,.1,"sine");onDone();return}setTimeout(tick,100)};tick()}
 function beginExplore(){if(activeTask||currentEnemy)return;const z=zones.find(z=>z.id===selectedZone);if(!z||!zoneUnlocked(z))return toast(`Zona bloqueada. Necesitas nivel ${zoneRequiredLevel(z||zones[0])} de Operador.`,true);$("combatPanel").classList.add("hidden");$("exploreProgressPanel").classList.remove("hidden");beginTask("explore",10000,()=>{state.expeditions++;const foundItems=[];const primary=z.loot[Math.floor(Math.random()*z.loot.length)];foundItems.push(primary);const gatherChance=Math.min(.82,Math.max(0,(stat("gather")+stat("loot"))/100));if(Math.random()<gatherChance)foundItems.push(z.loot[Math.floor(Math.random()*z.loot.length)]);const rareChance=Math.min(.35,Math.max(0,stat("luck")/200));if(Math.random()<rareChance)foundItems.push(z.loot[Math.floor(Math.random()*z.loot.length)]);// Anomalías base: baja probabilidad en cualquier zona
 if(typeof baseAnomalyNames!=="undefined"&&baseAnomalyNames.length&&Math.random()<(BASE_ANOMALY_DROP_CHANCE+Math.min(0.08,stat("luck")/400))){
   const anom=baseAnomalyNames[Math.floor(Math.random()*baseAnomalyNames.length)];
@@ -1159,7 +1189,7 @@ function renderCentralSales(){
  box.querySelectorAll("[data-sale-qty]").forEach(el=>el.onchange=()=>{const x=state.inventory.find(i=>i.id===el.dataset.saleQty);if(!x)return;centralSaleSelection[x.id]=Math.max(1,Math.min(x.qty,Number(el.value)||1));renderCentralSales()});
 }
 
-function sellCentralSelection(){if(activeTask)return;const selected=Object.entries(centralSaleSelection).map(([id,qty])=>({x:state.inventory.find(i=>i.id===id),qty:Number(qty)})).filter(o=>o.x&&o.qty>0);if(!selected.length)return toast("Selecciona al menos un objeto para vender.",true);if(selected.some(({x,qty})=>Object.values(state.equipped||{}).includes(x.id)||qty>x.qty))return toast("La selección ha cambiado. Revísala antes de vender.",true);const total=selected.reduce((sum,{x,qty})=>sum+centralSaleUnitPrice(x)*qty,0),units=selected.reduce((sum,o)=>sum+o.qty,0);selected.forEach(({x,qty})=>takeById(x.id,qty));state.credits+=total;centralSaleSelection={};log(`Envío de suministro vendido: ${units} unidad(es) en ${selected.length} tipo(s) de objeto por <b>${total.toLocaleString("es-ES")} créditos</b>.`);toast(`Venta completada: +${total.toLocaleString("es-ES")} créditos`);render();save();}
+function sellCentralSelection(){if(activeTask)return;const selected=Object.entries(centralSaleSelection).map(([id,qty])=>({x:state.inventory.find(i=>i.id===id),qty:Number(qty)})).filter(o=>o.x&&o.qty>0);if(!selected.length)return toast("Selecciona al menos un objeto para vender.",true);if(selected.some(({x,qty})=>Object.values(state.equipped||{}).includes(x.id)||qty>x.qty))return toast("La selección ha cambiado. Revísala antes de vender.",true);const total=selected.reduce((sum,{x,qty})=>sum+centralSaleUnitPrice(x)*qty,0),units=selected.reduce((sum,o)=>sum+o.qty,0);selected.forEach(({x,qty})=>takeById(x.id,qty));state.credits+=total;soundSale();centralSaleSelection={};log(`Envío de suministro vendido: ${units} unidad(es) en ${selected.length} tipo(s) de objeto por <b>${total.toLocaleString("es-ES")} créditos</b>.`);toast(`Venta completada: +${total.toLocaleString("es-ES")} créditos`);render();save();}
 function renderInventory(){const search=$("inventorySearch").value.toLowerCase(),sort=inventorySort;let list=state.inventory.filter(x=>(inventoryFilter==="Todos"||(inventoryFilter==="Síntesis"?isSynthesisItem(x):x.cat===inventoryFilter))&&x.name.toLowerCase().includes(search));list.sort((a,b)=>sort==="name"?a.name.localeCompare(b.name):sort==="value"?b.val-a.val:b.r-a.r);const pages=Math.max(1,Math.ceil(list.length/12));inventoryPage=Math.min(inventoryPage,pages);const shown=list.slice((inventoryPage-1)*12,inventoryPage*12);$("inventoryCountTag").textContent=`${list.reduce((s,x)=>s+x.qty,0)} OBJETOS`;$("inventoryGrid").innerHTML=shown.length?shown.map(x=>itemCard(x,{compact:true})).join(""):'<div class="empty" style="grid-column:1/-1">No se encontraron objetos en esta categoría.</div>';$("pageInfo").textContent=`Página ${inventoryPage} / ${pages}`; $("prevPage").disabled=inventoryPage<=1;$("nextPage").disabled=inventoryPage>=pages}
 function optionsForSlot(slot){return state.inventory.filter(x=>slot==="anomaly"?x.cat==="Anomalía":info(x.name).slot===slot||x.slot===slot)}
 function renderEquipment(){const map=[['pick','pickSlot','chooseEquipPick','unequipPick'],['axe','axeSlot','chooseEquipAxe','unequipAxe'],['weapon','weaponSlot','chooseEquipWeapon','unequipWeapon'],['armor','armorSlot','chooseEquipArmor','unequipArmor'],['anomaly','anomalySlot','chooseEquipAnomaly','unequipAnomaly'],['companion','companionSlot','chooseEquipCompanion','unequipCompanion']];map.forEach(([slot,label,button,unequipButton])=>{const x=state.inventory.find(x=>x.id===state.equipped[slot]);$(label).textContent=x?inventoryDisplayName(x):"Sin equipar";$(button).onclick=()=>openPicker("equip",slot);const ub=$(unequipButton);ub.classList.toggle('hidden',!x);ub.onclick=()=>{if(!state.equipped[slot])return;const old=state.inventory.find(i=>i.id===state.equipped[slot]);delete state.equipped[slot];log(`Objeto desequipado: ${inventoryDisplayName(old||{})}.`);renderEquipment();renderStats();renderBonus();save();sound(320)}});const eq=Object.values(state.equipped).map(id=>state.inventory.find(x=>x.id===id)).filter(Boolean);$("equippedCards").innerHTML=eq.length?eq.map(x=>itemCard(x)).join(""):'<div class="empty" style="grid-column:1/-1">Todavía no tienes equipo equipado. Fabrica o encuentra herramientas y armas.</div>'}

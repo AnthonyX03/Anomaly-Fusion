@@ -403,3 +403,10 @@ La descripción de los objetos vuelve al tamaño tipográfico original de las ta
 - Hum de fusión más suave, sin reinicios y con fade de salida.
 - Cues de progreso de tareas más suaves.
 - Caché PWA actualizada a r34.
+
+
+### r35 — Hum de fusión más limpio + sonido de venta
+- Hum de fusión reducido a dos senos medios, volumen más bajo y fades más largos para cortar el petardeo residual.
+- El beep de fin de fusión se retrasa un poco tras iniciar el fade del hum.
+- Nuevo sonido de venta en Envío de suministro: arpegio corto ascendente (C-E-G), distinto a los beeps de UI.
+- Caché PWA actualizada a r35.
