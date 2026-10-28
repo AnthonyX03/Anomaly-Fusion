@@ -331,3 +331,13 @@ La descripción de los objetos vuelve al tamaño tipográfico original de las ta
 - El color mostrado en Equipo y Objetos equipados para «Síntesis de convergencia» es el cian del tema (`var(--cyan)` = `#53f2d1`), no el azul de rareza `#55baff`.
 - Se corrige el rasgo en las tarjetas de la bolsa para usar exactamente el mismo color cian, sin fondo ni recuadro.
 - Caché PWA actualizada a r25.
+
+
+### r26 — Dos registros separados (Base y Síntesis)
+- El Registro de objetos se divide en dos bases de datos seleccionables con botones superiores:
+  - **Registro Base**: objetos ordinarios (sin rasgo de síntesis).
+  - **Registro de Síntesis**: solo objetos con el rasgo «Síntesis de convergencia».
+- Se elimina el filtro «Síntesis» de las categorías (ya no es necesario: la separación se hace por pestaña).
+- En la pantalla de Inicio los descubiertos se muestran por separado: contador de Registro Base y contador de Registro de Síntesis.
+- El contador de la pestaña Registro indica el total del modo activo (BASE o SÍNTESIS).
+- Caché PWA actualizada a r26.

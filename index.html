@@ -135,7 +135,7 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 <main class="main">
 <section class="page active" id="page-home">
  <div class="panel hero"><div class="eyebrow">BIENVENIDO, OPERADOR</div><h2>Todo puede convertirse en algo más.</h2><p>Explora zonas hostiles, recupera materiales, fabrica herramientas y fusiona cualquier par de objetos. La lógica es tuya. El resultado… no siempre.</p><div class="hero-actions"><button class="primary" data-goto="fusion">⟁ Iniciar fusión</button><button data-goto="explore">⌖ Salir a explorar</button><button data-goto="registry">▦ Registro de objetos</button></div></div>
- <div class="grid three" style="margin-top:13px"><div class="panel"><div class="eyebrow">OBJETOS REGISTRADOS</div><div style="font-size:1.8rem;margin:9px 0" id="itemCount">0</div><div class="small-note">Colección local de objetos descubiertos.</div></div><div class="panel"><div class="eyebrow">EXPEDICIONES</div><div style="font-size:1.8rem;margin:9px 0" id="expCount">0</div><div class="small-note">Cada salida puede traer recursos… o problemas.</div></div><div class="panel"><div class="eyebrow">FUSIONES COMPLETADAS</div><div style="font-size:1.8rem;margin:9px 0" id="fusionCount">0</div><div class="small-note">Dos objetos entran. Algo nuevo sale.</div></div></div>
+ <div class="grid three" style="margin-top:13px"><div class="panel"><div class="eyebrow">OBJETOS REGISTRADOS</div><div style="display:flex;gap:18px;margin:9px 0;flex-wrap:wrap"><div><div style="font-size:1.5rem;line-height:1.1" id="itemCountBase">0</div><div class="small-note" style="margin-top:2px">Registro Base</div></div><div><div style="font-size:1.5rem;line-height:1.1" id="itemCountSynth">0</div><div class="small-note" style="margin-top:2px">Registro de Síntesis</div></div></div><div class="small-note">Colección local separada por tipo de descubrimiento.</div></div><div class="panel"><div class="eyebrow">EXPEDICIONES</div><div style="font-size:1.8rem;margin:9px 0" id="expCount">0</div><div class="small-note">Cada salida puede traer recursos… o problemas.</div></div><div class="panel"><div class="eyebrow">FUSIONES COMPLETADAS</div><div style="font-size:1.8rem;margin:9px 0" id="fusionCount">0</div><div class="small-note">Dos objetos entran. Algo nuevo sale.</div></div></div>
  <div class="section-title"><h3>▰ REGISTRO RECIENTE</h3><span class="tag">ÚLTIMOS EVENTOS</span></div><div class="panel" id="activityLog"></div>
  <div class="section-title"><h3>▰ ACCESO RÁPIDO</h3></div><div class="grid three"><button data-goto="central">▦ Mesa de creación y horno</button><button data-goto="inventory">▤ Abrir inventario</button><button data-goto="supplies">▣ Solicitar suministros</button></div>
 </section>
@@ -173,8 +173,38 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
  <div class="grid four" id="inventoryGrid"></div><div class="pagination"><button class="tiny" id="prevPage">← Anterior</button><span id="pageInfo">Página 1</span><button class="tiny" id="nextPage">Siguiente →</button></div></div>
 </section>
 <section class="page" id="page-registry">
- <div class="page-head"><div><div class="eyebrow">SISTEMA 06 / BASE DE DATOS</div><h2>Registro de objetos</h2><p>Consulta los objetos descubiertos, sus categorías, niveles, valores base, rasgos y habilidades. Usa los filtros y las páginas para encontrar rápidamente cada entrada.</p></div><span class="tag" id="registryCount">0 DESCUBIERTOS</span></div>
- <div class="panel"><div class="inventory-controls registry-filters" id="registryFilters"><button class="active" data-registry-filter="Todos">Todos</button><button data-registry-filter="Material">Materiales</button><button data-registry-filter="Lingote">Lingotes</button><button data-registry-filter="Herramienta">Herramientas</button><button data-registry-filter="Arma">Armas</button><button data-registry-filter="Equipo">Equipo</button><button data-registry-filter="Consumible">Consumibles</button><button data-registry-filter="Criatura">Criaturas</button><button data-registry-filter="Anomalía">Anomalías</button><button data-registry-filter="Otro">Otros</button><button data-registry-filter="Síntesis">Síntesis</button></div><div class="toolbar" style="margin-bottom:14px"><input id="registrySearch" placeholder="Buscar objeto registrado..." aria-label="Buscar objeto registrado"><div class="sort-menu" data-sort-menu="registry"><button class="sort-trigger" id="registrySortTrigger" aria-haspopup="listbox" aria-expanded="false"><span>Ordenar: <span class="sort-current" id="registrySortLabel">Nombre A-Z</span></span><span aria-hidden="true">⌄</span></button><div class="sort-options hidden" id="registrySortOptions" role="listbox" aria-label="Orden del registro"><button type="button" data-sort-target="registry" data-sort-value="name" aria-selected="true">Nombre A-Z</button><button type="button" data-sort-target="registry" data-sort-value="rarity" aria-selected="false">Nivel: mayor primero</button><button type="button" data-sort-target="registry" data-sort-value="value" aria-selected="false">Valor: mayor primero</button></div></div></div><div class="registry-grid" id="registryGrid"></div><div class="pagination"><button class="tiny" id="registryPrev">← Anterior</button><span id="registryPageInfo">Página 1 / 1</span><button class="tiny" id="registryNext">Siguiente →</button></div></div>
+ <div class="page-head"><div><div class="eyebrow">SISTEMA 06 / BASE DE DATOS</div><h2>Registro de objetos</h2><p>Consulta los objetos descubiertos separados en dos bases de datos: el Registro Base (objetos ordinarios) y el Registro de Síntesis (resultados de fusión con el rasgo Síntesis de convergencia). Usa los filtros y las páginas para encontrar cada entrada.</p></div><span class="tag" id="registryCount">0 DESCUBIERTOS</span></div>
+ <div class="panel">
+  <div class="inventory-controls registry-mode-tabs" id="registryModeTabs" style="margin-bottom:12px">
+   <button class="active" data-registry-mode="base">Registro Base</button>
+   <button data-registry-mode="synthesis">Registro de Síntesis</button>
+  </div>
+  <div class="inventory-controls registry-filters" id="registryFilters">
+   <button class="active" data-registry-filter="Todos">Todos</button>
+   <button data-registry-filter="Material">Materiales</button>
+   <button data-registry-filter="Lingote">Lingotes</button>
+   <button data-registry-filter="Herramienta">Herramientas</button>
+   <button data-registry-filter="Arma">Armas</button>
+   <button data-registry-filter="Equipo">Equipo</button>
+   <button data-registry-filter="Consumible">Consumibles</button>
+   <button data-registry-filter="Criatura">Criaturas</button>
+   <button data-registry-filter="Anomalía">Anomalías</button>
+   <button data-registry-filter="Otro">Otros</button>
+  </div>
+  <div class="toolbar" style="margin-bottom:14px">
+   <input id="registrySearch" placeholder="Buscar objeto registrado..." aria-label="Buscar objeto registrado">
+   <div class="sort-menu" data-sort-menu="registry">
+    <button class="sort-trigger" id="registrySortTrigger" aria-haspopup="listbox" aria-expanded="false"><span>Ordenar: <span class="sort-current" id="registrySortLabel">Nombre A-Z</span></span><span aria-hidden="true">⌄</span></button>
+    <div class="sort-options hidden" id="registrySortOptions" role="listbox" aria-label="Orden del registro">
+     <button type="button" data-sort-target="registry" data-sort-value="name" aria-selected="true">Nombre A-Z</button>
+     <button type="button" data-sort-target="registry" data-sort-value="rarity" aria-selected="false">Nivel: mayor primero</button>
+     <button type="button" data-sort-target="registry" data-sort-value="value" aria-selected="false">Valor: mayor primero</button>
+    </div>
+   </div>
+  </div>
+  <div class="registry-grid" id="registryGrid"></div>
+  <div class="pagination"><button class="tiny" id="registryPrev">← Anterior</button><span id="registryPageInfo">Página 1 / 1</span><button class="tiny" id="registryNext">Siguiente →</button></div>
+ </div>
 </section>
 <section class="page" id="page-equipment">
  <div class="page-head"><div><div class="eyebrow">SISTEMA 06 / SUPERVIVENCIA</div><h2>Equipo y estadísticas</h2><p>Equipa herramientas y armas para mejorar la recolección y sobrevivir a los encuentros.</p></div><span class="tag">OPERADOR</span></div>
