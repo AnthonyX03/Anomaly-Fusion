@@ -368,3 +368,10 @@ La descripción de los objetos vuelve al tamaño tipográfico original de las ta
 - Iconos de criaturas fusionadas: misma base visual de criatura con anillo de fusión, ojo en cian y marca de síntesis para distinguirlas.
 - Añadidas ~200 **Anomalías Base** al catálogo. Pueden aparecer en cualquier zona de exploración con probabilidad baja (~8%, ligeramente mejorada por Suerte).
 - Caché PWA actualizada a r29.
+
+
+### r30 — Iconos de fusión visibles, sonido suave y selector de 10
+- Iconos de síntesis diferenciados para **criaturas, armas, equipo, herramientas y anomalías**: borde/acentos cian y marca de fusión, detectando el rasgo desde inventario y registro (no solo el catálogo base).
+- Sonido de la barra de fusión sustituido por un hum grave y suave (solo senos filtrados, sin sierra), menos agresivo.
+- El selector de objetos de fusión/equipo muestra **10 objetos por página** (antes 9).
+- Caché PWA actualizada a r30.
