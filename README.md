@@ -453,3 +453,10 @@ La descripción de los objetos vuelve al tamaño tipográfico original de las ta
 - Catálogo de órganos ampliado (cientos de combinaciones + 100 nombres propios).
 - Nuevos nombres de fusión para órganos (pool `organ` + familia `organico`).
 - Caché PWA actualizada a r40.
+
+
+### r41 — Clínica reparada + Contenido Adicional en ajustes
+- Reconstruida por completo la página Clínica (HTML truncado en r40).
+- Mesa de extracción y Mercado Negro operativos con estructura completa.
+- En Ajustes: apartado **Contenido Adicional** con el título de la expansión «Tráfico de Órganos» y descripción breve.
+- Caché PWA actualizada a r41.

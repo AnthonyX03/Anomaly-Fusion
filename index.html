@@ -285,7 +285,12 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
    <div class="slot-row" style="margin-top:14px">
     <div class="slot" id="extractSlot"><div class="slot-icon" id="extractSlotIcon">＋</div><b id="extractSlotLabel">Sin criatura</b><button class="tiny" id="chooseExtractCreature">Elegir criatura</button></div>
    </div>
-
+   <div id="extractOrganChoices" class="extract-organs" style="margin-top:14px"></div>
+   <div class="bar-wrap hidden" id="extractProgress" style="margin-top:12px"><div class="bar-label"><b class="cyan">Extrayendo...</b><span id="extractPercent">0%</span></div><div class="meter progress"><span id="extractBar"></span></div></div>
+   <button class="danger" id="extractStartBtn" style="width:100%;margin-top:12px" disabled>⚗ Iniciar extracción · 10 s</button>
+   <p class="small-note" id="extractMessage" style="margin-top:10px">Los órganos obtenidos llevan el rasgo <b>Ilegal</b> y solo se pueden vender en el Mercado Negro.</p>
+  </div>
+ </div>
 
  <div class="clinic-section" id="clinic-black">
   <div class="panel black-market-panel" id="centralBlackMarket">
@@ -302,7 +307,15 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
       <button type="button" data-black-filter="Otro" aria-selected="false">Otros ilegales</button>
      </div>
     </div>
-
+    <button type="button" id="blackSaleSelectAll" class="tiny">Seleccionar visible</button>
+    <button type="button" id="blackSaleClear" class="tiny">Limpiar</button>
+   </div>
+   <div id="blackSaleList" class="central-sale-list"></div>
+   <div class="statline" style="margin-top:12px"><span>Pago del mercado negro</span><b id="blackSaleTotal">0 cr.</b></div>
+   <button class="danger" id="blackSaleSubmit" style="width:100%;margin-top:12px" disabled>☠ Vender en el Mercado Negro</button>
+   <p class="small-note" id="blackSaleNote" style="margin-top:9px">Solo órganos y objetos con rasgo Ilegal.</p>
+  </div>
+ </div>
 </section>
 
 <section class="page" id="page-inventory">
@@ -423,7 +436,20 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   </div>
  </section>
 
- <p class="small-note">La aplicación comprueba actualizaciones al abrirse, al volver a la pestaña y periódicamente mientras está abierta.</p>
+ 
+ <section class="settings-section" aria-labelledby="settingsContentTitle">
+  <div class="settings-section-head"><div><h4 id="settingsContentTitle">CONTENIDO ADICIONAL</h4><small>Expansiones activas en esta versión</small></div></div>
+  <div class="settings-section-body">
+   <div class="settings-row" style="flex-direction:column;align-items:stretch;gap:6px">
+    <div><label>Tráfico de Órganos</label><small>Expansión de la Clínica clandestina: mesa de extracción de órganos a partir de criaturas orgánicas, catálogo de órganos con rasgo Ilegal y Mercado Negro para vender mercancía prohibida fuera del envío legal de suministros.</small></div>
+    <div class="settings-actions" style="justify-content:flex-start">
+     <span class="tag" style="border-color:#ff8098;color:#ff8098">ACTIVA</span>
+     <span class="small-note" style="margin:0">Clínica · Órganos · Mercado Negro</span>
+    </div>
+   </div>
+  </div>
+ </section>
+<p class="small-note">La aplicación comprueba actualizaciones al abrirse, al volver a la pestaña y periódicamente mientras está abierta.</p>
  <div class="settings-version">ANOMALY FUSION · VERSIÓN 3.0 · ULTIMATE EDITION</div>
 </div></div>
 <div class="supply-hud-backdrop hidden" id="supplyHud" role="dialog" aria-modal="true" aria-labelledby="supplyHudTitle">
