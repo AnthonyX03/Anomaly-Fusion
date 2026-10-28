@@ -381,3 +381,9 @@ La descripción de los objetos vuelve al tamaño tipográfico original de las ta
 - Corregido ReferenceError: `isFusedIcon` no estaba definido en `itemIconMarkup`, lo que rompía el renderizado de iconos y la interfaz.
 - Se restaura la detección de síntesis desde inventario/registro y los iconos diferenciados de fusión.
 - Caché PWA actualizada a r31.
+
+
+### r32 — Iconos de fusión solo por color y hum sin petardeo
+- Iconos de síntesis: misma forma que el objeto base; solo cambian a una paleta cian/menta/violeta según tipo. Sin círculos, flechas ni contornos extra.
+- Sonido de la barra de fusión rehecho: tres senos graves filtrados, entrada y salida exponencial para evitar clics/petardeo.
+- Caché PWA actualizada a r32.

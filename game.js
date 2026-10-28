@@ -579,25 +579,20 @@ function itemIconMarkup(name,icon){
  else if(kind==="plant")art=`<path d="M32 54V29" stroke="${dark}" stroke-width="4" stroke-linecap="round"/><path d="M31 39C13 40 10 26 12 17 25 17 36 24 31 39Z" fill="${main}" stroke="${dark}" stroke-width="2.5"/><path d="M33 31C31 15 43 8 54 10 56 23 47 33 33 31Z" fill="${light}" stroke="${dark}" stroke-width="2.5"/><path d="M32 53 22 58M32 53 42 58" stroke="${dark}" stroke-width="3" stroke-linecap="round"/>`;
  else if(kind==="crystal")art=`<path d="M32 5 49 22 43 48 31 59 16 42 13 22Z" fill="${main}" stroke="${dark}" stroke-width="2.5" stroke-linejoin="round"/><path d="M32 5 31 59 16 42 24 23Z" fill="${light}"/><path d="M32 5 24 23 49 22M24 23 31 59M24 23 13 22" fill="none" stroke="${dark}" stroke-width="2"/>`;
  else if(kind==="ingot")art=`<path d="M12 22 22 10H46L56 22 49 49 15 49Z" fill="${main}" stroke="${dark}" stroke-width="2.8" stroke-linejoin="round"/><path d="M12 22H56L49 33H18Z" fill="${light}" stroke="${dark}" stroke-width="2"/><path d="M18 38H46" stroke="${dark}" stroke-width="2.5"/>`;
- else if(kind==="weapon"){art=isFusedIcon
-?`<path d="M15 49 43 21 49 15 55 9 55 21 49 27 21 55Z" fill="${main}" stroke="#53f2d1" stroke-width="2.6" stroke-linejoin="round"/><path d="M11 45 21 55 16 60 6 50Z" fill="${light}" stroke="${dark}" stroke-width="2.4"/><path d="M36 28 43 35" stroke="#53f2d1" stroke-width="3"/><circle cx="50" cy="14" r="7" fill="#0a1218" stroke="#53f2d1" stroke-width="1.6"/><path d="M50 10 52 13.5 50 12.5 48 13.5Z" fill="#53f2d1"/>`
-:`<path d="M15 49 43 21 49 15 55 9 55 21 49 27 21 55Z" fill="${main}" stroke="${dark}" stroke-width="2.5" stroke-linejoin="round"/><path d="M11 45 21 55 16 60 6 50Z" fill="${light}" stroke="${dark}" stroke-width="2.5"/><path d="M36 28 43 35" stroke="${light}" stroke-width="3"/>`;}
- else if(kind==="equipment"){art=isFusedIcon
-?`<path d="M22 10 32 16 42 10 54 22 47 31 45 53H19L17 31 10 22Z" fill="${main}" stroke="#53f2d1" stroke-width="2.8" stroke-linejoin="round"/><path d="M22 13 25 27 32 33 39 27 42 13M25 27 19 48M39 27 45 48" fill="none" stroke="#53f2d1" stroke-width="2.6"/><circle cx="32" cy="32" r="6" fill="none" stroke="#53f2d1" stroke-width="1.5" opacity=".8"/><circle cx="50" cy="14" r="7" fill="#0a1218" stroke="#53f2d1" stroke-width="1.6"/><path d="M50 10 52 13.5 50 12.5 48 13.5Z" fill="#53f2d1"/>`
-:`<path d="M22 10 32 16 42 10 54 22 47 31 45 53H19L17 31 10 22Z" fill="${main}" stroke="${dark}" stroke-width="2.8" stroke-linejoin="round"/><path d="M22 13 25 27 32 33 39 27 42 13M25 27 19 48M39 27 45 48" fill="none" stroke="${light}" stroke-width="3"/>`;}
- else if(kind==="creature"){art=isFusedIcon
-?`<circle cx="32" cy="32" r="28" fill="none" stroke="#53f2d1" stroke-width="1.8" opacity=".7"/><path d="M12 20 23 24 32 13 41 24 52 20 49 39 40 49 24 49 15 39Z" fill="${main}" stroke="${dark}" stroke-width="2.8" stroke-linejoin="round"/><path d="M12 20 23 24 32 13 32 49 24 49 15 39Z" fill="#53f2d1" opacity=".28"/><path d="M20 21 13 10M44 21 51 10" stroke="${dark}" stroke-width="3" stroke-linecap="round"/><circle cx="24" cy="32" r="3.5" fill="${light}"/><circle cx="40" cy="32" r="3.5" fill="#53f2d1"/><path d="M26 41Q32 45 38 41" fill="none" stroke="#53f2d1" stroke-width="2.5"/><circle cx="50" cy="14" r="7" fill="#0a1218" stroke="#53f2d1" stroke-width="1.6"/><path d="M50 10 52 13.5 50 12.5 48 13.5Z" fill="#53f2d1"/>`
-:`<path d="M12 20 23 24 32 13 41 24 52 20 49 39 40 49 24 49 15 39Z" fill="${main}" stroke="${dark}" stroke-width="2.8" stroke-linejoin="round"/><path d="M20 21 13 10M44 21 51 10" stroke="${dark}" stroke-width="3" stroke-linecap="round"/><circle cx="24" cy="32" r="3.5" fill="${light}"/><circle cx="40" cy="32" r="3.5" fill="${light}"/><path d="M26 41Q32 45 38 41" fill="none" stroke="${dark}" stroke-width="2.5"/>`;}
- else if(kind==="tool"){art=isFusedIcon
-?`<path d="M38 9A14 14 0 0 0 23 27L9 41A6 6 0 0 0 18 50L32 36A14 14 0 0 0 50 21L40 29 31 20Z" fill="${main}" stroke="#53f2d1" stroke-width="2.8" stroke-linejoin="round"/><circle cx="42" cy="18" r="5" fill="#53f2d1" opacity=".85"/><circle cx="50" cy="48" r="7" fill="#0a1218" stroke="#53f2d1" stroke-width="1.6"/><path d="M50 44 52 47.5 50 46.5 48 47.5Z" fill="#53f2d1"/>`
-:`<path d="M38 9A14 14 0 0 0 23 27L9 41A6 6 0 0 0 18 50L32 36A14 14 0 0 0 50 21L40 29 31 20Z" fill="${main}" stroke="${dark}" stroke-width="2.8" stroke-linejoin="round"/>`;}
+ else if(kind==="weapon"){if(isFusedIcon){main="#53f2d1";light="#c4fff1";dark="#1a5c52";}
+art=`<path d="M15 49 43 21 49 15 55 9 55 21 49 27 21 55Z" fill="${main}" stroke="${dark}" stroke-width="2.5" stroke-linejoin="round"/><path d="M11 45 21 55 16 60 6 50Z" fill="${light}" stroke="${dark}" stroke-width="2.5"/><path d="M36 28 43 35" stroke="${light}" stroke-width="3"/>`;}
+ else if(kind==="equipment"){if(isFusedIcon){main="#7ee0ff";light="#d9f6ff";dark="#2a5a72";}
+art=`<path d="M22 10 32 16 42 10 54 22 47 31 45 53H19L17 31 10 22Z" fill="${main}" stroke="${dark}" stroke-width="2.8" stroke-linejoin="round"/><path d="M22 13 25 27 32 33 39 27 42 13M25 27 19 48M39 27 45 48" fill="none" stroke="${light}" stroke-width="3"/>`;}
+ else if(kind==="creature"){if(isFusedIcon){main="#8bffd4";light="#e0fff5";dark="#1f6b5a";}
+art=`<path d="M12 20 23 24 32 13 41 24 52 20 49 39 40 49 24 49 15 39Z" fill="${main}" stroke="${dark}" stroke-width="2.8" stroke-linejoin="round"/><path d="M20 21 13 10M44 21 51 10" stroke="${dark}" stroke-width="3" stroke-linecap="round"/><circle cx="24" cy="32" r="3.5" fill="${light}"/><circle cx="40" cy="32" r="3.5" fill="${light}"/><path d="M26 41Q32 45 38 41" fill="none" stroke="${dark}" stroke-width="2.5"/>`;}
+ else if(kind==="tool"){if(isFusedIcon){main="#6fe3c5";light="#d4fff2";dark="#1f5e52";}
+art=`<path d="M38 9A14 14 0 0 0 23 27L9 41A6 6 0 0 0 18 50L32 36A14 14 0 0 0 50 21L40 29 31 20Z" fill="${main}" stroke="${dark}" stroke-width="2.8" stroke-linejoin="round"/>`;}
  else if(kind==="consumable")art=`<path d="M23 8H41V16L47 22V51Q32 58 17 51V22L23 16Z" fill="${main}" stroke="${dark}" stroke-width="2.8"/><path d="M23 8H41V16H23Z" fill="${light}" stroke="${dark}" stroke-width="2"/><path d="M23 35H41M32 26V44" stroke="${light}" stroke-width="4" stroke-linecap="round"/>`;
  else if(kind==="metal")art=`<path d="M15 9H43L54 20V48L43 56H15L8 48V17Z" fill="${main}" stroke="${dark}" stroke-width="2.5"/><path d="M16 17H40L47 24V43L40 49H16L15 42V23Z" fill="${light}" stroke="${dark}" stroke-width="2"/><path d="M21 25H39M21 32H43M21 39H35" stroke="${dark}" stroke-width="2.5" stroke-linecap="round"/>`;
  else if(kind==="tech")art=`<rect x="12" y="12" width="40" height="40" rx="5" fill="${dark}" stroke="${main}" stroke-width="3"/><rect x="19" y="19" width="26" height="26" rx="2" fill="${main}"/><path d="M25 32H39M32 25V39" stroke="${light}" stroke-width="3" stroke-linecap="round"/><path d="M21 5V12M32 5V12M43 5V12M21 52V59M32 52V59M43 52V59M5 21H12M5 32H12M5 43H12M52 21H59M52 32H59M52 43H59" stroke="${light}" stroke-width="3" stroke-linecap="round"/>`;
  else if(kind==="fluid")art=`<path d="M32 7C27 18 13 31 15 42A17 17 0 0 0 49 42C51 31 37 18 32 7Z" fill="${main}" stroke="${dark}" stroke-width="2.5"/><path d="M24 39C24 45 28 48 33 48" fill="none" stroke="${light}" stroke-width="4" stroke-linecap="round"/><circle cx="42" cy="29" r="3" fill="${light}"/>`;
- else if(kind==="anomaly"){art=isFusedIcon
-?`<path d="M32 5 39 21 57 13 49 30 60 38 43 42 48 59 32 48 17 59 21 42 4 38 16 28 7 13 25 21Z" fill="${main}" stroke="#53f2d1" stroke-width="2.5" stroke-linejoin="round"/><circle cx="32" cy="32" r="12" fill="${dark}" stroke="#53f2d1" stroke-width="1.5"/><circle cx="32" cy="32" r="5" fill="#53f2d1"/><circle cx="50" cy="14" r="7" fill="#0a1218" stroke="#53f2d1" stroke-width="1.6"/><path d="M50 10 52 13.5 50 12.5 48 13.5Z" fill="#53f2d1"/>`
-:`<path d="M32 5 39 21 57 13 49 30 60 38 43 42 48 59 32 48 17 59 21 42 4 38 16 28 7 13 25 21Z" fill="${main}" stroke="${dark}" stroke-width="2.5" stroke-linejoin="round"/><circle cx="32" cy="32" r="10" fill="${dark}"/><circle cx="32" cy="32" r="4" fill="${light}"/>`;}
+ else if(kind==="anomaly"){if(isFusedIcon){main="#b39cff";light="#f0e9ff";dark="#4a3a8a";}
+art=`<path d="M32 5 39 21 57 13 49 30 60 38 43 42 48 59 32 48 17 59 21 42 4 38 16 28 7 13 25 21Z" fill="${main}" stroke="${dark}" stroke-width="2.5" stroke-linejoin="round"/><circle cx="32" cy="32" r="10" fill="${dark}"/><circle cx="32" cy="32" r="4" fill="${light}"/>`;}
  else if(kind.startsWith("zone-")){const paths={"zone-forest":`<path d="M32 5 13 31H23L12 44H27V58H37V44H52L41 31H51Z" fill="${main}" stroke="${dark}" stroke-width="2.5"/>`,"zone-mine":`<path d="M9 50 18 20 31 35 43 12 56 50Z" fill="${main}" stroke="${dark}" stroke-width="2.5"/><path d="M16 43H48" stroke="${light}" stroke-width="3"/>`,"zone-scrap":`<path d="M10 16H54V48H10Z" fill="${main}" stroke="${dark}" stroke-width="2.5"/><path d="M18 24 27 34 20 42M43 23 35 32 43 41" fill="none" stroke="${light}" stroke-width="3"/>`,"zone-swamp":`<path d="M32 7C24 21 15 30 16 42A16 16 0 0 0 48 42C49 30 40 21 32 7Z" fill="#8bbd70" stroke="${dark}" stroke-width="2.5"/><circle cx="27" cy="38" r="3" fill="${light}"/><circle cx="39" cy="30" r="2.5" fill="${light}"/>`,"zone-quarry":`<path d="M8 49 19 22 31 35 43 13 56 49Z" fill="#c7775c" stroke="${dark}" stroke-width="2.5"/>`,"zone-bunker":`<path d="M12 54V20L32 8 52 20V54Z" fill="${main}" stroke="${dark}" stroke-width="2.5"/><rect x="25" y="30" width="14" height="24" fill="${dark}"/><circle cx="35" cy="42" r="1.5" fill="${light}"/>`,"zone-glacier":`<path d="M32 5 47 24 40 56 25 56 17 26Z" fill="#91dff4" stroke="${dark}" stroke-width="2.5"/><path d="M32 5 32 56M17 26 42 34" stroke="${light}" stroke-width="2.5"/>`,"zone-volcano":`<path d="M7 52 22 20 29 33 36 14 57 52Z" fill="#d06a4d" stroke="${dark}" stroke-width="2.5"/><path d="M27 25 36 14 43 28 36 25Z" fill="#ffd36b"/>`,"zone-neon":`<path d="M9 54V23H20V12H31V33H40V18H53V54Z" fill="${dark}" stroke="${main}" stroke-width="2.5"/><path d="M16 31H23M37 39H45M16 43H23" stroke="${light}" stroke-width="3"/>`,"zone-reef":`<path d="M32 55V25M32 39 17 28M32 34 45 18M32 47 47 39" stroke="${dark}" stroke-width="4" stroke-linecap="round"/><circle cx="17" cy="25" r="7" fill="#e68db6" stroke="${dark}" stroke-width="2"/><circle cx="47" cy="16" r="7" fill="#e68db6" stroke="${dark}" stroke-width="2"/>`,"zone-dunes":`<path d="M5 48Q18 27 32 42T59 37V55H5Z" fill="#d2b36d" stroke="${dark}" stroke-width="2.5"/><path d="M12 27 24 18 31 28 24 37Z" fill="${main}" stroke="${dark}" stroke-width="2"/>`,"zone-rift":`<path d="M33 5 23 24 36 28 22 43 32 59 39 39 29 33 42 19Z" fill="${main}" stroke="${dark}" stroke-width="2.5"/>`,"zone-lab":`<path d="M24 8H40M28 8V28L15 49Q14 55 22 55H42Q50 55 48 49L36 28V8" fill="${main}" stroke="${dark}" stroke-width="2.5"/><path d="M21 44H43" stroke="${light}" stroke-width="4"/>`,"zone-silica":`<path d="M32 5 49 22 43 48 31 59 16 42 13 22Z" fill="${main}" stroke="${dark}" stroke-width="2.5"/><path d="M32 5 31 59 16 42 24 23Z" fill="${light}"/>`,"zone-station":`<circle cx="32" cy="33" r="7" fill="${main}" stroke="${dark}" stroke-width="2.5"/><path d="M20 21A17 17 0 0 0 20 45M44 21A17 17 0 0 1 44 45M12 13A28 28 0 0 0 12 53M52 13A28 28 0 0 1 52 53" fill="none" stroke="${light}" stroke-width="3"/>`,"zone-cryo":`<path d="M32 5V59M9 18 55 46M9 46 55 18M21 8 32 18 43 8M21 56 32 46 43 56" fill="none" stroke="${light}" stroke-width="4" stroke-linecap="round"/>`,"zone-vault":`<path d="M9 13H55V54H9Z" fill="${main}" stroke="${dark}" stroke-width="2.5"/><path d="M17 22H47M17 30H47M17 38H38M17 46H43" stroke="${light}" stroke-width="3"/>`,"zone-root":`<path d="M32 7V30M32 23 17 15M32 34 13 45M32 34 49 20M32 30 48 43M32 30V57" stroke="#9a784b" stroke-width="5" stroke-linecap="round"/><path d="M17 15 11 9M49 20 55 12" stroke="${light}" stroke-width="3"/>`,"zone-foundry":`<path d="M10 54V28L23 36V24L36 34V15H53V54Z" fill="${main}" stroke="${dark}" stroke-width="2.5"/><path d="M38 15V7H47V15" stroke="${light}" stroke-width="3"/>`,"zone-observatory":`<path d="M12 17 49 8 53 20 16 29Z" fill="${main}" stroke="${dark}" stroke-width="2.5"/><path d="M31 26 24 54M42 24 50 54M18 54H56" stroke="${light}" stroke-width="3"/>`,"zone-null":`<circle cx="32" cy="32" r="23" fill="${dark}" stroke="${main}" stroke-width="2.5"/><circle cx="32" cy="32" r="12" fill="none" stroke="${light}" stroke-width="3"/><path d="M8 52 56 12" stroke="${main}" stroke-width="3"/>`};art=paths[kind]||paths["zone-rift"];}
  else if(kind==="bio")art=`<path d="M32 8 39 18 51 17 47 29 55 39 42 43 37 55 27 48 15 52 16 39 8 31 19 24 20 12Z" fill="${main}" stroke="${dark}" stroke-width="2.5"/><circle cx="25" cy="29" r="4" fill="${light}"/><circle cx="40" cy="29" r="4" fill="${light}"/>`;
  else if(kind==="rock")art=`<path d="M8 45 15 20 32 9 49 18 57 42 43 55 18 53Z" fill="${main}" stroke="${dark}" stroke-width="2.5"/><path d="M15 20 31 32 57 42M31 32 18 53" fill="none" stroke="${light}" stroke-width="2.5"/>`;
@@ -713,29 +708,57 @@ function closeZoneHud(){if(activeTask&&activeTask.type==="explore"){toast("La ex
 function renderZoneDetail(){const z=zones.find(x=>x.id===selectedZone)||zones[0];const risk=["BAJO","MODERADO","ALTO","EXTREMO"][z.risk]||"VARIABLE";const host=$("zoneHudDetail");if(!host)return;host.innerHTML=`<div class="eyebrow">DOSSIER DE CAMPO · ${escapeHtml(z.id.toUpperCase())}</div><div style="display:flex;align-items:flex-start;gap:14px;margin:12px 0"><div class="zone-art" style="width:88px;min-width:88px;height:88px">${itemIconMarkup(z.name,z.icon)}</div><div style="flex:1"><h3 style="margin:0 0 8px">${escapeHtml(z.name)}</h3><p class="small-note">${escapeHtml(z.desc)}</p><div class="small-note" style="margin-top:10px">Riesgo: <b>${risk}</b> · Probabilidad de contacto: ${Math.round(z.enemy*100)}% · Duración estimada: 10 s</div></div></div><div class="zone-hud-actions"><button id="zoneBackBtn">← Volver a exploración</button><button id="zoneLootBtn" aria-expanded="${lootHudOpen}" class="${lootHudOpen?"active":""}">▤ Loot de la zona (${z.loot.length})</button><button class="primary" id="exploreBtn" ${activeTask||currentEnemy?"disabled":""}>⌖ INICIAR EXPEDICIÓN · 10 S</button></div>`;const b=$("exploreBtn");if(b)b.onclick=beginExplore;const back=$("zoneBackBtn");if(back)back.onclick=closeZoneHud;const loot=$("zoneLootBtn");if(loot)loot.onclick=()=>{lootHudOpen=!lootHudOpen;renderZoneDetail();renderZoneLoot()}}
 function renderZoneLoot(){const host=$("zoneLootPanel");if(!host)return;const z=zones.find(x=>x.id===selectedZone)||zones[0];host.classList.toggle("hidden",!zoneHudOpen||!lootHudOpen);if(!zoneHudOpen||!lootHudOpen)return;host.innerHTML=`<div class="zone-loot-head"><div><h3>▤ LOOT DISPONIBLE</h3><p class="small-note">Objetos que puede revelar el escáner de ${escapeHtml(z.name)}. Desplázate por la lista; no tiene paginación.</p></div><span class="tag">${z.loot.length} OBJETOS</span></div><div class="zone-loot-list">${z.loot.map(n=>{const d=info(n);return `<div class="zone-loot-item"><span class="zone-loot-icon">${itemIconMarkup(n,d.icon)}</span><div><b>${escapeHtml(n)}</b><small>Nivel ${d.r||1} · ${escapeHtml(d.cat||"Otro")} · ${d.val||0} cr.</small><p>${escapeHtml(d.desc||"Objeto recuperable en esta zona.")}</p></div></div>`}).join("")}</div>`}
 function renderZoneCards(){const overview=$("zonesOverview"),hud=$("zoneHud");if(overview)overview.classList.toggle("hidden",zoneHudOpen);if(hud)hud.classList.toggle("hidden",!zoneHudOpen);const start=(zonePage-1)*3,shown=zones.slice(start,start+3);$("zonesGrid").innerHTML=shown.map(z=>{const unlocked=zoneUnlocked(z),required=zoneRequiredLevel(z);return `<div class="zone-card ${selectedZone===z.id?"selected":""} ${unlocked?"":"zone-locked"}" data-zone-card="${z.id}"><div class="zone-art">${unlocked?itemIconMarkup(z.name,z.icon):'<span aria-label="Bloqueada">■</span>'}</div><h4>${escapeHtml(z.name)}</h4><p>${escapeHtml(z.desc)}</p><div class="loot-chips">${z.loot.slice(0,3).map(n=>`<span class="chip">${itemIconMarkup(n,info(n).icon)} ${escapeHtml(n)}</span>`).join("")}</div><div class="small-note">Riesgo: ${["BAJO","MODERADO","ALTO","EXTREMO"][z.risk]}${unlocked?"":` · BLOQUEADA · NIVEL ${required}`}</div><button data-zone="${z.id}" ${activeTask||!unlocked?"disabled":""}>${unlocked?"Entrar en zona →":`Desbloquea en nivel ${required}`}</button></div>`}).join("");$("zonesPageInfo").textContent=`Página ${zonePage} / ${Math.ceil(zones.length/3)}`;$("zonesPrev").disabled=zonePage<=1;$("zonesNext").disabled=zonePage>=Math.ceil(zones.length/3);document.querySelectorAll("[data-zone]").forEach(b=>b.onclick=e=>{e.stopPropagation();openZoneHud(b.dataset.zone)});document.querySelectorAll("[data-zone-card]").forEach(c=>c.onclick=e=>{if(e.target.closest("button"))return;openZoneHud(c.dataset.zoneCard)})}
-function stopFusionHum(){if(!fusionHum)return;try{const now=audioCtx?.currentTime||0;for(const node of fusionHum.gains||[fusionHum.gain]){node.gain.cancelScheduledValues(now);node.gain.setTargetAtTime(.0001,now,.08)}for(const osc of fusionHum.oscs||[fusionHum.osc]){try{osc.stop(now+.32)}catch(e){}}}catch(e){}fusionHum=null}
+function stopFusionHum(){
+ if(!fusionHum)return;
+ try{
+  const now=audioCtx?.currentTime||0;
+  const gains=fusionHum.gains||[];
+  for(const node of gains){
+   try{
+    node.gain.cancelScheduledValues(now);
+    const cur=Math.max(0.0001,node.gain.value||0.0001);
+    node.gain.setValueAtTime(cur,now);
+    node.gain.exponentialRampToValueAtTime(0.0001,now+0.35);
+   }catch(e){}
+  }
+  const oscs=fusionHum.oscs||[];
+  for(const osc of oscs){
+   try{osc.stop(now+0.4)}catch(e){}
+  }
+ }catch(e){}
+ fusionHum=null;
+}
+
 function startFusionHum(){
  if(!state.settings.sound||Number(state.settings.soundVolume)===0)return;
  try{
+  stopFusionHum();
   ensureAudio();
   const now=audioCtx.currentTime;
-  // Hum suave: solo senos filtrados, volumen bajo, sin sierra
-  const low=audioCtx.createOscillator(),lowGain=audioCtx.createGain(),lowFilter=audioCtx.createBiquadFilter();
-  const mid=audioCtx.createOscillator(),midGain=audioCtx.createGain(),midFilter=audioCtx.createBiquadFilter();
-  const slow=audioCtx.createOscillator(),slowGain=audioCtx.createGain();
-  low.type="sine";low.frequency.setValueAtTime(90,now);low.frequency.linearRampToValueAtTime(110,now+8);
-  lowFilter.type="lowpass";lowFilter.frequency.value=280;lowFilter.Q.value=.4;
-  lowGain.gain.setValueAtTime(.0001,now);lowGain.gain.linearRampToValueAtTime(.035,now+.6);
-  mid.type="sine";mid.frequency.setValueAtTime(180,now);mid.frequency.linearRampToValueAtTime(210,now+8);
-  midFilter.type="lowpass";midFilter.frequency.value=420;midFilter.Q.value=.3;
-  midGain.gain.setValueAtTime(.0001,now);midGain.gain.linearRampToValueAtTime(.016,now+.7);
-  slow.type="sine";slow.frequency.setValueAtTime(48,now);
-  slowGain.gain.setValueAtTime(.0001,now);slowGain.gain.linearRampToValueAtTime(.012,now+.8);
-  low.connect(lowFilter);lowFilter.connect(lowGain);lowGain.connect(masterGain);
-  mid.connect(midFilter);midFilter.connect(midGain);midGain.connect(masterGain);
-  slow.connect(slowGain);slowGain.connect(masterGain);
-  low.start(now);mid.start(now);slow.start(now);
-  fusionHum={oscs:[low,mid,slow],gains:[lowGain,midGain,slowGain]};
+  // Hum suave: senos graves, entrada/salida exponencial para evitar petardeo
+  const master=audioCtx.createGain();
+  master.gain.setValueAtTime(0.0001,now);
+  master.gain.exponentialRampToValueAtTime(0.045,now+0.9);
+  master.connect(masterGain);
+  const makeSine=(freq,vol,filterHz)=>{
+   const osc=audioCtx.createOscillator();
+   const g=audioCtx.createGain();
+   const f=audioCtx.createBiquadFilter();
+   osc.type="sine";
+   osc.frequency.setValueAtTime(freq,now);
+   f.type="lowpass";f.frequency.value=filterHz;f.Q.value=0.5;
+   g.gain.setValueAtTime(vol,now);
+   osc.connect(f);f.connect(g);g.connect(master);
+   osc.start(now);
+   return {osc,g,f};
+  };
+  const a=makeSine(78,0.55,220);
+  const b=makeSine(117,0.28,320);
+  const c=makeSine(156,0.12,400);
+  // deriva muy lenta de tono (sin saltos)
+  a.osc.frequency.linearRampToValueAtTime(86,now+10);
+  b.osc.frequency.linearRampToValueAtTime(124,now+10);
+  fusionHum={oscs:[a.osc,b.osc,c.osc],gains:[master,a.g,b.g,c.g],master};
  }catch(e){fusionHum=null}
 }
 
