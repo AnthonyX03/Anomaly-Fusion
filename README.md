@@ -269,3 +269,10 @@ Se redujo notablemente el nivel de las tres capas del zumbido continuo, se suavi
 - Al pulsar una tarjeta se abre una ficha HUD ampliada con descripción, habilidades, rasgos, estadísticas, cantidad y datos del objeto.
 - Los nombres largos se ajustan dentro de las tarjetas y de la ficha para evitar desbordamientos.
 - El selector de niveles descubiertos del Registro muestra solo el nivel y su estado de mejora; no añade el valor numérico al selector. La ficha del Registro conserva intacto su campo «Valor Aprox.: xCR – xCR».
+
+
+### Corrección del inventario (r15)
+- Las tarjetas de la Bolsa usan el modo compacto interactivo, por lo que el toque abre la ficha HUD.
+- Se muestra el nombre corto sin el sufijo «Herramienta de Fibra» en la tarjeta y en el encabezado de la ficha.
+- «Herramienta de Fibra» se conserva en la ficha ampliada como tipo de objeto.
+- Se actualizó la caché de la PWA a r15.
