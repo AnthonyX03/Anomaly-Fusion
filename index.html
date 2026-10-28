@@ -111,7 +111,15 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 #inventoryGrid .inventory-tile-open{margin-top:2px;flex-shrink:0}
 
 .equip-slot{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;height:66px;min-height:66px;max-height:66px;overflow:hidden;flex-wrap:nowrap}.equip-slot>div:first-child{min-width:0;width:100%;overflow:hidden;overflow-wrap:anywhere;line-height:1.25}.equip-slot>div:first-child span{display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom}.equip-slot-actions{display:flex;align-items:center;justify-content:flex-end;gap:5px;flex-wrap:nowrap;max-width:none;white-space:nowrap}.equip-slot-actions button{flex:0 0 auto;white-space:nowrap;padding:4px 6px;font-size:.68rem;transform:none!important}.equip-slot-actions button:hover:not(:disabled){transform:none!important}.inventory-tile-trait{color:var(--cyan)!important;background:transparent!important;border:0!important;padding:0!important;border-radius:0!important}.item-card .small-note[style*="color:var(--purple)"]{color:var(--cyan)!important}
-/* Igualar el rasgo «Síntesis de convergencia» de la bolsa al mismo color cian de Equipo y Objetos equipados (var(--cyan) = #53f2d1), sin recuadro. */.picker-item b{display:block;overflow-wrap:anywhere;word-break:break-word;line-height:1.3}.picker-item{height:100%;overflow:hidden}
+/* Igualar el rasgo «Síntesis de convergencia» de la bolsa al mismo color cian de Equipo y Objetos equipados (var(--cyan) = #53f2d1), sin recuadro. */.picker-item{height:100%;overflow:hidden;min-width:0}
+.picker-item>span{min-width:0;overflow:hidden;flex:1}
+.picker-item b{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere;word-break:break-word;line-height:1.25;font-size:.78rem;max-width:100%}
+.picker-item small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* órganos / nombres largos también en inventario y extracción */
+.extract-organ-opt b{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere;word-break:break-word;line-height:1.25;font-size:.75rem}
+.inventory-tile b,.registry-tile b{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere;word-break:break-word;max-width:100%}
+.central-sale-row .sale-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+
 
 /* Combat HUD modal */
 .combat-hud{z-index:95;background:#000c}
@@ -182,6 +190,23 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 #inventoryGrid .inventory-tile-meta{margin-top:auto!important}
 #inventoryGrid .inventory-tile-open{margin-top:2px!important}
 
+
+.combat-avatar{display:grid;place-items:center;font-size:1.8rem}
+.combat-avatar .item-svg-icon{width:48px;height:48px}
+.combat-avatar.enemy{background:#1a1016;border:1px solid #6b2c40}
+.slot-actions{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:6px}
+.slot-actions .tiny{min-width:0}
+
+.extract-chance{font-size:.68rem;color:#ff8098;margin-top:4px}
+.extract-summary{margin-top:10px;padding:10px;border:1px solid #3a2a32;border-radius:8px;background:#120e12;font-size:.78rem;color:var(--muted)}
+.extract-summary b{color:#ff8098}
+
+#page-market .market-section{display:none}#page-market .market-section.active{display:block}
+.market-tabs button.active{border-color:var(--cyan);color:var(--cyan);background:#10201f}
+.market-buy-row{display:grid;grid-template-columns:40px 1fr auto;gap:10px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:8px;background:#0b1117;margin-bottom:8px}
+.market-buy-row b{font-size:.82rem}
+.market-buy-row small{display:block;color:var(--muted);font-size:.68rem;margin-top:3px}
+.market-stock{color:#ffb86b;font-size:.68rem}
 </style>
 </head>
 <body>
@@ -197,6 +222,7 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
  <button class="nav" data-page="explore"><span class="ico">⌖</span> Exploración</button>
  <button class="nav" data-page="central"><span class="ico">▦</span> La Central</button>
  <button class="nav" data-page="clinic"><span class="ico">⚕</span> Clínica</button>
+ <button class="nav" data-page="market"><span class="ico">⚖</span> Mercado</button>
  <div class="nav-label">GESTIÓN DE OBJETOS</div>
  <button class="nav" data-page="inventory"><span class="ico">▤</span> Inventario</button>
  <button class="nav" data-page="registry"><span class="ico">▦</span> Registro de objetos</button>
@@ -212,7 +238,7 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 </section>
 <section class="page" id="page-fusion">
  <div class="page-head"><div><div class="eyebrow">SISTEMA 01 / TRANSMUTACIÓN</div><h2>Máquina de fusión</h2><p>Somete dos objetos a una síntesis de convergencia: sus propiedades guían el resultado, mientras que la estabilidad y el nivel dependen de la materia introducida.</p></div><span class="tag">FUSIÓN LIBRE</span></div>
- <div class="panel"><div class="eyebrow">CÁMARA DE COMBINACIÓN</div><div class="slot-row" style="margin-top:14px"><div class="slot" id="slotA"><div class="slot-icon">＋</div><b id="fusionALabel">Objeto A</b><button class="tiny" id="chooseFusionA">Elegir del inventario</button></div><div class="plus">⊕</div><div class="slot" id="slotB"><div class="slot-icon">＋</div><b id="fusionBLabel">Objeto B</b><button class="tiny" id="chooseFusionB">Elegir del inventario</button></div></div>
+ <div class="panel"><div class="eyebrow">CÁMARA DE COMBINACIÓN</div><div class="slot-row" style="margin-top:14px"><div class="slot" id="slotA"><div class="slot-icon">＋</div><b id="fusionALabel">Objeto A</b><div class="slot-actions"><button class="tiny" id="chooseFusionA">Elegir del inventario</button><button class="tiny hidden" id="clearFusionA">Retirar</button></div></div><div class="plus">⊕</div><div class="slot" id="slotB"><div class="slot-icon">＋</div><b id="fusionBLabel">Objeto B</b><div class="slot-actions"><button class="tiny" id="chooseFusionB">Elegir del inventario</button><button class="tiny hidden" id="clearFusionB">Retirar</button></div></div></div>
  <div class="bar-wrap hidden" id="fusionProgress"><div class="bar-label"><b class="cyan">Fusionando...</b><span id="fusionPercent">0%</span></div><div class="meter progress"><span id="fusionBar"></span></div></div>
  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:15px;flex-wrap:wrap"><span class="small-note">Coste: 2 objetos · Tiempo: 10 segundos</span><button class="primary" id="fuseBtn">⟁ INICIAR FUSIÓN</button></div>
  <div id="fusionResult"></div></div>
@@ -270,7 +296,7 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
  <div class="page-head"><div><div class="eyebrow">SISTEMA 04 / CLÍNICA CLANDESTINA</div><h2>Clínica</h2><p>Extracción de órganos y tráfico ilegal. Separado de los canales legales de La Central.</p></div><span class="tag">EXPANSIÓN · TRÁFICO</span></div>
  <div class="clinic-tabs central-tabs">
   <button class="active" data-clinic-tab="extract">⚗ Mesa de extracción</button>
-  <button data-clinic-tab="black">☠ Mercado Negro</button>
+  <button data-clinic-tab="spawn">🧬 Síntesis de Criatura</button>
  </div>
  <div class="clinic-section active" id="clinic-extract">
   <div class="panel extract-panel">
@@ -282,31 +308,89 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
    <div id="extractOrganChoices" class="extract-organs" style="margin-top:14px"></div>
    <div class="bar-wrap hidden" id="extractProgress" style="margin-top:12px"><div class="bar-label"><b class="cyan">Extrayendo...</b><span id="extractPercent">0%</span></div><div class="meter progress"><span id="extractBar"></span></div></div>
    <button class="danger" id="extractStartBtn" style="width:100%;margin-top:12px" disabled>⚗ Iniciar extracción · 10 s</button>
-   <p class="small-note" id="extractMessage" style="margin-top:10px">Los órganos obtenidos llevan el rasgo <b>Ilegal</b> y solo se pueden vender en el Mercado Negro.</p>
+   <p class="small-note" id="extractMessage" style="margin-top:10px">Cada órgano tiene un <b>% de éxito</b> según su nivel y cuántos intentes a la vez. Las <b>Pinzas</b> equipadas mejoran la tasa. La criatura se consume siempre. Los órganos llevan rasgo <b>Ilegal</b>.</p>
   </div>
  </div>
- <div class="clinic-section" id="clinic-black">
-  <div class="panel black-market-panel" id="centralBlackMarket">
-   <h3>☠ MERCADO NEGRO · TRÁFICO ILEGAL</h3>
-   <p class="small-note">Solo acepta mercancía con rasgo <b>Ilegal</b> (órganos y derivados). El pago es más alto que el envío legal, pero el canal es opaco. Los objetos equipados no se pueden vender.</p>
-   <div class="toolbar central-sale-toolbar" style="margin:12px 0">
-    <input id="blackSaleSearch" placeholder="Buscar mercancía ilegal..." aria-label="Buscar mercancía ilegal">
-    <div class="sort-menu" id="blackSaleFilterMenu">
-     <button type="button" class="sort-trigger" id="blackSaleFilterTrigger" aria-haspopup="listbox" aria-expanded="false"><span>Filtro: <span class="sort-current" id="blackSaleFilterLabel">Todos</span></span><span aria-hidden="true">⌄</span></button>
-     <div class="sort-options hidden" id="blackSaleFilterOptions" role="listbox" aria-label="Filtrar mercancía ilegal">
-      <button type="button" data-black-filter="Todos" aria-selected="true">Todos</button>
-      <button type="button" data-black-filter="Órgano" aria-selected="false">Órganos</button>
-      <button type="button" data-black-filter="Síntesis" aria-selected="false">Síntesis</button>
-      <button type="button" data-black-filter="Otro" aria-selected="false">Otros ilegales</button>
-     </div>
-    </div>
-    <button type="button" id="blackSaleSelectAll" class="tiny">Seleccionar visible</button>
-    <button type="button" id="blackSaleClear" class="tiny">Limpiar</button>
+ <div class="clinic-section" id="clinic-spawn">
+  <div class="panel extract-panel">
+   <h3>🧬 SÍNTESIS DE CRIATURA · ENGENDRO</h3>
+   <p class="small-note">Selecciona exactamente <b>5 órganos</b> para sintetizar un engendro. El resultado es una criatura con rasgo <b>Engendro</b> e <b>Ilegal</b>. Proceso de 10 segundos.</p>
+   <div id="spawnOrganChoices" class="extract-organs" style="margin-top:14px"></div>
+   <div class="extract-summary" id="spawnSummary" style="margin-top:10px">Órganos seleccionados: <b>0 / 5</b></div>
+   <div class="bar-wrap hidden" id="spawnProgress" style="margin-top:12px"><div class="bar-label"><b class="cyan">Sintetizando engendro...</b><span id="spawnPercent">0%</span></div><div class="meter progress"><span id="spawnBar"></span></div></div>
+   <button class="danger" id="spawnStartBtn" style="width:100%;margin-top:12px" disabled>🧬 Iniciar síntesis · 10 s</button>
+   <p class="small-note" id="spawnMessage" style="margin-top:10px">Los engendros solo pueden venderse en el Mercado Negro.</p>
+  </div>
+ </div>
+</section>
+
+
+<section class="page" id="page-market">
+ <div class="page-head"><div><div class="eyebrow">SISTEMA 05 / COMERCIO</div><h2>Mercado</h2><p>Compra y venta legal o clandestina. El diario y los porcentajes de venta se reinician cada día a las 00:00 (hora local).</p></div><span class="tag" id="marketDayTag">DÍA · —</span></div>
+ <div class="central-tabs market-tabs" style="grid-template-columns:repeat(2,minmax(0,1fr))">
+  <button class="active" data-market-tab="buy">🛒 Mercado · Compra</button>
+  <button data-market-tab="buyBlack">☠ Negro · Compra</button>
+  <button data-market-tab="sell">⇢ Mercado · Venta</button>
+  <button data-market-tab="sellBlack">☠ Negro · Venta</button>
+ </div>
+
+ <div class="market-section active" id="market-buy">
+  <div class="panel">
+   <h3>🛒 MERCADO · COMPRA</h3>
+   <p class="small-note">Catálogo legal. Los objetos de nivel alto requieren nivel de Operador (igual que las recetas). El <b>diario</b> ofrece 10 productos con stock limitado y sin requisito de nivel; se renueva a las 00:00.</p>
+   <div class="inventory-controls" style="margin-top:10px">
+    <button class="active" data-market-buy-mode="catalog">Catálogo</button>
+    <button data-market-buy-mode="daily">Diario (10)</button>
    </div>
-   <div id="blackSaleList" class="central-sale-list"></div>
-   <div class="statline" style="margin-top:12px"><span>Pago del mercado negro</span><b id="blackSaleTotal">0 cr.</b></div>
-   <button class="danger" id="blackSaleSubmit" style="width:100%;margin-top:12px" disabled>☠ Vender en el Mercado Negro</button>
-   <p class="small-note" id="blackSaleNote" style="margin-top:9px">Solo órganos y objetos con rasgo Ilegal.</p>
+   <div class="toolbar" style="margin:12px 0"><input id="marketBuySearch" placeholder="Buscar en el mercado..." aria-label="Buscar en el mercado"></div>
+   <div id="marketBuyList" class="central-sale-list"></div>
+   <p class="small-note" id="marketBuyNote" style="margin-top:10px">Elige un objeto y pulsa Comprar.</p>
+  </div>
+ </div>
+
+ <div class="market-section" id="market-buyBlack">
+  <div class="panel black-market-panel">
+   <h3>☠ MERCADO NEGRO · COMPRA</h3>
+   <p class="small-note">Todo lo comprado aquí es <b>Ilegal</b>: órganos, armas balísticas, criaturas y contrabando. Mismas reglas de nivel en catálogo; el diario negro no exige nivel.</p>
+   <div class="inventory-controls" style="margin-top:10px">
+    <button class="active" data-market-bbuy-mode="catalog">Catálogo negro</button>
+    <button data-market-bbuy-mode="daily">Diario negro (10)</button>
+   </div>
+   <div class="toolbar" style="margin:12px 0"><input id="marketBlackBuySearch" placeholder="Buscar contrabando..." aria-label="Buscar contrabando"></div>
+   <div id="marketBlackBuyList" class="central-sale-list"></div>
+   <p class="small-note" id="marketBlackBuyNote" style="margin-top:10px">Contrabando con rasgo Ilegal al adquirir.</p>
+  </div>
+ </div>
+
+ <div class="market-section" id="market-sell">
+  <div class="panel" id="marketSellPanel">
+   <h3>⇢ MERCADO · VENTA</h3>
+   <p class="small-note">Igual que el Envío de suministro, pero el pago diario fluctúa: <b>50% / 75% / 100% / 150% / 200%</b> del valor base. Hoy: <b id="marketSellRateLabel">—</b>. Se reinicia a las 00:00. No acepta ilegal.</p>
+   <div class="toolbar central-sale-toolbar" style="margin:12px 0">
+    <input id="marketSellSearch" placeholder="Buscar objetos para vender..." aria-label="Buscar objetos para vender en mercado">
+    <button type="button" id="marketSellSelectAll" class="tiny">Seleccionar visibles</button>
+    <button type="button" id="marketSellClear" class="tiny">Limpiar selección</button>
+   </div>
+   <div id="marketSellList" class="central-sale-list"></div>
+   <div class="statline" style="margin-top:12px"><span>Unidades seleccionadas</span><b id="marketSellUnits">0</b></div>
+   <div class="statline"><span>Pago total estimado</span><b id="marketSellTotal">0 créditos</b></div>
+   <button class="primary" id="marketSellSubmit" style="width:100%;margin-top:12px" disabled>⇢ Vender en el Mercado</button>
+  </div>
+ </div>
+
+ <div class="market-section" id="market-sellBlack">
+  <div class="panel black-market-panel">
+   <h3>☠ MERCADO NEGRO · VENTA</h3>
+   <p class="small-note">Solo mercancía ilegal. Fluctuación diaria del pago: <b id="marketBlackSellRateLabel">—</b> (50–200%). Se reinicia a las 00:00.</p>
+   <div class="toolbar central-sale-toolbar" style="margin:12px 0">
+    <input id="marketBlackSellSearch" placeholder="Buscar mercancía ilegal..." aria-label="Buscar mercancía ilegal">
+    <button type="button" id="marketBlackSellSelectAll" class="tiny">Seleccionar visibles</button>
+    <button type="button" id="marketBlackSellClear" class="tiny">Limpiar selección</button>
+   </div>
+   <div id="marketBlackSellList" class="central-sale-list"></div>
+   <div class="statline" style="margin-top:12px"><span>Unidades seleccionadas</span><b id="marketBlackSellUnits">0</b></div>
+   <div class="statline"><span>Pago total estimado</span><b id="marketBlackSellTotal">0 créditos</b></div>
+   <button class="danger" id="marketBlackSellSubmit" style="width:100%;margin-top:12px" disabled>☠ Vender en Mercado Negro</button>
   </div>
  </div>
 </section>
@@ -355,13 +439,13 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 <section class="page" id="page-equipment">
  <div class="page-head"><div><div class="eyebrow">SISTEMA 06 / SUPERVIVENCIA</div><h2>Equipo y estadísticas</h2><p>Equipa herramientas y armas para mejorar la recolección y sobrevivir a los encuentros.</p></div><span class="tag">OPERADOR</span></div>
  <div class="grid two"><div class="panel"><h3>◈ PERFIL DE COMBATE</h3><div style="display:flex;align-items:center;gap:14px;margin:12px 0 18px"><div class="logo" style="width:54px;height:54px"><span>◎</span></div><div><b id="operatorRank">Recluta de campo</b><div class="small-note"><span id="profileRank">Recluta de campo</span> · Nivel <span id="profileLevel">1</span></div><div class="meter" style="width:190px;margin-top:8px"><span id="xpBar"></span></div><small class="muted" id="xpText">0 / 100 XP</small></div></div><div class="statline"><span>Daño base</span><b id="statDamage">5</b></div><div class="statline"><span>Defensa</span><b id="statDefense">0</b></div><div class="statline"><span>Potencia de recolección</span><b id="statGather">0%</b></div><div class="statline"><span>Bonificación de hallazgos</span><b id="statLuck">0%</b></div><div class="statline"><span>Créditos acumulados</span><b id="statCredits">0</b></div></div>
- <div class="panel"><h3>▣ ESPACIOS DE EQUIPO</h3><div class="small-note">El equipo se conserva hasta que lo cambies o lo fusiones.</div><div class="equip-slot"><div>⛏ <b>Pico</b><br><span id="pickSlot">Sin equipar</span></div><div class="equip-slot-actions"><button class="tiny" id="chooseEquipPick">Elegir objeto</button><button class="tiny danger hidden" id="unequipPick" type="button">Desequipar</button></div></div><div class="equip-slot"><div>🪓 <b>Hacha</b><br><span id="axeSlot">Sin equipar</span></div><div class="equip-slot-actions"><button class="tiny" id="chooseEquipAxe">Elegir objeto</button><button class="tiny danger hidden" id="unequipAxe" type="button">Desequipar</button></div></div><div class="equip-slot"><div>⚔ <b>Arma</b><br><span id="weaponSlot">Sin equipar</span></div><div class="equip-slot-actions"><button class="tiny" id="chooseEquipWeapon">Elegir objeto</button><button class="tiny danger hidden" id="unequipWeapon" type="button">Desequipar</button></div></div><div class="equip-slot"><div>🛡 <b>Protección</b><br><span id="armorSlot">Sin equipar</span></div><div class="equip-slot-actions"><button class="tiny" id="chooseEquipArmor">Elegir objeto</button><button class="tiny danger hidden" id="unequipArmor" type="button">Desequipar</button></div></div><div class="equip-slot"><div>🧬 <b>Anomalía pasiva</b><br><span id="anomalySlot">Sin equipar</span></div><div class="equip-slot-actions"><button class="tiny" id="chooseEquipAnomaly">Elegir anomalía</button><button class="tiny danger hidden" id="unequipAnomaly" type="button">Desequipar</button></div></div><div class="equip-slot"><div>🐾 <b>Compañero de campo</b><br><span id="companionSlot">Sin equipar</span></div><div class="equip-slot-actions"><button class="tiny" id="chooseEquipCompanion">Elegir criatura</button><button class="tiny danger hidden" id="unequipCompanion" type="button">Desequipar</button></div></div></div></div>
+ <div class="panel"><h3>▣ ESPACIOS DE EQUIPO</h3><div class="small-note">El equipo se conserva hasta que lo cambies o lo fusiones.</div><div class="equip-slot"><div>⛏ <b>Pico</b><br><span id="pickSlot">Sin equipar</span></div><div class="equip-slot-actions"><button class="tiny" id="chooseEquipPick">Elegir objeto</button><button class="tiny danger hidden" id="unequipPick" type="button">Desequipar</button></div></div><div class="equip-slot"><div>🪓 <b>Hacha</b><br><span id="axeSlot">Sin equipar</span></div><div class="equip-slot-actions"><button class="tiny" id="chooseEquipAxe">Elegir objeto</button><button class="tiny danger hidden" id="unequipAxe" type="button">Desequipar</button></div></div><div class="equip-slot"><div>⚕ <b>Pinzas</b><br><span id="tongsSlot">Sin equipar</span></div><div class="equip-slot-actions"><button class="tiny" id="chooseEquipTongs">Elegir objeto</button><button class="tiny danger hidden" id="unequipTongs" type="button">Desequipar</button></div></div><div class="equip-slot"><div>⚔ <b>Arma</b><br><span id="weaponSlot">Sin equipar</span></div><div class="equip-slot-actions"><button class="tiny" id="chooseEquipWeapon">Elegir objeto</button><button class="tiny danger hidden" id="unequipWeapon" type="button">Desequipar</button></div></div><div class="equip-slot"><div>🛡 <b>Protección</b><br><span id="armorSlot">Sin equipar</span></div><div class="equip-slot-actions"><button class="tiny" id="chooseEquipArmor">Elegir objeto</button><button class="tiny danger hidden" id="unequipArmor" type="button">Desequipar</button></div></div><div class="equip-slot"><div>🧬 <b>Anomalía pasiva</b><br><span id="anomalySlot">Sin equipar</span></div><div class="equip-slot-actions"><button class="tiny" id="chooseEquipAnomaly">Elegir anomalía</button><button class="tiny danger hidden" id="unequipAnomaly" type="button">Desequipar</button></div></div><div class="equip-slot"><div>🐾 <b>Compañero de campo</b><br><span id="companionSlot">Sin equipar</span></div><div class="equip-slot-actions"><button class="tiny" id="chooseEquipCompanion">Elegir criatura</button><button class="tiny danger hidden" id="unequipCompanion" type="button">Desequipar</button></div></div></div></div>
  <div class="section-title"><h3>▰ OBJETOS EQUIPADOS</h3></div><div class="grid four" id="equippedCards"></div>
 </section>
 <div class="footer-note">ANOMALY FUSION // NOTHING IS EVER JUST ONE THING</div>
 </main></div>
 <nav class="mobile-nav">
- <button class="active" data-page="home"><span class="ico">⌂</span>Inicio</button><button data-page="fusion"><span class="ico">⟁</span>Fusión</button><button data-page="explore"><span class="ico">⌖</span>Explorar</button><button data-page="central"><span class="ico">▦</span>Central</button><button data-page="clinic"><span class="ico">⚕</span>Clínica</button><button data-page="inventory"><span class="ico">▤</span>Bolsa</button><button data-page="registry"><span class="ico">▦</span>Registro</button><button data-page="equipment"><span class="ico">◈</span>Equipo</button>
+ <button class="active" data-page="home"><span class="ico">⌂</span>Inicio</button><button data-page="fusion"><span class="ico">⟁</span>Fusión</button><button data-page="explore"><span class="ico">⌖</span>Explorar</button><button data-page="central"><span class="ico">▦</span>Central</button><button data-page="clinic"><span class="ico">⚕</span>Clínica</button><button data-page="market"><span class="ico">⚖</span>Mercado</button><button data-page="inventory"><span class="ico">▤</span>Bolsa</button><button data-page="registry"><span class="ico">▦</span>Registro</button><button data-page="equipment"><span class="ico">◈</span>Equipo</button>
 </nav>
 <div class="toast-area" id="toastArea"></div>
 <div class="modal-backdrop hidden" id="inventoryPicker"><div class="modal"><div class="modal-head"><h3 id="pickerTitle">▤ INVENTARIO</h3><button class="tiny" id="closePicker">✕</button></div><p class="small-note" id="pickerDescription">Selecciona un objeto.</p><div class="toolbar"><input id="pickerSearch" placeholder="Buscar objeto..." aria-label="Buscar objeto"><div class="sort-menu hidden" id="pickerFilterMenu"><button type="button" class="sort-trigger" id="pickerFilterTrigger" aria-haspopup="listbox" aria-expanded="false"><span>Filtro: <span class="sort-current" id="pickerFilterLabel">Todos</span></span><span aria-hidden="true">⌄</span></button><div class="sort-options hidden" id="pickerFilterOptions" role="listbox" aria-label="Filtrar objetos de fusión"><button type="button" data-picker-filter="Todos" aria-selected="true">Todos</button><button type="button" data-picker-filter="Material" aria-selected="false">Materiales</button><button type="button" data-picker-filter="Lingote" aria-selected="false">Lingotes</button><button type="button" data-picker-filter="Herramienta" aria-selected="false">Herramientas</button><button type="button" data-picker-filter="Arma" aria-selected="false">Armas</button><button type="button" data-picker-filter="Equipo" aria-selected="false">Equipo</button><button type="button" data-picker-filter="Consumible" aria-selected="false">Consumibles</button><button type="button" data-picker-filter="Criatura" aria-selected="false">Criaturas</button><button type="button" data-picker-filter="Órgano" aria-selected="false">Órganos</button><button type="button" data-picker-filter="Anomalía" aria-selected="false">Anomalías</button><button type="button" data-picker-filter="Otro" aria-selected="false">Otros</button><button type="button" data-picker-filter="Síntesis" aria-selected="false">Síntesis</button></div></div></div><div class="picker-grid" id="pickerGrid"></div><div class="pagination"><button class="tiny" id="pickerPrev">← Anterior</button><span id="pickerPageInfo">Página 1</span><button class="tiny" id="pickerNext">Siguiente →</button></div></div></div>
@@ -437,7 +521,7 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
     <div><label>Tráfico de Órganos</label><small>Expansión de la Clínica clandestina: mesa de extracción de órganos a partir de criaturas orgánicas, catálogo de órganos con rasgo Ilegal y Mercado Negro para vender mercancía prohibida fuera del envío legal de suministros.</small></div>
     <div class="settings-actions" style="justify-content:flex-start">
      <span class="tag" style="border-color:#ff8098;color:#ff8098">ACTIVA</span>
-     <span class="small-note" style="margin:0">Clínica · Órganos · Mercado Negro</span>
+     <span class="small-note" style="margin:0">Clínica · Órganos · Mercado · Engendros</span>
     </div>
    </div>
   </div>

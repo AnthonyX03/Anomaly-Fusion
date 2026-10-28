@@ -467,3 +467,33 @@ La descripción de los objetos vuelve al tamaño tipográfico original de las ta
 - Página Clínica independiente y equilibrada (divs correctos).
 - La Central vuelve a contener solo creación, horno, suministros, envío y bonus.
 - Caché PWA actualizada a r42.
+
+
+### r43 — Iconos de combate SVG y retirar en fusión
+- En combate, criaturas y operador usan iconos SVG integrados (no emoji sueltos).
+- Icono de Operador rediseñado (casco/operativo cian).
+- En la cámara de fusión: botón **Retirar** junto a Cambiar objeto para vaciar la ranura.
+- Caché PWA actualizada a r43.
+
+
+### r44 — Mercado Negro alineado, extracción con % y Pinzas
+- Mercado Negro con la misma UI que Envío de suministro (filas, checkbox, cantidad, totales).
+- Extracción nerfeada: éxito por órgano según nivel N y cantidad seleccionada; la criatura se consume siempre.
+- Se muestra N y % de éxito en cada órgano.
+- Nuevo equipo **Pinzas** (muchas variedades) con bonus de éxito de extracción.
+- Caché PWA actualizada a r44.
+
+
+### r45 — Nombres largos en selector de fusión
+- Los nombres de órganos y objetos largos se limitan a 2 líneas con corte limpio en el picker, inventario, registro y extracción.
+- Caché PWA actualizada a r45.
+
+
+### r46 — Mercado completo + Síntesis de Criatura
+- Nueva sección **Mercado** (bajo Clínica) con 4 pestañas: Compra, Negro Compra, Venta, Negro Venta.
+- Diario de 10 productos con stock limitado; se renueva a las 00:00.
+- Venta con fluctuación diaria 50/75/100/150/200%.
+- Compra con requisito de nivel (como recetas); el diario no lo exige.
+- Mercado negro de compra: todo ilegal (órganos, armas balísticas, criaturas…).
+- Clínica: Mercado Negro sustituido por **Síntesis de Criatura** (5 órganos → engendro ilegal, 10 s).
+- Caché PWA actualizada a r46.
