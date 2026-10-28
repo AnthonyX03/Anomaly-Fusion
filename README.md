@@ -349,3 +349,13 @@ La descripción de los objetos vuelve al tamaño tipográfico original de las ta
 - Las fusiones nuevas generan nombres limpios sin el separador «·».
 - Historial de fusiones, resultado pendiente de reclamar y títulos de tarjetas usan el nombre visible limpio.
 - Caché PWA actualizada a r27.
+
+
+### r28 — Combate HUD, salud y botín en riesgo
+- Corregido el bug que mostraba el código SVG en bruto en «Hallazgos» tras explorar: ahora se muestran iconos visuales con el mismo estilo del juego.
+- El combate pasa a un HUD modal obligatorio: no se puede salir de la zona ni cambiar de pantalla hasta resolver el encuentro.
+- Añadida integridad (salud) del operador en combate, basada en nivel y defensa.
+- Si el operador cae a 0 de integridad, pierde el botín obtenido en esa expedición.
+- Al ganar se conserva el botín y se mantienen las recompensas / posibilidad de captura.
+- Interfaz de combate más visual: avatar de operador y enemigo, barras de integridad de ambos lados y aviso del botín en riesgo.
+- Caché PWA actualizada a r28.
