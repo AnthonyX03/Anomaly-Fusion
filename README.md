@@ -282,3 +282,7 @@ Se redujo notablemente el nivel de las tres capas del zumbido continuo, se suavi
 - Las tarjetas de la Bolsa vuelven a mostrar la descripción breve del objeto, limitada a dos líneas para evitar desbordamientos.
 - Los objetos fusionados muestran explícitamente «✦ Síntesis de convergencia» en la tarjeta.
 - Se conserva el HUD de detalles al pulsar la tarjeta.
+
+
+### Ajuste de tipografía de tarjetas (r17)
+La descripción de los objetos vuelve al tamaño tipográfico original de las tarjetas (.7rem, interlineado 1.4) y el distintivo «✦ Síntesis de convergencia» conserva un tamaño pequeño, sin agrandar la tarjeta. Se redujo el espacio vertical entre elementos para que descripción, distintivo y valor entren mejor en las tarjetas de altura fija.
