@@ -375,3 +375,9 @@ La descripción de los objetos vuelve al tamaño tipográfico original de las ta
 - Sonido de la barra de fusión sustituido por un hum grave y suave (solo senos filtrados, sin sierra), menos agresivo.
 - El selector de objetos de fusión/equipo muestra **10 objetos por página** (antes 9).
 - Caché PWA actualizada a r30.
+
+
+### r31 — Hotfix crítico de iconos
+- Corregido ReferenceError: `isFusedIcon` no estaba definido en `itemIconMarkup`, lo que rompía el renderizado de iconos y la interfaz.
+- Se restaura la detección de síntesis desde inventario/registro y los iconos diferenciados de fusión.
+- Caché PWA actualizada a r31.

@@ -544,8 +544,18 @@ function uid(){return Math.random().toString(36).slice(2,10)}
 function info(name){return itemDB[name]||{icon:"❔",cat:"Otro",r:2,val:12,desc:"Objeto no catalogado. Sus propiedades desafían el registro."}}
 function itemIconMarkup(name,icon){
  // Iconos SVG semánticos: primero categoría del objeto y luego nombre; nunca depende de fuentes emoji.
- const raw=String(name||""),n=raw.toLocaleLowerCase("es"),data=(typeof itemDB!=="undefined"&&itemDB[raw])||{},cat=String(data.cat||"").toLocaleLowerCase("es");
+ const raw=String(name||""),n=raw.toLocaleLowerCase("es");
+ let data=(typeof itemDB!=="undefined"&&itemDB[raw])||{};
+ if(typeof state!=="undefined"&&state){
+  const fromInv=(state.inventory||[]).find(x=>x&&x.name===raw);
+  const fromDisc=state.discovered&&state.discovered[raw];
+  if(fromInv)data={...data,...fromInv};
+  else if(fromDisc)data={...data,...fromDisc};
+  if(state.synthesisVariants&&state.synthesisVariants[raw])data={...data,trait:"Síntesis de convergencia",affix:"Síntesis de convergencia",coherent:true};
+ }
+ const cat=String(data.cat||"").toLocaleLowerCase("es");
  const has=(...words)=>words.some(w=>n.includes(w));
+ const isFusedIcon=!!(data.trait==="Síntesis de convergencia"||data.affix==="Síntesis de convergencia"||data.coherent===true||(data.sourceA&&data.sourceB)||(typeof isSynthesisItem==="function"&&isSynthesisItem({name:raw,...data})));
  let kind="artifact",main="#68d8c7",light="#c4fff1",dark="#245b55";
  // Las zonas tienen iconografía propia basada en su identidad, no en la primera palabra coincidente.
  const zoneKinds={"bosque hundido":"zone-forest","mina abandonada":"zone-mine","vertedero orbital":"zone-scrap","pantano tóxico":"zone-swamp","cantera roja":"zone-quarry","búnker sellado":"zone-bunker","glaciar de vidrio":"zone-glacier","caldera de ceniza":"zone-volcano","distrito neón":"zone-neon","arrecife abisal":"zone-reef","mar de chatarra":"zone-dunes","grieta dimensional":"zone-rift","laboratorio sumergido":"zone-lab","jardín de sílice":"zone-silica","estación de eco":"zone-station","cámara criogénica":"zone-cryo","archivo orbital":"zone-vault","raíces de titanio":"zone-root","fundición errante":"zone-foundry","observatorio fractal":"zone-observatory","costa nula":"zone-null"};
