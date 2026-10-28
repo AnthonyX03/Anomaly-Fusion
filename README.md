@@ -425,3 +425,21 @@ La descripción de los objetos vuelve al tamaño tipográfico original de las ta
 - Menos cues en barras de progreso y beep final ligeramente diferido.
 - Desbloqueo de AudioContext en el primer toque/clic.
 - Caché PWA actualizada a r37.
+
+
+### r38 — Ajustes reorganizados por secciones con botones
+- Ajustes agrupados en **Partida**, **Sonido** y **Adaptabilidad**.
+- Partida: exportar, importar, borrar/actualizar e instalar app.
+- Sonido: silenciar/activar, barra de volumen y botones − / +.
+- Adaptabilidad: pantalla completa, reducir animaciones, densidad y modo de pantalla.
+- Caché PWA actualizada a r38.
+
+
+### r39 — Expansión Tráfico de Órganos + recetas por nivel
+- Recetas bloqueadas por nivel de Operador: N2→10, N3→20, N4→30, N5→40.
+- Nueva categoría **Órgano** y rasgo **Ilegal** (no se vende en Envío de suministro).
+- **Mesa de extracción**: consume criaturas orgánicas (no robots) y produce órganos seleccionables.
+- **Mercado Negro**: venta exclusiva de mercancía ilegal con mejor pago.
+- Filtro Órganos en inventario, registro y selector de fusión.
+- Catálogo amplio de órganos por tipo de criatura + icono propio.
+- Caché PWA actualizada a r39.
