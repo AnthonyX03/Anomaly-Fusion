@@ -309,3 +309,8 @@ La descripción de los objetos vuelve al tamaño tipográfico original de las ta
 - El registro muestra nombres cortos en la lista y en el detalle, conservando los nombres internos completos para búsquedas y compatibilidad.
 - Los botones «Elegir objeto» y «Desequipar» ahora están agrupados en una fila de acciones para que no aparezcan debajo del nombre del objeto.
 - Caché PWA actualizada a r21.
+
+
+### r22 — Ajustes visuales de equipo y síntesis
+- Se recupera el azul de rareza anterior para el rasgo Síntesis de convergencia en la bolsa, con un fondo azul tenue y borde de acento.
+- Los controles Elegir objeto y Desequipar permanecen juntos en una fila fija a la derecha. Las ranuras de equipo conservan una altura constante y los botones no saltan debajo del nombre ni cambian el tamaño de la ranura.
