@@ -320,3 +320,8 @@ La descripción de los objetos vuelve al tamaño tipográfico original de las ta
 - El texto del rasgo usa el verde menta/turquesa claro `#A7E1D3` tanto en la bolsa como en las tarjetas de equipo.
 - Se elimina el fondo, el borde lateral, el relleno y el redondeado añadidos al rasgo: queda únicamente el texto coloreado, sin recuadro.
 - Caché PWA actualizada a r23.
+
+
+### r24 — Igualar el color del rasgo de síntesis
+- Corregido el color de «Síntesis de convergencia» en las tarjetas de la bolsa para que use el mismo azul que en Equipo y Objetos equipados (`#55BAFF`).
+- El rasgo se muestra como texto sin fondo ni recuadro.
