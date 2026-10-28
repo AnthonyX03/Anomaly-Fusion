@@ -410,3 +410,9 @@ La descripción de los objetos vuelve al tamaño tipográfico original de las ta
 - El beep de fin de fusión se retrasa un poco tras iniciar el fade del hum.
 - Nuevo sonido de venta en Envío de suministro: arpegio corto ascendente (C-E-G), distinto a los beeps de UI.
 - Caché PWA actualizada a r35.
+
+
+### r36 — Fusión con el mismo audio de exploración
+- La barra de fusión ya no usa hum continuo (fuente del petardeo): usa los mismos pitidos de progreso que la exploración.
+- Volumen de los beeps de barra un poco más alto.
+- Caché PWA actualizada a r36.
