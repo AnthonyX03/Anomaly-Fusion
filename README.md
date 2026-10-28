@@ -325,3 +325,9 @@ La descripción de los objetos vuelve al tamaño tipográfico original de las ta
 ### r24 — Igualar el color del rasgo de síntesis
 - Corregido el color de «Síntesis de convergencia» en las tarjetas de la bolsa para que use el mismo azul que en Equipo y Objetos equipados (`#55BAFF`).
 - El rasgo se muestra como texto sin fondo ni recuadro.
+
+
+### r25 — Color real de Síntesis de convergencia (cian de Equipo)
+- El color mostrado en Equipo y Objetos equipados para «Síntesis de convergencia» es el cian del tema (`var(--cyan)` = `#53f2d1`), no el azul de rareza `#55baff`.
+- Se corrige el rasgo en las tarjetas de la bolsa para usar exactamente el mismo color cian, sin fondo ni recuadro.
+- Caché PWA actualizada a r25.
