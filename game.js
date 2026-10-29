@@ -1,5 +1,7 @@
 (() => {
 "use strict";
+let centralSalePage=1,marketSellPage=1,marketBlackSellPage=1;
+
 let marketBuyFilter="Todos",marketBlackBuyFilter="Todos",spawnAnomalyId=null;
 
 let pendingConfirmAction=null;
@@ -606,7 +608,33 @@ function organExtractChance(organName,selectedCount){return extractionSuccessCha
 
 function isIllegalItem(x){
  if(!x)return false;
- return !!(x.illegal||x.trait==="Ilegal"||x.affix==="Ilegal"||(x.cat==="Órgano")||(typeof isSynthesisItem==="function"&&isSynthesisItem(x)&&(String(x.secondaryTrait||"").includes("Ilegal")||x.illegal)));
+ const name=String(x.name||"");
+ const cat=x.cat||info(name).cat||"";
+ const trait=String(x.trait||x.affix||"");
+ // Solo: órganos, armas balísticas, Engendros y Híbridos anómalos
+ if(cat==="Órgano")return true;
+ if(isBallisticWeapon(name,x))return true;
+ if(trait==="Engendro"||/engendro/i.test(name))return true;
+ if(trait==="Hibridación anómala"||/hibridaci[oó]n an[oó]mala/i.test(trait)||/h[ií]brido an[oó]malo/i.test(name))return true;
+ return false;
+}
+function applyIllegalPolicy(item){
+ if(!item||typeof item!=="object")return item;
+ if(isIllegalItem(item)){
+  item.illegal=true;
+  if(!item.trait||item.trait==="Ilegal")item.trait=item.trait&&item.trait!=="Ilegal"?item.trait:"Ilegal";
+  if(item.cat==="Órgano"){item.trait="Ilegal";item.affix="Ilegal";}
+  return item;
+ }
+ // Pierde ilegalidad residual
+ item.illegal=false;
+ if(item.trait==="Ilegal")delete item.trait;
+ if(item.affix==="Ilegal")delete item.affix;
+ if(item.secondaryTrait){
+  item.secondaryTrait=String(item.secondaryTrait).split("·").map(s=>s.trim()).filter(s=>s&&s!=="Ilegal").join(" · ");
+  if(!item.secondaryTrait)delete item.secondaryTrait;
+ }
+ return item;
 }
 function isRoboticCreature(x){
  const n=String(x?.name||"").toLocaleLowerCase("es");
@@ -700,7 +728,7 @@ function isBallisticWeapon(name,data){
  const n=String(name||"");
  const d=data||info(n)||{};
  if(d.cat!=="Arma"&&!/arma/i.test(String(d.cat||"")))return false;
- return !!(d.illegal||d.trait==="Ilegal"||/rifle|ak|pistola|bala|balíst|fusil|escopeta|smg|revólver|revolver|lanzagranadas|francotirador/i.test(n));
+ return /rifle|ak[\s-]|pistola|bala|bal[ií]st|fusil|escopeta|smg|rev[oó]lver|lanzagranadas|francotirador|ametralladora|subfusil/i.test(n);
 }
 function isLegalMarketItem(name,data){
  const d=data||info(name)||{};
@@ -879,7 +907,10 @@ function buyMarketItem(name,isBlack,daily){
  }
  state.credits-=price;
  const extras={origin:isBlack?"mercado negro":"mercado"};
- if(isBlack){extras.illegal=true;extras.trait="Ilegal";extras.affix="Ilegal";}
+ // El mercado negro ya no marca ilegal todo: solo órganos, balísticas, engendros e híbridos anómalos
+ const draft=applyIllegalPolicy({...info(name),...extras,name});
+ if(isIllegalItem(draft)){extras.illegal=true;if(draft.cat==="Órgano"){extras.trait="Ilegal";extras.affix="Ilegal";}}
+ else{extras.illegal=false;}
  addItem(name,1,{...data,...extras,name});
  log(`Compra ${isBlack?"negra":"legal"}: <b>${escapeHtml(name)}</b> por ${price} cr.`);
  toast(`Comprado: ${name} (−${price} cr.)`);
@@ -902,13 +933,35 @@ function renderMarketSell(isBlack){
  let sellable=state.inventory.filter(x=>x.qty>0&&!equipped.has(x.id)&&(isBlack?isIllegalItem(x):!isIllegalItem(x)));
  if(search)sellable=sellable.filter(x=>x.name.toLowerCase().includes(search));
  Object.keys(sel).forEach(id=>{const item=sellable.find(x=>x.id===id);if(!item)delete sel[id];else sel[id]=Math.min(item.qty,Math.max(0,Number(sel[id])||0));if(!sel[id])delete sel[id];});
- box.innerHTML=sellable.length?sellable.map(x=>{
+ const pageSize=5;
+ let page=isBlack?marketBlackSellPage:marketSellPage;
+ const pages=Math.max(1,Math.ceil(sellable.length/pageSize));
+ page=Math.min(Math.max(1,page),pages);
+ if(isBlack)marketBlackSellPage=page;else marketSellPage=page;
+ const shown=sellable.slice((page-1)*pageSize,page*pageSize);
+ box.innerHTML=shown.length?shown.map(x=>{
   const qty=Number(sel[x.id]||0),checked=qty>0;
   const base=Math.max(1,Number(x.val)||Number(info(x.name).val)||1);
   const unit=marketSellUnitPrice(x,isBlack);
   const rate=isBlack?state.market.blackSellRate:state.market.sellRate;
-  return `<div class="central-sale-row"><input type="checkbox" data-ms-check="${x.id}" data-black="${isBlack?"1":"0"}" ${checked?"checked":""}><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><div><div class="sale-name">${escapeHtml(inventoryDisplayName(x))}</div><small>N${x.r||1} · ${escapeHtml(x.cat)} · Base: ${formatCredits(base,12)} · Hoy ${rate}%: ${formatCredits(unit,12)}/u</small></div><select class="sale-qty" data-ms-qty="${x.id}" data-black="${isBlack?"1":"0"}" ${checked?"":"disabled"}>${Array.from({length:x.qty},(_,i)=>`<option value="${i+1}" ${(qty||1)===i+1?"selected":""}>×${i+1}</option>`).join("")}</select></div>`;
+  return `<div class="central-sale-row ${checked?"selected":""}" data-ms-row="${x.id}" data-black="${isBlack?"1":"0"}" role="button" tabindex="0" aria-pressed="${checked?"true":"false"}"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><div><div class="sale-name">${escapeHtml(inventoryDisplayName(x))}</div><small>N${x.r||1} · ${escapeHtml(x.cat)} · Base: ${formatCredits(base,12)} · Hoy ${rate}%: ${formatCredits(unit,12)}/u</small></div><select class="sale-qty" data-ms-qty="${x.id}" data-black="${isBlack?"1":"0"}" ${checked?"":"disabled"}>${Array.from({length:x.qty},(_,i)=>`<option value="${i+1}" ${(qty||1)===i+1?"selected":""}>×${i+1}</option>`).join("")}</select></div>`;
  }).join(""):`<div class="empty">${isBlack?"No hay mercancía ilegal.":"No hay objetos legales para vender."}</div>`;
+ // pager
+ let pager=$(isBlack?"marketBlackSellPager":"marketSellPager");
+ if(!pager){
+  pager=document.createElement("div");
+  pager.id=isBlack?"marketBlackSellPager":"marketSellPager";
+  pager.className="pagination sale-pager";
+  pager.innerHTML=`<button type="button" class="tiny" data-sale-prev="${isBlack?"1":"0"}">← Anterior</button><span class="muted" data-sale-info="${isBlack?"1":"0"}">Página 1</span><button type="button" class="tiny" data-sale-next="${isBlack?"1":"0"}">Siguiente →</button>`;
+  box.after(pager);
+ }
+ pager.classList.toggle("hidden",sellable.length<=pageSize);
+ const infoEl=pager.querySelector("[data-sale-info]");
+ const prev=pager.querySelector("[data-sale-prev]");
+ const next=pager.querySelector("[data-sale-next]");
+ if(infoEl)infoEl.textContent=`Página ${page} / ${pages}`;
+ if(prev){prev.disabled=page<=1;prev.onclick=()=>{if(isBlack)marketBlackSellPage=Math.max(1,marketBlackSellPage-1);else marketSellPage=Math.max(1,marketSellPage-1);renderMarketSell(isBlack);};}
+ if(next){next.disabled=page>=pages;next.onclick=()=>{if(isBlack)marketBlackSellPage++;else marketSellPage++;renderMarketSell(isBlack);};}
  const units=Object.values(sel).reduce((a,b)=>a+b,0);
  const total=sellable.reduce((sum,x)=>sum+(Number(sel[x.id]||0)*marketSellUnitPrice(x,isBlack)),0);
  const uEl=$(isBlack?"marketBlackSellUnits":"marketSellUnits");
@@ -917,11 +970,15 @@ function renderMarketSell(isBlack){
  if(uEl)uEl.textContent=units;
  if(tEl)tEl.innerHTML=formatCredits(total,15);
  if(sEl)sEl.disabled=units===0||!!activeTask;
- box.querySelectorAll("[data-ms-check]").forEach(el=>el.onchange=()=>{const black=el.dataset.black==="1";const S=black?marketBlackSellSelection:marketSellSelection;const x=state.inventory.find(i=>i.id===el.dataset.msCheck);if(!x)return;if(el.checked)S[x.id]=Math.max(1,Math.min(x.qty,Number(S[x.id])||1));else delete S[x.id];renderMarketSell(black)});
- box.querySelectorAll("[data-ms-qty]").forEach(el=>el.onchange=()=>{const black=el.dataset.black==="1";const S=black?marketBlackSellSelection:marketSellSelection;const x=state.inventory.find(i=>i.id===el.dataset.msQty);if(!x)return;S[x.id]=Math.max(1,Math.min(x.qty,Number(el.value)||1));renderMarketSell(black)});
- if($("marketSellRateLabel"))$("marketSellRateLabel").textContent=(state.market.sellRate||"—")+"%";
- if($("marketBlackSellRateLabel"))$("marketBlackSellRateLabel").textContent=(state.market.blackSellRate||"—")+"%";
+ box.querySelectorAll("[data-ms-row]").forEach(row=>{
+  row.onclick=e=>{if(e.target.closest("select"))return;const black=row.dataset.black==="1";const S=black?marketBlackSellSelection:marketSellSelection;const id=row.dataset.msRow;if(S[id])delete S[id];else S[id]=Number((box.querySelector(`[data-ms-qty="${id}"]`)||{}).value||1);renderMarketSell(black);};
+ });
+ box.querySelectorAll("[data-ms-qty]").forEach(el=>{
+  el.onclick=e=>e.stopPropagation();
+  el.onchange=()=>{const black=el.dataset.black==="1";const S=black?marketBlackSellSelection:marketSellSelection;if(S[el.dataset.msQty]!=null)S[el.dataset.msQty]=Number(el.value)||1;else S[el.dataset.msQty]=Number(el.value)||1;renderMarketSell(black);};
+ });
 }
+
 function submitMarketSell(isBlack){
  if(activeTask)return;
  const S=isBlack?marketBlackSellSelection:marketSellSelection;
@@ -1197,7 +1254,8 @@ function addItem(name,qty=1,opts={}){
   if(r>=3&&Math.random()<.62){const second=choose([{type:"Suerte",name:"Instinto de élite",value:r*2,desc:`+${r*2}% hallazgos`},{type:"Créditos",name:"Recuperación eficiente",value:r*2,desc:`+${r*2}% créditos`},{type:"Botín",name:"Compartimento oculto",value:r*3,desc:`+${r*3}% probabilidad de botín adicional`},{type:"Experiencia",name:"Memoria de campo",value:r*2,desc:`+${r*2}% experiencia`},{type:"Recolección",name:"Recolector adaptativo",value:r*3,desc:`+${r*3}% recolección`}]);resolved.abilities.push(second);}
   resolved.ability=resolved.abilities[0];resolved.procedural=true;
  }
- let existing=state.inventory.find(x=>x.name===name&&d.cat==="Material"&&!resolved.unique&&!isSynthesisItem(resolved)&&!isSynthesisItem(x)&&x.origin===(resolved.origin||"general")&&x.cat===(cat||d.cat)&&Number(x.val||d.val||5)===Number(resolved.val||d.val||5));
+ applyIllegalPolicy(resolved);
+  let existing=state.inventory.find(x=>x.name===name&&d.cat==="Material"&&!resolved.unique&&!isSynthesisItem(resolved)&&!isSynthesisItem(x)&&x.origin===(resolved.origin||"general")&&x.cat===(cat||d.cat)&&Number(x.val||d.val||5)===Number(resolved.val||d.val||5));
  if(existing)existing.qty+=qty;
  else state.inventory.push({...resolved,id:uid(),name,qty,cat:cat||d.cat,r:resolved.r||d.r||1,val:resolved.val||d.val||5,desc:resolved.desc||d.desc||"",icon:resolved.icon||d.icon||"❔",slot});
  state.discovered=state.discovered||{};state.discovered[name]={...d,...resolved,name,cat:cat||d.cat,r:resolved.r||d.r||1,val:resolved.val||d.val||5,desc:resolved.desc||d.desc||"",icon:resolved.icon||d.icon||"❔"};
@@ -1776,12 +1834,35 @@ function renderCentralSales(){
  const items=sellable.filter(x=>x.name.toLowerCase().includes(search)&&matchesCategory(x));
  const liveIds=new Set(sellable.map(x=>x.id));
  Object.keys(centralSaleSelection).forEach(id=>{const item=sellable.find(x=>x.id===id);if(!liveIds.has(id))delete centralSaleSelection[id];else centralSaleSelection[id]=Math.min(item.qty,Math.max(0,Number(centralSaleSelection[id])||0));if(!centralSaleSelection[id])delete centralSaleSelection[id];});
- box.innerHTML=items.length?items.map(x=>{const qty=Number(centralSaleSelection[x.id]||0),checked=qty>0;return `<div class="central-sale-row"><input type="checkbox" data-sale-check="${x.id}" aria-label="Seleccionar ${escapeHtml(x.name)}" ${checked?"checked":""}><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><div><div class="sale-name">${escapeHtml(x.name)}</div><small>N${x.r||1} · ${escapeHtml(x.cat||info(x.name).cat)} · Base 100%: ${formatCredits(centralSaleBaseValue(x),12)} · Venta 90%: ${formatCredits(Math.max(1,Math.ceil(centralSaleBaseValue(x)*.9)),12)} · Pago/u: ${formatCredits(centralSaleUnitPrice(x),12)}</small></div><select class="sale-qty" data-sale-qty="${x.id}" aria-label="Cantidad de ${escapeHtml(x.name)}" ${checked?"":"disabled"}>${Array.from({length:x.qty},(_,i)=>`<option value="${i+1}" ${(qty||1)===i+1?"selected":""}>×${i+1}</option>`).join("")}</select></div>`}).join(""):'<div class="empty">No hay objetos en este filtro. Cambia la categoría o consigue nuevos objetos.</div>';
+ const pageSize=5;
+ const pages=Math.max(1,Math.ceil(items.length/pageSize));
+ centralSalePage=Math.min(Math.max(1,centralSalePage||1),pages);
+ const shown=items.slice((centralSalePage-1)*pageSize,centralSalePage*pageSize);
+ box.innerHTML=shown.length?shown.map(x=>{const qty=Number(centralSaleSelection[x.id]||0),checked=qty>0;return `<div class="central-sale-row ${checked?"selected":""}" data-sale-row="${x.id}" role="button" tabindex="0" aria-pressed="${checked?"true":"false"}" aria-label="Seleccionar ${escapeHtml(x.name)}"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><div><div class="sale-name">${escapeHtml(inventoryDisplayName(x))}</div><small>N${x.r||1} · ${escapeHtml(x.cat||info(x.name).cat)} · Base 100%: ${formatCredits(centralSaleBaseValue(x),12)} · Venta 90%: ${formatCredits(Math.max(1,Math.ceil(centralSaleBaseValue(x)*.9)),12)} · Pago/u: ${formatCredits(centralSaleUnitPrice(x),12)}</small></div><select class="sale-qty" data-sale-qty="${x.id}" aria-label="Cantidad de ${escapeHtml(x.name)}" ${checked?"":"disabled"}>${Array.from({length:x.qty},(_,i)=>`<option value="${i+1}" ${(qty||1)===i+1?"selected":""}>×${i+1}</option>`).join("")}</select></div>`;}).join(""):'<div class="empty">No hay objetos legales para enviar.</div>';
+ let pager=$("centralSalePager");
+ if(!pager){
+  pager=document.createElement("div");
+  pager.id="centralSalePager";
+  pager.className="pagination sale-pager";
+  pager.innerHTML=`<button type="button" class="tiny" id="centralSalePrev">← Anterior</button><span class="muted" id="centralSalePageInfo">Página 1</span><button type="button" class="tiny" id="centralSaleNext">Siguiente →</button>`;
+  box.after(pager);
+ }
+ pager.classList.toggle("hidden",items.length<=pageSize);
+ if($("centralSalePageInfo"))$("centralSalePageInfo").textContent=`Página ${centralSalePage} / ${pages}`;
+ if($("centralSalePrev")){$("centralSalePrev").disabled=centralSalePage<=1;$("centralSalePrev").onclick=()=>{centralSalePage=Math.max(1,centralSalePage-1);renderCentralSales();};}
+ if($("centralSaleNext")){$("centralSaleNext").disabled=centralSalePage>=pages;$("centralSaleNext").onclick=()=>{centralSalePage++;renderCentralSales();};}
  const units=Object.values(centralSaleSelection).reduce((a,b)=>a+b,0);
  const total=sellable.reduce((sum,x)=>sum+(Number(centralSaleSelection[x.id]||0)*centralSaleUnitPrice(x)),0);
- $("centralSaleUnits").textContent=units;if($("centralSaleTotal"))$("centralSaleTotal").innerHTML=formatCredits(total,15);$("centralSaleSubmit").disabled=units===0||!!activeTask;
- box.querySelectorAll("[data-sale-check]").forEach(el=>el.onchange=()=>{const x=state.inventory.find(i=>i.id===el.dataset.saleCheck);if(!x)return;if(el.checked)centralSaleSelection[x.id]=Math.max(1,Math.min(x.qty,Number(centralSaleSelection[x.id])||1));else delete centralSaleSelection[x.id];renderCentralSales()});
- box.querySelectorAll("[data-sale-qty]").forEach(el=>el.onchange=()=>{const x=state.inventory.find(i=>i.id===el.dataset.saleQty);if(!x)return;centralSaleSelection[x.id]=Math.max(1,Math.min(x.qty,Number(el.value)||1));renderCentralSales()});
+ if($("centralSaleUnits"))$("centralSaleUnits").textContent=units;
+ if($("centralSaleTotal"))$("centralSaleTotal").innerHTML=formatCredits(total,15);
+ if($("centralSaleSubmit"))$("centralSaleSubmit").disabled=units===0||!!activeTask;
+ box.querySelectorAll("[data-sale-row]").forEach(row=>{
+  row.onclick=e=>{if(e.target.closest("select"))return;const id=row.dataset.saleRow;if(centralSaleSelection[id])delete centralSaleSelection[id];else centralSaleSelection[id]=Number((box.querySelector(`[data-sale-qty="${id}"]`)||{}).value||1);renderCentralSales();};
+ });
+ box.querySelectorAll("[data-sale-qty]").forEach(el=>{
+  el.onclick=e=>e.stopPropagation();
+  el.onchange=()=>{if(centralSaleSelection[el.dataset.saleQty]!=null)centralSaleSelection[el.dataset.saleQty]=Number(el.value)||1;else centralSaleSelection[el.dataset.saleQty]=Number(el.value)||1;renderCentralSales();};
+ });
 }
 
 function renderExtractTable(){
@@ -1828,12 +1909,13 @@ function renderExtractTable(){
  if($("extractOrgansNext"))$("extractOrgansNext").disabled=extractOrgansPage>=pages;
  host.innerHTML=shown.map(name=>{
   const on=!!extractSelected[name];
-  return `<label class="extract-organ-opt ${on?"on":""}"><input type="checkbox" data-extract-organ="${escapeHtml(name)}" ${on?"checked":""}><span><b>${escapeHtml(name)}</b><small style="display:block;color:var(--muted)">Órgano · nivel 1–${maxR}</small></span></label>`;
+  const ic=itemIconMarkup(name,info(name).icon||"🫀");
+  return `<button type="button" class="extract-organ-opt ${on?"on":""}" data-extract-organ="${escapeHtml(name)}" aria-pressed="${on?"true":"false"}"><span class="item-icon extract-organ-icon">${ic}</span><span class="extract-organ-text"><b>${escapeHtml(name)}</b><small>Órgano · nivel 1–${maxR}</small></span></button>`;
  }).join("")+`<div class="extract-summary" style="grid-column:1/-1">Seleccionados: <b>${selectedNames.length}</b> · Bonus pinzas: <b>+${bonus}%</b><br><b style="color:var(--cyan)">Éxito global: ${selectedNames.length?globalChance:0}%</b> · Si falla, no se obtiene ningún órgano. La criatura se consume siempre.<br><small>Nivel de órganos ≤ N${maxR} de la criatura.</small></div>`;
- host.querySelectorAll("[data-extract-organ]").forEach(inp=>{
-  inp.onchange=()=>{
-   const n=inp.dataset.extractOrgan;
-   if(inp.checked)extractSelected[n]=true;else delete extractSelected[n];
+ host.querySelectorAll("[data-extract-organ]").forEach(btn=>{
+  btn.onclick=()=>{
+   const n=btn.dataset.extractOrgan;
+   if(extractSelected[n])delete extractSelected[n];else extractSelected[n]=true;
    renderExtractTable();
   };
  });
@@ -1963,7 +2045,8 @@ function openRegistryItem(name,level=null){
  const valMin=range?Number(range.min):Math.max(1,Number(d.val)||Number(base.val)||0);
  const valMax=range?Number(range.max):valMin;
  // Precio fijo: objetos base del juego. Variables: síntesis, órganos, procedurales.
- const fixedPrice=!isOrgan&&!isSynthesisItem(base)&&!base.procedural&&!(d&&d.procedural);
+ // Órganos y objetos base: Valor Base fijo. Síntesis/procedurales: Valor Aprox (min-max vistos).
+ const fixedPrice=isOrgan||(!isSynthesisItem(base)&&!base.procedural&&!(d&&d.procedural));
  const approxChip=fixedPrice
   ?`<span class="chip">Valor Base: ${Math.max(1,Number(d.val)||Number(base.val)||0)}</span>`
   :`<span class="chip">Valor Aprox: ${valMin} - ${valMax}</span>`;
@@ -2090,6 +2173,11 @@ function updateHomeClock(){
  el.textContent=`${days[d.getDay()]} ${pad(d.getDate())} ${months[d.getMonth()]} ${d.getFullYear()} · ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 }
 
+
+function migrateIllegalPolicy(){
+ (state.inventory||[]).forEach(it=>applyIllegalPolicy(it));
+ Object.values(state.discovered||{}).forEach(it=>{if(it&&typeof it==="object")applyIllegalPolicy(it);});
+}
 function migrateOrganVariants(){
  state.organVariants=state.organVariants||{};
  (state.inventory||[]).forEach(it=>{if(it&&it.cat==="Órgano")saveOrganVariant(it)});
@@ -2103,6 +2191,6 @@ document.querySelectorAll("[data-settings-panel].settings-tab, .settings-tab[dat
   document.querySelectorAll(".settings-panel").forEach(x=>x.classList.toggle("active",x.dataset.settingsPanel===key));
  });
 });
-migrateOrganVariants();bindNavigation();updateHomeClock();setInterval(updateHomeClock,1000);if($("soundToggle"))$("soundToggle").checked=state.settings.sound;if($("scaleSelect"))$("scaleSelect").value=state.settings.scale||"1";document.documentElement.style.setProperty("--scale",state.settings.scale||"1");if($("motionToggle"))$("motionToggle").checked=!!state.settings.motion;document.body.classList.toggle("reduce-motion",!!state.settings.motion);applyLayoutMode(state.settings.layoutMode||"auto");setSoundVolume(state.settings.soundVolume??75);syncSettingsUI();render();if(state.pendingSupply&&state.pendingSupply.stage==="animating"){setTimeout(()=>{if(state.pendingSupply&&state.pendingSupply.stage==="animating"){state.pendingSupply.stage="ready";renderSupplyDelivery();renderSupplies();save()}},1200)}if("serviceWorker"in navigator&&location.protocol.startsWith("http")){navigator.serviceWorker.register("./sw.js",{updateViaCache:"none"}).then(reg=>{checkForAppUpdates(reg);setInterval(()=>checkForAppUpdates(reg),60000);document.addEventListener("visibilitychange",()=>{if(!document.hidden)checkForAppUpdates(reg)});window.addEventListener("focus",()=>checkForAppUpdates(reg));}).catch(()=>{});}}
+migrateOrganVariants();migrateIllegalPolicy();bindNavigation();updateHomeClock();setInterval(updateHomeClock,1000);if($("soundToggle"))$("soundToggle").checked=state.settings.sound;if($("scaleSelect"))$("scaleSelect").value=state.settings.scale||"1";document.documentElement.style.setProperty("--scale",state.settings.scale||"1");if($("motionToggle"))$("motionToggle").checked=!!state.settings.motion;document.body.classList.toggle("reduce-motion",!!state.settings.motion);applyLayoutMode(state.settings.layoutMode||"auto");setSoundVolume(state.settings.soundVolume??75);syncSettingsUI();render();if(state.pendingSupply&&state.pendingSupply.stage==="animating"){setTimeout(()=>{if(state.pendingSupply&&state.pendingSupply.stage==="animating"){state.pendingSupply.stage="ready";renderSupplyDelivery();renderSupplies();save()}},1200)}if("serviceWorker"in navigator&&location.protocol.startsWith("http")){navigator.serviceWorker.register("./sw.js",{updateViaCache:"none"}).then(reg=>{checkForAppUpdates(reg);setInterval(()=>checkForAppUpdates(reg),60000);document.addEventListener("visibilitychange",()=>{if(!document.hidden)checkForAppUpdates(reg)});window.addEventListener("focus",()=>checkForAppUpdates(reg));}).catch(()=>{});}}
 init();
 })();

@@ -592,3 +592,17 @@ La descripción de los objetos vuelve al tamaño tipográfico original de las ta
 - Objetos base (precio fijo): «Valor Base: X».
 - Síntesis, órganos y procedurales: «Valor Aprox: X - X».
 - Caché PWA actualizada a r58.
+
+
+### r59 — Ilegal acotado, ventas x5, valores registro
+- Ilegal solo: órganos, armas balísticas, Engendros e Híbridos anómalos.
+- Criaturas normales/fusionadas y compras de mercado negro (salvo lo anterior) sin ilegal.
+- Registro: órganos y base → Valor Base; síntesis → Valor Aprox min-max.
+- Ventas (Central + ambos mercados): 5 por página, sin scroll largo.
+- Caché PWA actualizada a r59.
+
+
+### r60 — Selección por icono/fila sin checkboxes
+- Extracción: tarjetas con icono del órgano; al pulsar se resalta y marca.
+- Envío de suministros y mercados de venta: sin casillas; la fila se selecciona al pulsar.
+- Caché PWA actualizada a r60.
