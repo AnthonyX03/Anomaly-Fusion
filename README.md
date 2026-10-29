@@ -660,3 +660,10 @@ La descripción de los objetos vuelve al tamaño tipográfico original de las ta
 - Listas de venta: 5 filas de 58px fijas.
 - Pager reserva espacio siempre.
 - Caché PWA actualizada a r67.
+
+
+### r68 — Descripción de tarjetas sin corte feo
+- Filas de catálogo a 268px (sigue fija → HUD estable).
+- Descripción hasta 3 líneas / 120 caracteres.
+- Precio, candado y Comprar siguen visibles.
+- Caché PWA actualizada a r68.

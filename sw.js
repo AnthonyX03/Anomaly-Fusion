@@ -1,4 +1,4 @@
-const CACHE="anomaly-fusion-v3-0-ultimate-r67";
+const CACHE="anomaly-fusion-v3-0-ultimate-r68";
 const FILES=["./","./index.html","./game.js","./manifest.webmanifest","./anomaly-fusion-icon.svg","./AnomalyFusion.mp3"];
 self.addEventListener("install",event=>event.waitUntil((async()=>{
  const cache=await caches.open(CACHE);

@@ -878,9 +878,10 @@ function renderMarketBuy(isBlack){
   const locked=!row.unlocked;
   const noStock=row.daily&&row.stock<=0;
   const can=!locked&&!noStock&&state.credits>=row.price&&!activeTask;
-  const desc=escapeHtml((row.data.desc||info(row.name).desc||"").slice(0,90));
+  const rawDesc=String(row.data.desc||info(row.name).desc||"").replace(/\s+/g," ").trim();
+  const desc=escapeHtml(rawDesc.slice(0,120));
   const stats=marketItemStats(row.data);
-  return `<div class="market-card"><div class="market-card-top"><span class="item-icon">${itemIconMarkup(row.name,row.data.icon)}</span><div style="min-width:0"><b title="${escapeHtml(row.name)}">${escapeHtml(inventoryDisplayName({name:row.name}))}</b><small>N${row.data.r||1} · ${escapeHtml(row.data.cat||"?")}</small></div></div><p class="market-card-desc">${desc||"&nbsp;"}${(row.data.desc||"").length>90?"…":""}</p><div class="loot-chips market-card-stats">${stats||"&nbsp;"}</div><div class="market-card-price">${creditsIconMarkup(16)}<b>${row.price.toLocaleString("es-ES")}</b>${row.daily?`<span class="muted"> · Stock ${row.stock}</span>`:""}${locked?`<span class="muted"> · 🔒 Nv ${row.needLevel}</span>`:""}</div><button class="tiny ${isBlack?"danger":""}" data-market-buy="${escapeHtml(row.name)}" data-black="${isBlack?"1":"0"}" data-daily="${row.daily?"1":"0"}" ${can?"":"disabled"}>Comprar</button></div>`;
+  return `<div class="market-card"><div class="market-card-top"><span class="item-icon">${itemIconMarkup(row.name,row.data.icon)}</span><div style="min-width:0"><b title="${escapeHtml(row.name)}">${escapeHtml(inventoryDisplayName({name:row.name}))}</b><small>N${row.data.r||1} · ${escapeHtml(row.data.cat||"?")}</small></div></div><p class="market-card-desc">${desc||"Sin descripción."}${rawDesc.length>120?"…":""}</p>${stats?`<div class="loot-chips market-card-stats">${stats}</div>`:`<div class="market-card-stats" aria-hidden="true"></div>`}<div class="market-card-price">${creditsIconMarkup(16)}<b>${row.price.toLocaleString("es-ES")}</b>${row.daily?`<span class="muted"> · Stock ${row.stock}</span>`:""}${locked?`<span class="muted"> · 🔒 Nv ${row.needLevel}</span>`:""}</div><button class="tiny ${isBlack?"danger":""}" data-market-buy="${escapeHtml(row.name)}" data-black="${isBlack?"1":"0"}" data-daily="${row.daily?"1":"0"}" ${can?"":"disabled"}>Comprar</button></div>`;
  };
  const cards=shown.map(cardHtml);
  // Siempre rellenar la página completa: misma altura en todas las páginas
