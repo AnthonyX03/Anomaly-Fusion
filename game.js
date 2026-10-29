@@ -883,7 +883,10 @@ function renderMarketBuy(isBlack){
   return `<div class="market-card"><div class="market-card-top"><span class="item-icon">${itemIconMarkup(row.name,row.data.icon)}</span><div style="min-width:0"><b title="${escapeHtml(row.name)}">${escapeHtml(inventoryDisplayName({name:row.name}))}</b><small>N${row.data.r||1} · ${escapeHtml(row.data.cat||"?")}</small></div></div><p class="market-card-desc">${desc||"&nbsp;"}${(row.data.desc||"").length>90?"…":""}</p><div class="loot-chips market-card-stats">${stats||"&nbsp;"}</div><div class="market-card-price">${creditsIconMarkup(16)}<b>${row.price.toLocaleString("es-ES")}</b>${row.daily?`<span class="muted"> · Stock ${row.stock}</span>`:""}${locked?`<span class="muted"> · 🔒 Nv ${row.needLevel}</span>`:""}</div><button class="tiny ${isBlack?"danger":""}" data-market-buy="${escapeHtml(row.name)}" data-black="${isBlack?"1":"0"}" data-daily="${row.daily?"1":"0"}" ${can?"":"disabled"}>Comprar</button></div>`;
  };
  const cards=shown.map(cardHtml);
- while(cards.length<pageSize)cards.push(`<div class="market-card is-placeholder" aria-hidden="true"></div>`);
+ // Placeholders solo en rejilla multi-columna (PC); en móvil lista natural sin huecos fantasma
+ let multiCol=false;
+ try{multiCol=window.matchMedia("(min-width:700px)").matches}catch(_){multiCol=false}
+ if(multiCol){while(cards.length<pageSize)cards.push(`<div class="market-card is-placeholder" aria-hidden="true"></div>`);}
  box.innerHTML=shown.length?cards.join(""):'<div class="empty" style="grid-column:1/-1">No hay productos en este listado.</div>';
  box.querySelectorAll("[data-market-buy]").forEach(b=>b.onclick=()=>buyMarketItem(b.dataset.marketBuy,b.dataset.black==="1",b.dataset.daily==="1"));
  if($("marketDayTag"))$("marketDayTag").textContent="DÍA · "+(state.market.day||"—");

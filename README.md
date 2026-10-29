@@ -644,3 +644,11 @@ La descripción de los objetos vuelve al tamaño tipográfico original de las ta
 - Tarjetas de compra con altura uniforme.
 - Orden del catálogo por nombre (estable).
 - Caché PWA actualizada a r65.
+
+
+### r66 — Botón Comprar visible
+- Eliminada altura fija 168px que cortaba el botón Comprar.
+- Tarjetas con altura automática; botón siempre visible.
+- Rejilla: 1 col móvil / 2 tablet / 3 PC.
+- Placeholders solo en PC para no dejar huecos en móvil.
+- Caché PWA actualizada a r66.
