@@ -602,14 +602,8 @@ function equippedExtractBonus(){
  if(!x)return 0;
  return Math.max(0,Number(x.extractBonus)||Number(info(x.name).extractBonus)||0);
 }
-function organExtractChance(organName,selectedCount){
- const data=info(organName)||{};
- const r=Math.max(1,Math.min(5,Number(data.r)||1));
- const n=Math.max(1,selectedCount||1);
- // base alta en N1, baja en N5; penalización por cantidad
- let chance=92-(r*11)-((n-1)*9)+equippedExtractBonus();
- return Math.max(8,Math.min(92,Math.round(chance)));
-}
+function organExtractChance(organName,selectedCount){return extractionSuccessChance(selectedCount,1);}
+
 function isIllegalItem(x){
  if(!x)return false;
  return !!(x.illegal||x.trait==="Ilegal"||x.affix==="Ilegal"||(x.cat==="Órgano")||(typeof isSynthesisItem==="function"&&isSynthesisItem(x)&&(String(x.secondaryTrait||"").includes("Ilegal")||x.illegal)));
@@ -621,16 +615,36 @@ function isRoboticCreature(x){
 function organCandidatesForCreature(x){
  if(!x||x.cat!=="Criatura"||isRoboticCreature(x))return [];
  const n=String(x.name||"");
+ const maxR=Math.max(1,Math.min(5,Number(x.r)||1));
  let root=ORGAN_CREATURE_ROOTS.find(r=>n.toLocaleLowerCase("es").includes(r.toLocaleLowerCase("es")));
- if(!root){
-  return ORGAN_PARTS.slice(0,10).map(part=>{
-   const name=`${part} de ${n.split(" ")[0]}`;
-   if(!itemDB[name])addGenerated(name,{icon:"🫀",cat:"Órgano",r:Math.max(1,Number(x.r)||1),val:20+(Number(x.r)||1)*14,desc:`Órgano extraído de ${n}. Rasgo ilegal.`,trait:"Ilegal",affix:"Ilegal",illegal:true,organPart:part});
-   return name;
-  });
- }
- return ORGAN_PARTS.map(part=>`${part} de ${root}`).filter(name=>itemDB[name]||baseOrganNames.includes(name));
+ const baseName=root||n.split(" ")[0]||"desconocido";
+ const parts=root?ORGAN_PARTS:ORGAN_PARTS.slice(0,10);
+ // Devuelve lista de nombres base de órgano (sin nivel fijo); el nivel se tira al extraer
+ return parts.map(part=>{
+  const name=`${part} de ${baseName}`;
+  // plantilla base N1 en itemDB; las instancias tendrán su propio r al extraer
+  if(!itemDB[name])addGenerated(name,{icon:"🫀",cat:"Órgano",r:1,val:20,desc:`Órgano extraído de criaturas. Rasgo ilegal. El nivel se determina al extraer (hasta N${maxR}).`,trait:"Ilegal",affix:"Ilegal",illegal:true,organPart:part});
+  return name;
+ });
 }
+function rollOrganLevel(creatureLevel){
+ const maxR=Math.max(1,Math.min(5,Number(creatureLevel)||1));
+ // distribución sesgada a niveles bajos, pero puede salir hasta maxR
+ const weights=[];
+ for(let i=1;i<=maxR;i++)weights.push(Math.max(1,maxR-i+2));
+ const total=weights.reduce((a,b)=>a+b,0);
+ let roll=Math.random()*total;
+ for(let i=0;i<weights.length;i++){roll-=weights[i];if(roll<=0)return i+1}
+ return maxR;
+}
+function extractionSuccessChance(selectedCount,creatureLevel){
+ const n=Math.max(1,selectedCount||1);
+ const r=Math.max(1,Math.min(5,Number(creatureLevel)||1));
+ // Un solo % global: baja con más órganos y con nivel de criatura; bonus pinzas
+ let chance=88-(r*6)-((n-1)*10)+equippedExtractBonus();
+ return Math.max(8,Math.min(92,Math.round(chance)));
+}
+
 function recipeRequiredLevel(r){
  const lvl=Math.max(1,Math.min(5,Number(info(r.out).r||r.r||1)));
  return ({1:1,2:10,3:20,4:30,5:40})[lvl]||1;
@@ -976,6 +990,16 @@ function startCreatureSpawn(){
  },{panel:$("spawnProgress"),bar:$("spawnBar"),percent:$("spawnPercent"),status:null,button:$("spawnStartBtn")});
 }
 
+
+const stateDefault=()=>({
+ credits:0,level:1,xp:0,expeditions:0,fusions:0,
+ inventory:[],
+ equipped:{pick:null,axe:null,tongs:null,weapon:null,armor:null,anomaly:null,companion:null},
+ history:[],pendingFusion:null,pendingSupply:null,activity:[],seen:[],discovered:{},synthesisVariants:{},valueRanges:{},
+ settings:{sound:true,soundVolume:75,scale:"1",motion:false,layoutMode:"auto"},
+ market:null,
+ version:10
+});
 function loadState(){try{const s=JSON.parse(localStorage.getItem("anomalyFusionSave")||localStorage.getItem("joyaCeroSave"));if(s&&(s.version===2||s.version===3||s.version===4||s.version===5||s.version===6||s.version===7||s.version===8||s.version===9||s.version===10)&&s.inventory&&s.equipped)return Object.assign(stateDefault(),s,{version:10,equipped:{...stateDefault().equipped,...s.equipped},history:(s.history||[]).slice(0,3),pendingFusion:s.pendingFusion||null,pendingSupply:s.pendingSupply||null,seen:[...new Set([...(s.seen||[]),...(s.inventory||[]).map(x=>x.name)])],discovered:{...(s.discovered||{}),...Object.fromEntries((s.inventory||[]).map(x=>[x.name,x]))},synthesisVariants:{...(s.synthesisVariants||{})},valueRanges:{...(s.valueRanges||{})}})}catch(e){}return stateDefault()}
 function save(){try{localStorage.setItem("anomalyFusionSave",JSON.stringify(state))}catch(e){toast("No se pudo guardar la partida. Comprueba el espacio disponible del navegador.",true)}}
 let state=loadState();
@@ -1744,6 +1768,8 @@ function renderExtractTable(){
  Object.keys(extractSelected).forEach(k=>{if(!opts.includes(k))delete extractSelected[k]});
  const selectedNames=Object.keys(extractSelected);
  const bonus=equippedExtractBonus();
+ const maxR=Math.max(1,Math.min(5,Number(x.r)||1));
+ const globalChance=extractionSuccessChance(selectedNames.length||1,maxR);
  const pages=Math.max(1,Math.ceil(opts.length/10));
  extractOrgansPage=Math.min(Math.max(1,extractOrgansPage||1),pages);
  const shown=opts.slice((extractOrgansPage-1)*10,extractOrgansPage*10);
@@ -1753,10 +1779,8 @@ function renderExtractTable(){
  if($("extractOrgansNext"))$("extractOrgansNext").disabled=extractOrgansPage>=pages;
  host.innerHTML=shown.map(name=>{
   const on=!!extractSelected[name];
-  const r=Math.max(1,Number(info(name).r)||1);
-  const chance=organExtractChance(name,selectedNames.length||1);
-  return `<label class="extract-organ-opt ${on?"on":""}"><input type="checkbox" data-extract-organ="${escapeHtml(name)}" ${on?"checked":""}><span><b>${escapeHtml(name)}</b><small style="display:block;color:var(--muted)">N${r} · Órgano</small><div class="extract-chance">Éxito: ${chance}%</div></span></label>`;
- }).join("")+`<div class="extract-summary" style="grid-column:1/-1">Seleccionados: <b>${selectedNames.length}</b> · Bonus pinzas: <b>+${bonus}%</b> · Cuantos más órganos, menor éxito. La criatura se consume siempre.</div>`;
+  return `<label class="extract-organ-opt ${on?"on":""}"><input type="checkbox" data-extract-organ="${escapeHtml(name)}" ${on?"checked":""}><span><b>${escapeHtml(name)}</b><small style="display:block;color:var(--muted)">Órgano · nivel 1–${maxR} (aleatorio)</small></span></label>`;
+ }).join("")+`<div class="extract-summary" style="grid-column:1/-1">Seleccionados: <b>${selectedNames.length}</b> · Bonus pinzas: <b>+${bonus}%</b><br><b style="color:var(--cyan)">Éxito global: ${selectedNames.length?globalChance:0}%</b> · Si falla, no se obtiene ningún órgano. La criatura se consume siempre.<br><small>Nivel de órganos ≤ N${maxR} de la criatura.</small></div>`;
  host.querySelectorAll("[data-extract-organ]").forEach(inp=>{
   inp.onchange=()=>{
    const n=inp.dataset.extractOrgan;
@@ -1776,26 +1800,46 @@ function startExtraction(){
  if(!selected.length)return toast("Selecciona al menos un órgano.",true);
  const creatureName=x.name;
  const creatureId=x.id;
- const planned=selected.map(name=>({name,chance:organExtractChance(name,selected.length)}));
+ const creatureLevel=Math.max(1,Math.min(5,Number(x.r)||1));
+ const chance=extractionSuccessChance(selected.length,creatureLevel);
+ const organNames=selected.slice();
  beginTask("extract",10000,()=>{
   if(!takeById(creatureId,1)){toast("La criatura ya no está disponible.",true);return}
-  const ok=[],fail=[];
-  planned.forEach(({name,chance})=>{
-   if(Math.random()*100<chance){
-    addItem(name,1,{origin:"extracción",cat:"Órgano",trait:"Ilegal",affix:"Ilegal",illegal:true});
-    ok.push(name);
-   }else fail.push(name);
+  // Un solo tirada: éxito o fracaso total
+  if(Math.random()*100>=chance){
+   extractSelected={};extractCreatureId=null;
+   log(`Extracción fallida sobre <b>${escapeHtml(creatureName)}</b>. La criatura se pierde y no se obtiene ningún órgano.`);
+   if($("extractMessage"))$("extractMessage").innerHTML=`Fallo de extracción (${chance}%). Criatura consumida. Sin órganos.`;
+   toast("Extracción fallida. No se obtuvo nada.",true);
+   renderExtractTable();render();save();
+   return;
+  }
+  const got=[];
+  organNames.forEach(name=>{
+   const r=rollOrganLevel(creatureLevel);
+   const base=info(name)||{};
+   const val=Math.max(12,Math.round((20+(r*14))*(0.9+Math.random()*0.25)));
+   addItem(name,1,{
+    origin:"extracción",
+    cat:"Órgano",
+    r,
+    val,
+    trait:"Ilegal",
+    affix:"Ilegal",
+    illegal:true,
+    unique:true,
+    desc:`Órgano N${r} extraído de ${creatureName}. Rasgo ilegal.`,
+    icon:base.icon||"🫀"
+   });
+   got.push(`${name} N${r}`);
   });
-  extractCreatureId=null;extractSelected={};
-  xp(6+ok.length*3);
-  const msgOk=ok.length?ok.map(escapeHtml).join(", "):"ninguno";
-  const msgFail=fail.length?` Fallidos: ${fail.map(escapeHtml).join(", ")}.`:" ";
-  log(`Extracción de <b>${escapeHtml(creatureName)}</b>: obtenidos ${msgOk}.${msgFail}`);
-  if($("extractMessage"))$("extractMessage").innerHTML=ok.length?`Obtenidos: <b>${ok.map(escapeHtml).join(", ")}</b>.${fail.length?" Fallidos: "+fail.map(escapeHtml).join(", ")+".":""} Rasgo <b>Ilegal</b>.`:`Ningún órgano sobrevivió la extracción.${msgFail}`;
-  toast(ok.length?`Extracción: ${ok.length} éxito(s), ${fail.length} fallo(s).`:"Extracción fallida: ningún órgano recuperado.",!ok.length);
+  extractSelected={};extractCreatureId=null;
+  xp(8+creatureLevel*2+got.length*3);
+  log(`Extracción exitosa (${chance}%) de <b>${escapeHtml(creatureName)}</b>: ${got.map(escapeHtml).join(", ")}.`);
+  if($("extractMessage"))$("extractMessage").innerHTML=`Éxito (${chance}%). Obtenido: <b>${got.map(escapeHtml).join(", ")}</b>.`;
+  toast(`Extracción OK: ${got.join(", ")}`);
   renderExtractTable();render();save();
  },{panel:$("extractProgress"),bar:$("extractBar"),percent:$("extractPercent"),status:null,button:$("extractStartBtn")});
- renderExtractTable();
 }
 
 function blackMarketUnitPrice(x){

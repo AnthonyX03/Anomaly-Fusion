@@ -546,3 +546,11 @@ La descripción de los objetos vuelve al tamaño tipográfico original de las ta
 - Diario: 12 productos.
 - Síntesis: ranura de anomalía opcional junto al órgano 5; rasgo Hibridación anómala.
 - Caché PWA actualizada a r52.
+
+
+### r53 — Arranque + extracción unificada
+- Restaurado stateDefault / state (rompía toda la app).
+- Extracción: un solo % de éxito global; si falla, cero órganos.
+- Nivel de órganos ≤ nivel de la criatura (N1 solo N1, N2 hasta N2, etc.), tirada aleatoria por órgano.
+- Cada órgano se instancia con su propio nivel (como ítems únicos de fusión).
+- Caché PWA actualizada a r53.
