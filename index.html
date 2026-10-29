@@ -540,67 +540,84 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 .qty-stepper.is-disabled .qty-btn{pointer-events:none}
 
 
-/* Paginación fija: el HUD no salta al cambiar de página */
-.market-buy-panel .panel,
-.market-sell-panel .panel,
-#central-send .panel,
-#market-sell .panel,
-#market-sellBlack .panel,
-#market-buy .panel,
-#market-buyBlack .panel{
+/* Catálogo mercado: rejilla estable sin recortar */
+.market-catalog-grid{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+  margin-top:12px;
+  min-height:0!important;
+  height:auto!important;
+  max-height:none!important;
+  overflow:visible!important;
+  align-content:start;
+}
+@media(min-width:900px){
+  .market-catalog-grid{grid-template-columns:repeat(3,minmax(0,1fr));}
+}
+.market-card{
+  min-height:168px;
+  height:168px;
+  box-sizing:border-box;
   display:flex;
   flex-direction:column;
-  min-height:0;
+  gap:6px;
+  overflow:hidden;
 }
-.market-catalog-grid{
-  min-height:360px!important;
-  height:360px!important;
-  max-height:360px!important;
-  overflow:hidden!important;
-  align-content:start;
-  box-sizing:border-box;
+.market-card.is-placeholder{
+  visibility:hidden;
+  pointer-events:none;
+  border:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
 }
-@media(max-width:700px){
-  .market-catalog-grid{
-    min-height:320px!important;
-    height:320px!important;
-    max-height:320px!important;
-  }
+.market-card .market-card-desc{
+  -webkit-line-clamp:2;
+  min-height:2.4em;
 }
+.market-card .market-card-stats{
+  min-height:26px;
+}
+.market-card button{margin-top:auto}
+/* Listas de venta: 5 huecos estables */
 .central-sale-list,
 #marketSellList,
 #marketBlackSellList,
 #centralSaleList{
-  min-height:300px!important;
-  height:300px!important;
-  max-height:300px!important;
-  overflow:hidden!important;
+  min-height:0!important;
+  height:auto!important;
+  max-height:none!important;
+  overflow:visible!important;
   display:flex!important;
   flex-direction:column!important;
   gap:8px!important;
+}
+.central-sale-row{
+  min-height:56px;
+  height:56px;
   box-sizing:border-box;
 }
-.central-sale-row{flex:0 0 auto}
-/* Pagers siempre ocupan sitio */
+.central-sale-row.is-placeholder{
+  visibility:hidden;
+  pointer-events:none;
+  border:0!important;
+  background:transparent!important;
+}
 .pagination,
 .sale-pager,
 #marketBuyPager,
 #marketBlackBuyPager,
 #marketSellPager,
 #marketBlackSellPager,
-#centralSalePager,
-#extractOrgansPager{
+#centralSalePager{
   display:flex!important;
   align-items:center;
   justify-content:center;
   gap:12px;
-  height:42px!important;
-  min-height:42px!important;
-  max-height:42px!important;
-  margin-top:10px;
+  height:42px;
+  min-height:42px;
   flex:0 0 42px;
-  visibility:visible!important;
-  opacity:1;
+  margin-top:10px;
 }
 .pagination.is-single,
 .sale-pager.is-single,
@@ -609,10 +626,9 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 #marketSellPager.is-single,
 #marketBlackSellPager.is-single,
 #centralSalePager.is-single{
-  visibility:hidden!important; /* reserva espacio, no salta el layout */
+  visibility:hidden;
   pointer-events:none;
 }
-
 </style>
 </head>
 <body>

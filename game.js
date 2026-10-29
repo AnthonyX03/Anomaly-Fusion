@@ -855,7 +855,7 @@ function renderMarketBuy(isBlack){
    const data=itemDB[n];
    const need=marketRequiredLevel(data);
    return {name:n,data,stock:null,daily:false,price:marketBuyPrice(data,false),needLevel:need,unlocked:state.level>=need};
-  }).sort((a,b)=>(a.data.r||1)-(b.data.r||1)||a.name.localeCompare(b.name,"es"));
+  }).sort((a,b)=>a.name.localeCompare(b.name,"es"));
  }
  const pageSize=marketBuyPageSize();
  const page=isBlack?marketBlackBuyPage:marketBuyPage;
@@ -873,13 +873,18 @@ function renderMarketBuy(isBlack){
  if(next)next.disabled=cur>=pages;
  // daily labels
  const dailyBtn=document.querySelector(isBlack?'[data-market-bbuy-mode="daily"]':'[data-market-buy-mode="daily"]');
- if(dailyBtn)dailyBtn.textContent=isBlack?"Diario negro (12)":"Diario (12)";
- box.innerHTML=shown.length?shown.map(row=>{
+ if(dailyBtn)dailyBtn.textContent=isBlack?"Diario negro (10)":"Diario (10)";
+ const cardHtml=row=>{
   const locked=!row.unlocked;
   const noStock=row.daily&&row.stock<=0;
   const can=!locked&&!noStock&&state.credits>=row.price&&!activeTask;
-  const desc=escapeHtml((row.data.desc||info(row.name).desc||"").slice(0,110));const stats=marketItemStats(row.data);return `<div class="market-card"><div class="market-card-top"><span class="item-icon">${itemIconMarkup(row.name,row.data.icon)}</span><div style="min-width:0"><b title="${escapeHtml(row.name)}">${escapeHtml(inventoryDisplayName({name:row.name}))}</b><small>N${row.data.r||1} · ${escapeHtml(row.data.cat||"?")}</small></div></div>${desc?`<p class="market-card-desc">${desc}${(row.data.desc||"").length>110?"…":""}</p>`:""}${stats?`<div class="loot-chips market-card-stats">${stats}</div>`:""}<div class="market-card-price">${creditsIconMarkup(16)}<b>${row.price.toLocaleString("es-ES")}</b>${row.daily?`<span class="muted"> · Stock ${row.stock}</span>`:""}${locked?`<span class="muted"> · 🔒 Nv ${row.needLevel}</span>`:""}</div><button class="tiny ${isBlack?"danger":""}" data-market-buy="${escapeHtml(row.name)}" data-black="${isBlack?"1":"0"}" data-daily="${row.daily?"1":"0"}" ${can?"":"disabled"}>Comprar</button></div>`;
- }).join(""):'<div class="empty" style="grid-column:1/-1">No hay productos en este listado.</div>';
+  const desc=escapeHtml((row.data.desc||info(row.name).desc||"").slice(0,90));
+  const stats=marketItemStats(row.data);
+  return `<div class="market-card"><div class="market-card-top"><span class="item-icon">${itemIconMarkup(row.name,row.data.icon)}</span><div style="min-width:0"><b title="${escapeHtml(row.name)}">${escapeHtml(inventoryDisplayName({name:row.name}))}</b><small>N${row.data.r||1} · ${escapeHtml(row.data.cat||"?")}</small></div></div><p class="market-card-desc">${desc||"&nbsp;"}${(row.data.desc||"").length>90?"…":""}</p><div class="loot-chips market-card-stats">${stats||"&nbsp;"}</div><div class="market-card-price">${creditsIconMarkup(16)}<b>${row.price.toLocaleString("es-ES")}</b>${row.daily?`<span class="muted"> · Stock ${row.stock}</span>`:""}${locked?`<span class="muted"> · 🔒 Nv ${row.needLevel}</span>`:""}</div><button class="tiny ${isBlack?"danger":""}" data-market-buy="${escapeHtml(row.name)}" data-black="${isBlack?"1":"0"}" data-daily="${row.daily?"1":"0"}" ${can?"":"disabled"}>Comprar</button></div>`;
+ };
+ const cards=shown.map(cardHtml);
+ while(cards.length<pageSize)cards.push(`<div class="market-card is-placeholder" aria-hidden="true"></div>`);
+ box.innerHTML=shown.length?cards.join(""):'<div class="empty" style="grid-column:1/-1">No hay productos en este listado.</div>';
  box.querySelectorAll("[data-market-buy]").forEach(b=>b.onclick=()=>buyMarketItem(b.dataset.marketBuy,b.dataset.black==="1",b.dataset.daily==="1"));
  if($("marketDayTag"))$("marketDayTag").textContent="DÍA · "+(state.market.day||"—");
  if($("marketSellRateLabel"))$("marketSellRateLabel").textContent=(state.market.sellRate||"—")+"%";
@@ -939,13 +944,15 @@ function renderMarketSell(isBlack){
  page=Math.min(Math.max(1,page),pages);
  if(isBlack)marketBlackSellPage=page;else marketSellPage=page;
  const shown=sellable.slice((page-1)*pageSize,page*pageSize);
- box.innerHTML=shown.length?shown.map(x=>{
+ const msRows=shown.map(x=>{
   const qty=Number(sel[x.id]||0),checked=qty>0;
   const base=Math.max(1,Number(x.val)||Number(info(x.name).val)||1);
   const unit=marketSellUnitPrice(x,isBlack);
   const rate=isBlack?state.market.blackSellRate:state.market.sellRate;
   return `<div class="central-sale-row ${checked?"selected":""}" data-ms-row="${x.id}" data-black="${isBlack?"1":"0"}" role="button" tabindex="0" aria-pressed="${checked?"true":"false"}"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><div><div class="sale-name">${escapeHtml(inventoryDisplayName(x))}</div><small>N${x.r||1} · ${escapeHtml(x.cat)} · Base: ${formatCredits(base,12)} · Hoy ${rate}%: ${formatCredits(unit,12)}/u</small></div><div class="qty-stepper ${checked?"":"is-disabled"}" data-ms-step="${x.id}" data-black="${isBlack?"1":"0"}"><button type="button" class="qty-btn" data-ms-minus="${x.id}" data-black="${isBlack?"1":"0"}" aria-label="Menos">‹</button><span class="qty-val">×${checked?qty:1}</span><button type="button" class="qty-btn" data-ms-plus="${x.id}" data-black="${isBlack?"1":"0"}" aria-label="Más">›</button></div></div>`;
- }).join(""):`<div class="empty">${isBlack?"No hay mercancía ilegal.":"No hay objetos legales para vender."}</div>`;
+ });
+ while(msRows.length<pageSize)msRows.push(`<div class="central-sale-row is-placeholder" aria-hidden="true"></div>`);
+ box.innerHTML=shown.length?msRows.join(""):`<div class="empty">${isBlack?"No hay mercancía ilegal.":"No hay objetos legales para vender."}</div>`;
  // pager
  let pager=$(isBlack?"marketBlackSellPager":"marketSellPager");
  if(!pager){
@@ -1906,7 +1913,9 @@ function renderCentralSales(){
  const pages=Math.max(1,Math.ceil(items.length/pageSize));
  centralSalePage=Math.min(Math.max(1,centralSalePage||1),pages);
  const shown=items.slice((centralSalePage-1)*pageSize,centralSalePage*pageSize);
- box.innerHTML=shown.length?shown.map(x=>{const qty=Number(centralSaleSelection[x.id]||0),checked=qty>0;return `<div class="central-sale-row ${checked?"selected":""}" data-sale-row="${x.id}" role="button" tabindex="0" aria-pressed="${checked?"true":"false"}" aria-label="Seleccionar ${escapeHtml(x.name)}"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><div><div class="sale-name">${escapeHtml(inventoryDisplayName(x))}</div><small>N${x.r||1} · ${escapeHtml(x.cat||info(x.name).cat)} · Base 100%: ${formatCredits(centralSaleBaseValue(x),12)} · Venta 90%: ${formatCredits(Math.max(1,Math.ceil(centralSaleBaseValue(x)*.9)),12)} · Pago/u: ${formatCredits(centralSaleUnitPrice(x),12)}</small></div><div class="qty-stepper ${checked?"":"is-disabled"}" data-sale-step="${x.id}"><button type="button" class="qty-btn" data-sale-minus="${x.id}" aria-label="Menos">‹</button><span class="qty-val">×${checked?qty:1}</span><button type="button" class="qty-btn" data-sale-plus="${x.id}" aria-label="Más">›</button></div></div>`;}).join(""):'<div class="empty">No hay objetos legales para enviar.</div>';
+ const csRows=shown.map(x=>{const qty=Number(centralSaleSelection[x.id]||0),checked=qty>0;return `<div class="central-sale-row ${checked?"selected":""}" data-sale-row="${x.id}" role="button" tabindex="0" aria-pressed="${checked?"true":"false"}" aria-label="Seleccionar ${escapeHtml(x.name)}"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><div><div class="sale-name">${escapeHtml(inventoryDisplayName(x))}</div><small>N${x.r||1} · ${escapeHtml(x.cat||info(x.name).cat)} · Base 100%: ${formatCredits(centralSaleBaseValue(x),12)} · Venta 90%: ${formatCredits(Math.max(1,Math.ceil(centralSaleBaseValue(x)*.9)),12)} · Pago/u: ${formatCredits(centralSaleUnitPrice(x),12)}</small></div><div class="qty-stepper ${checked?"":"is-disabled"}" data-sale-step="${x.id}"><button type="button" class="qty-btn" data-sale-minus="${x.id}" aria-label="Menos">‹</button><span class="qty-val">×${checked?qty:1}</span><button type="button" class="qty-btn" data-sale-plus="${x.id}" aria-label="Más">›</button></div></div>`;});
+ while(csRows.length<pageSize)csRows.push(`<div class="central-sale-row is-placeholder" aria-hidden="true"></div>`);
+ box.innerHTML=shown.length?csRows.join(""):'<div class="empty">No hay objetos legales para enviar.</div>';
  let pager=$("centralSalePager");
  if(!pager){
   pager=document.createElement("div");

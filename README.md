@@ -636,3 +636,11 @@ La descripción de los objetos vuelve al tamaño tipográfico original de las ta
 - Diario: 10 productos.
 - Altura fija en catálogo y listas de venta + pager siempre reservado (sin salto de HUD).
 - Caché PWA actualizada a r64.
+
+
+### r65 — Catálogo sin recorte + huecos estables
+- Eliminado height/overflow que cortaba las tarjetas.
+- Páginas completan huecos vacíos (placeholders) para no mover el HUD.
+- Tarjetas de compra con altura uniforme.
+- Orden del catálogo por nombre (estable).
+- Caché PWA actualizada a r65.
