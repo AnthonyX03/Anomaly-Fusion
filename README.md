@@ -580,3 +580,15 @@ La descripción de los objetos vuelve al tamaño tipográfico original de las ta
 - Icono amarillo de créditos en Solicitar suministro, Envío de suministros y mercados de venta.
 - Cursor personalizado en PC (flecha cian + acento dorado).
 - Caché PWA actualizada a r56.
+
+
+### r57 — Registro: restaurar Valor Aprox
+- En el detalle del registro vuelve «Valor Aprox: X - X».
+- Eliminados «Valor Base» y «Valor visto» no solicitados.
+- Caché PWA actualizada a r57.
+
+
+### r58 — Valor Base en objetos fijos del registro
+- Objetos base (precio fijo): «Valor Base: X».
+- Síntesis, órganos y procedurales: «Valor Aprox: X - X».
+- Caché PWA actualizada a r58.
