@@ -873,8 +873,10 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
     <button type="button" id="marketSellClear" class="tiny">Limpiar selección</button>
    </div>
    <div id="marketSellList" class="central-sale-list"></div>
-   <div class="statline" style="margin-top:12px"><span>Unidades seleccionadas</span><b id="marketSellUnits">0</b></div>
-   <div class="statline"><span>Pago total estimado</span><b id="marketSellTotal">0 créditos</b></div>
+   <div class="central-sale-summary">
+    <div><span class="muted">Unidades seleccionadas</span><b id="marketSellUnits">0</b></div>
+    <div><span class="muted">Pago total estimado</span><b class="gold" id="marketSellTotal">0 créditos</b></div>
+   </div>
    <button class="primary" id="marketSellSubmit" style="width:100%;margin-top:12px" disabled>⇢ Vender en el Mercado</button>
   </div>
  </div>
@@ -889,8 +891,10 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
     <button type="button" id="marketBlackSellClear" class="tiny">Limpiar selección</button>
    </div>
    <div id="marketBlackSellList" class="central-sale-list"></div>
-   <div class="statline" style="margin-top:12px"><span>Unidades seleccionadas</span><b id="marketBlackSellUnits">0</b></div>
-   <div class="statline"><span>Pago total estimado</span><b id="marketBlackSellTotal">0 créditos</b></div>
+   <div class="central-sale-summary">
+    <div><span class="muted">Unidades seleccionadas</span><b id="marketBlackSellUnits">0</b></div>
+    <div><span class="muted">Pago total estimado</span><b class="gold" id="marketBlackSellTotal">0 créditos</b></div>
+   </div>
    <button class="danger" id="marketBlackSellSubmit" style="width:100%;margin-top:12px" disabled>☠ Vender en Mercado Negro</button>
   </div>
  </div>

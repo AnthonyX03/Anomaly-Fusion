@@ -797,7 +797,7 @@ function marketItemStats(data){
  if(data.cat==="Equipo"||data.defense)bits.push(`Defensa ${data.defense??"—"}`);
  if(data.cat==="Herramienta"||data.gather)bits.push(`Recolección ${data.gather??"—"}`);
  if(data.extractBonus)bits.push(`Extracción +${data.extractBonus}%`);
- if(data.cat==="Consumible")bits.push(data.effect||data.desc||"Uso único");
+ if(data.cat==="Consumible")bits.push(data.effect||"Uso único");
  if(data.illegal||data.trait==="Ilegal")bits.push("Ilegal");
  return bits.filter(Boolean).slice(0,4).map(b=>`<span class="chip">${escapeHtml(String(b))}</span>`).join("");
 }
