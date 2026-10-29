@@ -629,3 +629,10 @@ La descripción de los objetos vuelve al tamaño tipográfico original de las ta
 - Efectos de sonido más audibles.
 - Texto mercado negro: criaturas normales no son ilegales.
 - Caché PWA actualizada a r63.
+
+
+### r64 — Texto mercado legal y paginación fija
+- Nueva descripción del catálogo legal (sin comparar con recetas).
+- Diario: 10 productos.
+- Altura fija en catálogo y listas de venta + pager siempre reservado (sin salto de HUD).
+- Caché PWA actualizada a r64.

@@ -754,7 +754,7 @@ function marketBuyPageSize(){
 function ensureMarketDay(){
  state.market=state.market||{};
  const key=marketDayKey();
- if(state.market.day===key&&state.market.sellRate&&state.market.dailyLegal&&state.market.dailyBlack&&state.market.dailyLegal.length===12&&state.market.dailyBlack.length===12)return;
+ if(state.market.day===key&&state.market.sellRate&&state.market.dailyLegal&&state.market.dailyBlack&&state.market.dailyLegal.length===10&&state.market.dailyBlack.length===10)return;
  const seed=Array.from(key).reduce((h,ch)=>((h<<5)-h)+ch.charCodeAt(0)|0,0)>>>0;
  const rnd=seededRand(seed||1);
  const rate=MARKET_RATES[Math.floor(rnd()*MARKET_RATES.length)];
@@ -777,8 +777,8 @@ function ensureMarketDay(){
   day:key,
   sellRate:rate,
   blackSellRate:blackRate,
-  dailyLegal:pickDaily(legalPool,12),
-  dailyBlack:pickDaily(blackPool.length?blackPool:legalPool,12)
+  dailyLegal:pickDaily(legalPool,10),
+  dailyBlack:pickDaily(blackPool.length?blackPool:legalPool,10)
  };
 }
 function marketRequiredLevel(item){
@@ -864,7 +864,7 @@ function renderMarketBuy(isBlack){
  if(isBlack)marketBlackBuyPage=cur;else marketBuyPage=cur;
  const shown=rows.slice((cur-1)*pageSize,cur*pageSize);
  const pager=$(isBlack?"marketBlackBuyPager":"marketBuyPager");
- if(pager)pager.classList.toggle("hidden",rows.length<=pageSize);
+ if(pager){pager.classList.toggle("is-single",rows.length<=pageSize);pager.classList.remove("hidden");}
  const infoEl=$(isBlack?"marketBlackBuyPageInfo":"marketBuyPageInfo");
  const prev=$(isBlack?"marketBlackBuyPrev":"marketBuyPrev");
  const next=$(isBlack?"marketBlackBuyNext":"marketBuyNext");
@@ -1977,7 +1977,7 @@ function renderExtractTable(){
  const pages=Math.max(1,Math.ceil(opts.length/pageSize));
  extractOrgansPage=Math.min(Math.max(1,extractOrgansPage||1),pages);
  const shown=opts.slice((extractOrgansPage-1)*pageSize,extractOrgansPage*pageSize);
- if($("extractOrgansPager"))$("extractOrgansPager").classList.toggle("hidden",opts.length<=pageSize);
+ if($("extractOrgansPager")){$("extractOrgansPager").classList.toggle("is-single",opts.length<=pageSize);$("extractOrgansPager").classList.remove("hidden");}
  if($("extractOrgansPageInfo"))$("extractOrgansPageInfo").textContent=`Página ${extractOrgansPage} / ${pages}`;
  if($("extractOrgansPrev"))$("extractOrgansPrev").disabled=extractOrgansPage<=1;
  if($("extractOrgansNext"))$("extractOrgansNext").disabled=extractOrgansPage>=pages;

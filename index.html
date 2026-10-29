@@ -539,6 +539,80 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 .qty-stepper.is-disabled{opacity:.45}
 .qty-stepper.is-disabled .qty-btn{pointer-events:none}
 
+
+/* Paginación fija: el HUD no salta al cambiar de página */
+.market-buy-panel .panel,
+.market-sell-panel .panel,
+#central-send .panel,
+#market-sell .panel,
+#market-sellBlack .panel,
+#market-buy .panel,
+#market-buyBlack .panel{
+  display:flex;
+  flex-direction:column;
+  min-height:0;
+}
+.market-catalog-grid{
+  min-height:360px!important;
+  height:360px!important;
+  max-height:360px!important;
+  overflow:hidden!important;
+  align-content:start;
+  box-sizing:border-box;
+}
+@media(max-width:700px){
+  .market-catalog-grid{
+    min-height:320px!important;
+    height:320px!important;
+    max-height:320px!important;
+  }
+}
+.central-sale-list,
+#marketSellList,
+#marketBlackSellList,
+#centralSaleList{
+  min-height:300px!important;
+  height:300px!important;
+  max-height:300px!important;
+  overflow:hidden!important;
+  display:flex!important;
+  flex-direction:column!important;
+  gap:8px!important;
+  box-sizing:border-box;
+}
+.central-sale-row{flex:0 0 auto}
+/* Pagers siempre ocupan sitio */
+.pagination,
+.sale-pager,
+#marketBuyPager,
+#marketBlackBuyPager,
+#marketSellPager,
+#marketBlackSellPager,
+#centralSalePager,
+#extractOrgansPager{
+  display:flex!important;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  height:42px!important;
+  min-height:42px!important;
+  max-height:42px!important;
+  margin-top:10px;
+  flex:0 0 42px;
+  visibility:visible!important;
+  opacity:1;
+}
+.pagination.is-single,
+.sale-pager.is-single,
+#marketBuyPager.is-single,
+#marketBlackBuyPager.is-single,
+#marketSellPager.is-single,
+#marketBlackSellPager.is-single,
+#centralSalePager.is-single{
+  visibility:hidden!important; /* reserva espacio, no salta el layout */
+  pointer-events:none;
+}
+
 </style>
 </head>
 <body>
@@ -676,7 +750,7 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
  <div class="market-section active" id="market-buy">
   <div class="panel">
    <h3>🛒 MERCADO · COMPRA</h3>
-   <p class="small-note">Catálogo legal. Los objetos de nivel alto requieren nivel de Operador (igual que las recetas). El <b>diario</b> ofrece 10 productos con stock limitado y sin requisito de nivel; se renueva a las 00:00.</p>
+   <p class="small-note">Materiales, herramientas básicas, consumibles y equipo legal. Los artículos avanzados piden nivel de Operador. El <b>diario</b> trae 10 ofertas con stock limitado, sin requisito de nivel, y se renueva cada día a las 00:00.</p>
    <div class="inventory-controls" style="margin-top:10px">
     <button class="active" data-market-buy-mode="catalog">Catálogo</button>
     <button data-market-buy-mode="daily">Diario (12)</button>
