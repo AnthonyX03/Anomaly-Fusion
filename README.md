@@ -554,3 +554,13 @@ La descripción de los objetos vuelve al tamaño tipográfico original de las ta
 - Nivel de órganos ≤ nivel de la criatura (N1 solo N1, N2 hasta N2, etc.), tirada aleatoria por órgano.
 - Cada órgano se instancia con su propio nivel (como ítems únicos de fusión).
 - Caché PWA actualizada a r53.
+
+
+### r54 — Extracción UI, precios 400%, herencia ilegal
+- Texto de órganos: «nivel 1–N» sin «(aleatorio)».
+- Extracción: 6 por página (3×2 PC / 2×3 móvil), criatura centrada.
+- Picker de fusión y similares: 6 por página (sin huecos de rejilla).
+- Compra de mercado al 400% del valor base.
+- Fusión con padres ilegales: rasgo «Herencia» (no fuerza ilegal salvo órganos).
+- Rangos de valor (versiones) también en órganos por nivel.
+- Caché PWA actualizada a r54.

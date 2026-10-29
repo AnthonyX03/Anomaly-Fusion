@@ -268,6 +268,21 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
  .mobile-nav-panel button .ico{color:var(--cyan);margin-right:4px}
 }
 
+
+/* Extracción: rejilla 3x2 PC, 2x3 móvil, criatura centrada */
+.extract-organs{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px}
+@media(min-width:700px){
+ .extract-organs{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+}
+#page-clinic .extract-panel .slot-row,
+#page-clinic .extract-panel > .slot{display:flex;justify-content:center;margin-left:auto;margin-right:auto}
+#page-clinic .extract-panel .slot{max-width:320px;width:100%}
+/* Picker: 3 columnas PC, 2 móvil → 6 por página sin huecos raros */
+.picker-grid, #pickerGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+@media(min-width:700px){
+ .picker-grid, #pickerGrid{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+
 </style>
 </head>
 <body>

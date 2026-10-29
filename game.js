@@ -759,7 +759,9 @@ function marketRequiredLevel(item){
 }
 function marketBuyPrice(item,daily){
  const base=Math.max(1,Number(item.val)||Number(info(item.name||item).val)||10);
- return daily?Math.max(1,Number(item.price)||Math.ceil(base*1.1)):Math.max(1,Math.ceil(base*1.25));
+ // Compra siempre al 400% del valor base (evita bucles de dinero)
+ const price=Math.max(1,Math.ceil(base*4));
+ return daily?Math.max(price,Math.ceil((Number(item.price)||base)*4)):price;
 }
 function renderMarketBuy(isBlack){
  ensureMarketDay();
@@ -1135,7 +1137,7 @@ function saveSynthesisVariant(item){
  variants.sort((a,b)=>a.r-b.r);variants.forEach(v=>{v.baseVal=baseVal;v.val=priceForLevel(v.r)});state.synthesisVariants[name]=variants;
  return variants.find(v=>Number(v.r)===r);
 }
-function valueRangeKey(item){const name=typeof item==="string"?item:item?.name||"";const data=typeof item==="string"?knownInfo(name):item;return isSynthesisItem(data)?`${name}::N${Math.max(1,Number(data.r)||1)}`:name}
+function valueRangeKey(item){const name=typeof item==="string"?item:item?.name||"";const data=typeof item==="string"?knownInfo(name):item;const cat=(data&&data.cat)||"";if(isSynthesisItem(data)||cat==="Órgano")return `${name}::N${Math.max(1,Number(data?.r)||1)}`;return name;}
 function recordObservedValue(item){if(!item||!item.name)return;state.valueRanges=state.valueRanges||{};const key=valueRangeKey(item),v=Math.max(1,Number(item.val)||Number(info(item.name).val)||1),prior=state.valueRanges[key];state.valueRanges[key]=prior?{min:Math.min(Number(prior.min)||v,v),max:Math.max(Number(prior.max)||v,v)}:{min:v,max:v}}
 function getObservedRange(item){const key=valueRangeKey(item),range=state.valueRanges?.[key];if(range)return {min:Number(range.min)||Number(item.val)||1,max:Number(range.max)||Number(item.val)||1};const v=Math.max(1,Number(item.val)||Number(info(item.name).val)||1);return {min:v,max:v}}
 function addItem(name,qty=1,opts={}){
@@ -1299,7 +1301,7 @@ function closeConfirm(){pendingConfirmAction=null;const modal=$("confirmModal");
 function closeSortMenus(except){document.querySelectorAll(".sort-options").forEach(menu=>{if(menu.id!==except)menu.classList.add("hidden")});document.querySelectorAll(".sort-trigger").forEach(button=>{if(button.nextElementSibling?.id!==except)button.setAttribute("aria-expanded","false")})}
 function setSortMenu(target,value){const options={inventory:{rarity:"Nivel: mayor primero",name:"Nombre A-Z",value:"Valor: mayor primero"},registry:{name:"Nombre A-Z",rarity:"Nivel: mayor primero",value:"Valor: mayor primero"}};if(target==="inventory"){inventorySort=value;$("sortInventoryLabel").textContent=options.inventory[value];inventoryPage=1;renderInventory()}else{registrySort=value;$("registrySortLabel").textContent=options.registry[value];registryPage=1;renderRegistry()}document.querySelectorAll(`[data-sort-target="${target}"]`).forEach(button=>button.setAttribute("aria-selected",String(button.dataset.sortValue===value)));closeSortMenus()}
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
-function inventoryDisplayName(x){const raw=String(x?.name||"Objeto desconocido");const cleaned=raw.replace(/\s*·\s*.+$/,"").trim();return cleaned||raw}
+function inventoryDisplayName(x){const raw=String(x?.name||"Objeto desconocido");const cleaned=raw.replace(/\s*·\s*.+$/,"").trim()||raw;if(x&&x.cat==="Órgano"&&x.r)return `${cleaned} N${x.r}`;return cleaned;}
 function objectTypeLabel(x){const name=String(x?.name||"");const m=name.match(/\s*·\s*(.+)$/);if(m&&m[1].trim())return m[1].trim();return x?.cat||info(x?.name||"").cat||"Otro"}
 function itemCard(x,opts={}){const r=x.r||info(x.name).r||1;if(opts.compact){const fused=isSynthesisItem(x),desc=x.desc||info(x.name).desc||"Objeto sin descripción.";return `<button type="button" class="item-card inventory-tile rarity-${r}" data-inventory-detail="${escapeHtml(x.id)}" aria-label="Ver detalles de ${escapeHtml(x.name)}"><div class="item-top"><div class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</div><div class="inventory-tile-main"><h4 title="${escapeHtml(inventoryDisplayName(x))}">${escapeHtml(inventoryDisplayName(x))} ${x.qty>1?`<span class="muted">×${x.qty}</span>`:""}</h4><div class="rarity r${r}">${escapeHtml(rarityNames[r]||"COMÚN")} · N${r}</div></div></div><div class="inventory-tile-description">${escapeHtml(desc)}</div>${fused?`<div class="inventory-tile-trait">✦ Síntesis de convergencia</div>`:""}<div class="inventory-tile-meta"><span>${escapeHtml(x.cat||info(x.name).cat||"Otro")}</span><b>${Number(x.val||info(x.name).val||1)} cr.</b></div><span class="inventory-tile-open">Ver detalles ↗</span></button>`}const skills=Array.isArray(x.abilities)?x.abilities:(x.ability?[x.ability]:[]);
 const skillLines=[];
@@ -1479,7 +1481,7 @@ function openPicker(mode,slot=null){pickerMode=mode;pickerSlot=slot;pickerFilter
 function renderPicker(){let list=state.inventory.filter(x=>x.qty>0&&x.name.toLowerCase().includes($("pickerSearch").value.toLowerCase()));if(pickerMode==="fusion"&&pickerFilter!=="Todos")list=list.filter(x=>pickerFilter==="Síntesis"?isSynthesisItem(x):pickerFilter==="Lingote"?(x.cat==="Lingote"||x.name.startsWith("Lingote de ")):pickerFilter==="Otro"?!( ["Material","Lingote","Herramienta","Arma","Equipo","Consumible","Criatura","Órgano","Anomalía"].includes(x.cat)):x.cat===pickerFilter);if(pickerMode==="extract")list=list.filter(x=>x.cat==="Criatura"&&!isRoboticCreature(x));
 if(pickerMode==="spawn")list=list.filter(x=>x.cat==="Órgano"&&!Object.values(spawnSelected||{}).includes(x.id));
 if(pickerMode==="spawnAnomaly")list=list.filter(x=>x.cat==="Anomalía");
-if(pickerMode==="equip")list=list.filter(x=>pickerSlot==="anomaly"?x.cat==="Anomalía":pickerSlot==="companion"?x.cat==="Criatura":info(x.name).slot===pickerSlot||x.slot===pickerSlot);const pages=Math.max(1,Math.ceil(list.length/10));pickerPage=Math.min(pickerPage,pages);const shown=list.slice((pickerPage-1)*10,pickerPage*10);$("pickerGrid").innerHTML=shown.length?shown.map(x=>`<button class="picker-item" data-pick-id="${x.id}"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><span style="min-width:0"><b title="${escapeHtml(x.name)}">${escapeHtml(inventoryDisplayName(x))}</b><small>N${x.r} · ${escapeHtml(x.cat)} · ×${x.qty}</small></span></button>`).join(""):'<div class="empty" style="grid-column:1/-1">No hay objetos disponibles en esta categoría.</div>';$ ("pickerPageInfo").textContent=`Página ${pickerPage} / ${pages}`;$("pickerPrev").disabled=pickerPage<=1;$("pickerNext").disabled=pickerPage>=pages;document.querySelectorAll("[data-pick-id]").forEach(b=>b.onclick=()=>{const x=state.inventory.find(i=>i.id===b.dataset.pickId);if(!x)return;if(pickerMode==="fusion"){state.fusionSlots=state.fusionSlots||{A:null,B:null};state.fusionSlots[pickerSlot]=x.id;renderFusionSelects()}else if(pickerMode==="extract"){extractCreatureId=x.id;extractSelected={};extractOrgansPage=1;renderExtractTable()}else if(pickerMode==="spawn"){spawnSelected[pickerSlot]=x.id;renderSpawnTable()}else if(pickerMode==="spawnAnomaly"){spawnAnomalyId=x.id;renderSpawnTable()}else if(pickerMode==="equip"){if(pickerSlot==="companion"&&!x.abilities?.length&&!x.ability){x.abilities=rollCompanionAbilities(x.r||1);x.ability=x.abilities[0];x.desc=`Compañero de campo. Habilidades procedurales: ${x.abilities.map(a=>a.name+" ("+a.desc+")").join(" · ")}.`}state.equipped[pickerSlot]=x.id;log(`Equipo actualizado: ${x.name}.`);renderEquipment();renderStats();renderBonus()}$("inventoryPicker").classList.add("hidden");save();sound(500)})}
+if(pickerMode==="equip")list=list.filter(x=>pickerSlot==="anomaly"?x.cat==="Anomalía":pickerSlot==="companion"?x.cat==="Criatura":info(x.name).slot===pickerSlot||x.slot===pickerSlot);const pickerPageSize=6;const pages=Math.max(1,Math.ceil(list.length/pickerPageSize));pickerPage=Math.min(Math.max(1,pickerPage),pages);const shown=list.slice((pickerPage-1)*pickerPageSize,pickerPage*pickerPageSize);$("pickerGrid").innerHTML=shown.length?shown.map(x=>`<button class="picker-item" data-pick-id="${x.id}"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><span style="min-width:0"><b title="${escapeHtml(x.name)}">${escapeHtml(inventoryDisplayName(x))}</b><small>N${x.r} · ${escapeHtml(x.cat)} · ×${x.qty}</small></span></button>`).join(""):'<div class="empty" style="grid-column:1/-1">No hay objetos disponibles en esta categoría.</div>';$ ("pickerPageInfo").textContent=`Página ${pickerPage} / ${pages}`;$("pickerPrev").disabled=pickerPage<=1;$("pickerNext").disabled=pickerPage>=pages;document.querySelectorAll("[data-pick-id]").forEach(b=>b.onclick=()=>{const x=state.inventory.find(i=>i.id===b.dataset.pickId);if(!x)return;if(pickerMode==="fusion"){state.fusionSlots=state.fusionSlots||{A:null,B:null};state.fusionSlots[pickerSlot]=x.id;renderFusionSelects()}else if(pickerMode==="extract"){extractCreatureId=x.id;extractSelected={};extractOrgansPage=1;renderExtractTable()}else if(pickerMode==="spawn"){spawnSelected[pickerSlot]=x.id;renderSpawnTable()}else if(pickerMode==="spawnAnomaly"){spawnAnomalyId=x.id;renderSpawnTable()}else if(pickerMode==="equip"){if(pickerSlot==="companion"&&!x.abilities?.length&&!x.ability){x.abilities=rollCompanionAbilities(x.r||1);x.ability=x.abilities[0];x.desc=`Compañero de campo. Habilidades procedurales: ${x.abilities.map(a=>a.name+" ("+a.desc+")").join(" · ")}.`}state.equipped[pickerSlot]=x.id;log(`Equipo actualizado: ${x.name}.`);renderEquipment();renderStats();renderBonus()}$("inventoryPicker").classList.add("hidden");save();sound(500)})}
 function fusionOutcome(a,b){
  const da={...info(a.name),...a},db={...info(b.name),...b},text=(a.name+" "+b.name+" "+da.cat+" "+db.cat).toLowerCase();
  const creature=da.cat==="Criatura"||db.cat==="Criatura"||/zombie|mutante|ghoul|híbrido|infectado|merodeador|aberración|cosechador|dron biológico/.test(text);
@@ -1674,7 +1676,18 @@ function fusionOutcome(a,b){
   if(occupied.has(name)){const baseName=name;let serial=2;while(occupied.has(`${baseName} #${serial}`))serial++;name=`${baseName} #${serial}`;}
  }
  const out={name,icon,cat,r,val,desc,slot,unique:true,coherent:true,fusionDepth,semanticThemes:inheritedThemes,lineageConcepts:inheritedConcepts,trait:"Síntesis de convergencia",affix:"Síntesis de convergencia"};
- if(da.cat==="Órgano"||db.cat==="Órgano"||isIllegalItem(da)||isIllegalItem(db)){out.illegal=true;out.secondaryTrait=out.secondaryTrait?out.secondaryTrait+" · Ilegal":"Ilegal";if(cat==="Material"||cat==="Consumible"){/* mantiene cat */} else if(Math.random()<0.35){out.cat="Órgano";cat="Órgano";}}
+ if(da.cat==="Órgano"||db.cat==="Órgano"){
+  out.illegal=true;out.secondaryTrait=out.secondaryTrait?out.secondaryTrait+" · Ilegal":"Ilegal";
+  if(cat!=="Órgano"&&Math.random()<0.35){out.cat="Órgano";cat="Órgano";}
+ }else if(isIllegalItem(da)||isIllegalItem(db)){
+  // Herencia: no fuerza ilegalidad permanente en criaturas/objetos que podrían existir legalmente
+  if(cat==="Órgano"){out.illegal=true;out.secondaryTrait="Ilegal";}
+  else{
+   out.heritage=true;
+   out.secondaryTrait=out.secondaryTrait?out.secondaryTrait+" · Herencia":"Herencia";
+   // no marcar illegal:true — se puede vender en mercado normal
+  }
+ }
  if(cat==="Arma"){out.damage=Math.max(4,Math.round(r*5+(Number(a.damage)||0)*.25+(Number(b.damage)||0)*.25+Math.random()*r*2));out.secondaryTrait=choose(["Filo resonante","Impacto brutal","Pulso estable","Carga residual"]);}
  if(cat==="Herramienta"){out.gather=Math.max(5,Math.round(r*7+(Number(a.gather)||0)*.2+(Number(b.gather)||0)*.2+Math.random()*r*2));out.damage=Math.round(r*2+Math.random()*r);out.secondaryTrait=choose(["Extracción fina","Agarre adaptativo","Lectura mineral","Corte limpio"]);}
  if(cat==="Equipo"){out.defense=Math.max(3,Math.round(r*6+(Number(a.defense)||0)*.25+(Number(b.defense)||0)*.25+Math.random()*r*2));out.secondaryTrait=choose(["Blindaje reactivo","Disipación térmica","Sello hermético","Malla cinética"]);}
@@ -1770,16 +1783,17 @@ function renderExtractTable(){
  const bonus=equippedExtractBonus();
  const maxR=Math.max(1,Math.min(5,Number(x.r)||1));
  const globalChance=extractionSuccessChance(selectedNames.length||1,maxR);
- const pages=Math.max(1,Math.ceil(opts.length/10));
+ const pageSize=6;
+ const pages=Math.max(1,Math.ceil(opts.length/pageSize));
  extractOrgansPage=Math.min(Math.max(1,extractOrgansPage||1),pages);
- const shown=opts.slice((extractOrgansPage-1)*10,extractOrgansPage*10);
- if($("extractOrgansPager"))$("extractOrgansPager").classList.toggle("hidden",opts.length<=10);
+ const shown=opts.slice((extractOrgansPage-1)*pageSize,extractOrgansPage*pageSize);
+ if($("extractOrgansPager"))$("extractOrgansPager").classList.toggle("hidden",opts.length<=pageSize);
  if($("extractOrgansPageInfo"))$("extractOrgansPageInfo").textContent=`Página ${extractOrgansPage} / ${pages}`;
  if($("extractOrgansPrev"))$("extractOrgansPrev").disabled=extractOrgansPage<=1;
  if($("extractOrgansNext"))$("extractOrgansNext").disabled=extractOrgansPage>=pages;
  host.innerHTML=shown.map(name=>{
   const on=!!extractSelected[name];
-  return `<label class="extract-organ-opt ${on?"on":""}"><input type="checkbox" data-extract-organ="${escapeHtml(name)}" ${on?"checked":""}><span><b>${escapeHtml(name)}</b><small style="display:block;color:var(--muted)">Órgano · nivel 1–${maxR} (aleatorio)</small></span></label>`;
+  return `<label class="extract-organ-opt ${on?"on":""}"><input type="checkbox" data-extract-organ="${escapeHtml(name)}" ${on?"checked":""}><span><b>${escapeHtml(name)}</b><small style="display:block;color:var(--muted)">Órgano · nivel 1–${maxR}</small></span></label>`;
  }).join("")+`<div class="extract-summary" style="grid-column:1/-1">Seleccionados: <b>${selectedNames.length}</b> · Bonus pinzas: <b>+${bonus}%</b><br><b style="color:var(--cyan)">Éxito global: ${selectedNames.length?globalChance:0}%</b> · Si falla, no se obtiene ningún órgano. La criatura se consume siempre.<br><small>Nivel de órganos ≤ N${maxR} de la criatura.</small></div>`;
  host.querySelectorAll("[data-extract-organ]").forEach(inp=>{
   inp.onchange=()=>{
