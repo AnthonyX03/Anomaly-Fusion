@@ -652,3 +652,11 @@ La descripción de los objetos vuelve al tamaño tipográfico original de las ta
 - Rejilla: 1 col móvil / 2 tablet / 3 PC.
 - Placeholders solo en PC para no dejar huecos en móvil.
 - Caché PWA actualizada a r66.
+
+
+### r67 — Paginación estable sin cortes
+- Filas de catálogo a 240px fijas: el HUD no salta y el botón Comprar cabe entero.
+- Página siempre rellena con placeholders (misma altura).
+- Listas de venta: 5 filas de 58px fijas.
+- Pager reserva espacio siempre.
+- Caché PWA actualizada a r67.
