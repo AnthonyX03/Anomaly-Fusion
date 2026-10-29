@@ -621,3 +621,11 @@ La descripción de los objetos vuelve al tamaño tipográfico original de las ta
 - Música: reintento de reproducción tras interacción; rutas alt. del mp3.
 - Registro: TODOS los objetos de síntesis usan Valor Aprox (incl. órganos fusionados).
 - Caché PWA actualizada a r62.
+
+
+### r63 — Ventas con flechas, SFX más altos, lista sin caja enorme
+- Cantidad en ventas/mercados con flechas HUD (sin selector).
+- Lista de venta sin altura mínima de 5 filas (arregla cuadro enorme con 1 ítem).
+- Efectos de sonido más audibles.
+- Texto mercado negro: criaturas normales no son ilegales.
+- Caché PWA actualizada a r63.

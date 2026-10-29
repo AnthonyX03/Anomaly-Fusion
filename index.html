@@ -498,6 +498,47 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   }
 }
 
+
+/* Lista de venta: sin caja enorme con 1 ítem */
+.central-sale-list{
+  min-height:0!important;
+  max-height:none!important;
+  overflow:visible!important;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.central-sale-row{min-height:56px;height:auto;}
+/* Stepper cantidad integrado en HUD */
+.qty-stepper{
+  display:inline-flex;
+  align-items:center;
+  gap:0;
+  border:1px solid #2a3d48;
+  border-radius:10px;
+  background:linear-gradient(180deg,#0e171e,#0a1218);
+  overflow:hidden;
+  flex:0 0 auto;
+}
+.qty-stepper .qty-btn{
+  width:34px;height:34px;
+  border:0;background:transparent;
+  color:var(--cyan);
+  font-size:1.15rem;font-weight:800;
+  line-height:1;cursor:pointer;
+}
+.qty-stepper .qty-btn:hover{background:#153038}
+.qty-stepper .qty-val{
+  min-width:36px;
+  text-align:center;
+  font-weight:800;
+  font-size:.78rem;
+  color:var(--text);
+  font-variant-numeric:tabular-nums;
+}
+.qty-stepper.is-disabled{opacity:.45}
+.qty-stepper.is-disabled .qty-btn{pointer-events:none}
+
 </style>
 </head>
 <body>
@@ -658,7 +699,7 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
  <div class="market-section" id="market-buyBlack">
   <div class="panel black-market-panel">
    <h3>☠ MERCADO NEGRO · COMPRA</h3>
-   <p class="small-note">Todo lo comprado aquí es <b>Ilegal</b>: órganos, armas balísticas, criaturas y contrabando. Mismas reglas de nivel en catálogo; el diario negro no exige nivel.</p>
+   <p class="small-note">Contrabando: órganos, armas balísticas, engendros e híbridos anómalos son <b>Ilegales</b>. Las criaturas normales no lo son. Mismas reglas de nivel en catálogo; el diario negro no exige nivel.</p>
    <div class="inventory-controls" style="margin-top:10px">
     <button class="active" data-market-bbuy-mode="catalog">Catálogo negro</button>
     <button data-market-bbuy-mode="daily">Diario negro (12)</button>

@@ -944,7 +944,7 @@ function renderMarketSell(isBlack){
   const base=Math.max(1,Number(x.val)||Number(info(x.name).val)||1);
   const unit=marketSellUnitPrice(x,isBlack);
   const rate=isBlack?state.market.blackSellRate:state.market.sellRate;
-  return `<div class="central-sale-row ${checked?"selected":""}" data-ms-row="${x.id}" data-black="${isBlack?"1":"0"}" role="button" tabindex="0" aria-pressed="${checked?"true":"false"}"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><div><div class="sale-name">${escapeHtml(inventoryDisplayName(x))}</div><small>N${x.r||1} · ${escapeHtml(x.cat)} · Base: ${formatCredits(base,12)} · Hoy ${rate}%: ${formatCredits(unit,12)}/u</small></div><select class="sale-qty" data-ms-qty="${x.id}" data-black="${isBlack?"1":"0"}" ${checked?"":"disabled"}>${Array.from({length:x.qty},(_,i)=>`<option value="${i+1}" ${(qty||1)===i+1?"selected":""}>×${i+1}</option>`).join("")}</select></div>`;
+  return `<div class="central-sale-row ${checked?"selected":""}" data-ms-row="${x.id}" data-black="${isBlack?"1":"0"}" role="button" tabindex="0" aria-pressed="${checked?"true":"false"}"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><div><div class="sale-name">${escapeHtml(inventoryDisplayName(x))}</div><small>N${x.r||1} · ${escapeHtml(x.cat)} · Base: ${formatCredits(base,12)} · Hoy ${rate}%: ${formatCredits(unit,12)}/u</small></div><div class="qty-stepper ${checked?"":"is-disabled"}" data-ms-step="${x.id}" data-black="${isBlack?"1":"0"}"><button type="button" class="qty-btn" data-ms-minus="${x.id}" data-black="${isBlack?"1":"0"}" aria-label="Menos">‹</button><span class="qty-val">×${checked?qty:1}</span><button type="button" class="qty-btn" data-ms-plus="${x.id}" data-black="${isBlack?"1":"0"}" aria-label="Más">›</button></div></div>`;
  }).join(""):`<div class="empty">${isBlack?"No hay mercancía ilegal.":"No hay objetos legales para vender."}</div>`;
  // pager
  let pager=$(isBlack?"marketBlackSellPager":"marketSellPager");
@@ -971,12 +971,19 @@ function renderMarketSell(isBlack){
  if(tEl)tEl.innerHTML=formatCredits(total,15);
  if(sEl)sEl.disabled=units===0||!!activeTask;
  box.querySelectorAll("[data-ms-row]").forEach(row=>{
-  row.onclick=e=>{if(e.target.closest("select"))return;const black=row.dataset.black==="1";const S=black?marketBlackSellSelection:marketSellSelection;const id=row.dataset.msRow;if(S[id])delete S[id];else S[id]=Number((box.querySelector(`[data-ms-qty="${id}"]`)||{}).value||1);renderMarketSell(black);};
+  row.onclick=e=>{if(e.target.closest(".qty-stepper"))return;const black=row.dataset.black==="1";const S=black?marketBlackSellSelection:marketSellSelection;const id=row.dataset.msRow;if(S[id])delete S[id];else S[id]=1;renderMarketSell(black);};
  });
- box.querySelectorAll("[data-ms-qty]").forEach(el=>{
-  el.onclick=e=>e.stopPropagation();
-  el.onchange=()=>{const black=el.dataset.black==="1";const S=black?marketBlackSellSelection:marketSellSelection;if(S[el.dataset.msQty]!=null)S[el.dataset.msQty]=Number(el.value)||1;else S[el.dataset.msQty]=Number(el.value)||1;renderMarketSell(black);};
- });
+ const bumpMs=(id,black,delta)=>{
+  const S=black?marketBlackSellSelection:marketSellSelection;
+  const item=state.inventory.find(x=>x.id===id);
+  const max=item?item.qty:1;
+  let q=Number(S[id]||0);
+  if(!q&&delta>0)q=1; else q=Math.max(0,Math.min(max,q+delta));
+  if(q<=0)delete S[id]; else S[id]=q;
+  renderMarketSell(black);
+ };
+ box.querySelectorAll("[data-ms-minus]").forEach(btn=>btn.onclick=e=>{e.stopPropagation();bumpMs(btn.dataset.msMinus,btn.dataset.black==="1",-1);});
+ box.querySelectorAll("[data-ms-plus]").forEach(btn=>btn.onclick=e=>{e.stopPropagation();bumpMs(btn.dataset.msPlus,btn.dataset.black==="1",1);});
 }
 
 function submitMarketSell(isBlack){
@@ -1360,7 +1367,7 @@ function setMusicMuted(on){
 function setSoundMuted(on){
  state.settings.soundMuted=!!on;
  state.settings.sound=!state.settings.soundMuted;
- const gain=state.settings.soundMuted?0:(Math.max(0,Math.min(100,Number(state.settings.soundVolume??75)))/100)*0.8;
+ const gain=state.settings.soundMuted?0:(Math.max(0,Math.min(100,Number(state.settings.soundVolume??75)))/100)*1.25;
  if(masterGain&&audioCtx){
   const now=audioCtx.currentTime;
   masterGain.gain.cancelScheduledValues(now);
@@ -1373,7 +1380,7 @@ function setSoundMuted(on){
 function setSoundVolume(value){
  state.settings.soundVolume=Math.max(0,Math.min(100,Number(value)||0));
  if(state.settings.soundVolume>0){state.settings.soundMuted=false;state.settings.sound=true;}
- const gain=state.settings.soundMuted?0:(state.settings.soundVolume/100)*0.8;
+ const gain=state.settings.soundMuted?0:(state.settings.soundVolume/100)*1.25;
  if(masterGain&&audioCtx){
   const now=audioCtx.currentTime;
   masterGain.gain.cancelScheduledValues(now);
@@ -1401,7 +1408,7 @@ function sound(freq=520,dur=.08,type="sine"){
   filter.type="lowpass";
   filter.frequency.setValueAtTime(Math.min(1600,f0*2.2),now);
   filter.Q.value=0.3;
-  const peak=0.055;
+  const peak=0.16;
   const attack=0.028;
   const body=Math.max(0.06,Math.min(0.28,Number(dur)||.08));
   // envelope: 0.0001 -> peak -> 0.0001 (exponencial estable en WebAudio móvil)
@@ -1899,7 +1906,7 @@ function renderCentralSales(){
  const pages=Math.max(1,Math.ceil(items.length/pageSize));
  centralSalePage=Math.min(Math.max(1,centralSalePage||1),pages);
  const shown=items.slice((centralSalePage-1)*pageSize,centralSalePage*pageSize);
- box.innerHTML=shown.length?shown.map(x=>{const qty=Number(centralSaleSelection[x.id]||0),checked=qty>0;return `<div class="central-sale-row ${checked?"selected":""}" data-sale-row="${x.id}" role="button" tabindex="0" aria-pressed="${checked?"true":"false"}" aria-label="Seleccionar ${escapeHtml(x.name)}"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><div><div class="sale-name">${escapeHtml(inventoryDisplayName(x))}</div><small>N${x.r||1} · ${escapeHtml(x.cat||info(x.name).cat)} · Base 100%: ${formatCredits(centralSaleBaseValue(x),12)} · Venta 90%: ${formatCredits(Math.max(1,Math.ceil(centralSaleBaseValue(x)*.9)),12)} · Pago/u: ${formatCredits(centralSaleUnitPrice(x),12)}</small></div><select class="sale-qty" data-sale-qty="${x.id}" aria-label="Cantidad de ${escapeHtml(x.name)}" ${checked?"":"disabled"}>${Array.from({length:x.qty},(_,i)=>`<option value="${i+1}" ${(qty||1)===i+1?"selected":""}>×${i+1}</option>`).join("")}</select></div>`;}).join(""):'<div class="empty">No hay objetos legales para enviar.</div>';
+ box.innerHTML=shown.length?shown.map(x=>{const qty=Number(centralSaleSelection[x.id]||0),checked=qty>0;return `<div class="central-sale-row ${checked?"selected":""}" data-sale-row="${x.id}" role="button" tabindex="0" aria-pressed="${checked?"true":"false"}" aria-label="Seleccionar ${escapeHtml(x.name)}"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><div><div class="sale-name">${escapeHtml(inventoryDisplayName(x))}</div><small>N${x.r||1} · ${escapeHtml(x.cat||info(x.name).cat)} · Base 100%: ${formatCredits(centralSaleBaseValue(x),12)} · Venta 90%: ${formatCredits(Math.max(1,Math.ceil(centralSaleBaseValue(x)*.9)),12)} · Pago/u: ${formatCredits(centralSaleUnitPrice(x),12)}</small></div><div class="qty-stepper ${checked?"":"is-disabled"}" data-sale-step="${x.id}"><button type="button" class="qty-btn" data-sale-minus="${x.id}" aria-label="Menos">‹</button><span class="qty-val">×${checked?qty:1}</span><button type="button" class="qty-btn" data-sale-plus="${x.id}" aria-label="Más">›</button></div></div>`;}).join(""):'<div class="empty">No hay objetos legales para enviar.</div>';
  let pager=$("centralSalePager");
  if(!pager){
   pager=document.createElement("div");
@@ -1918,12 +1925,18 @@ function renderCentralSales(){
  if($("centralSaleTotal"))$("centralSaleTotal").innerHTML=formatCredits(total,15);
  if($("centralSaleSubmit"))$("centralSaleSubmit").disabled=units===0||!!activeTask;
  box.querySelectorAll("[data-sale-row]").forEach(row=>{
-  row.onclick=e=>{if(e.target.closest("select"))return;const id=row.dataset.saleRow;if(centralSaleSelection[id])delete centralSaleSelection[id];else centralSaleSelection[id]=Number((box.querySelector(`[data-sale-qty="${id}"]`)||{}).value||1);renderCentralSales();};
+  row.onclick=e=>{if(e.target.closest(".qty-stepper"))return;const id=row.dataset.saleRow;if(centralSaleSelection[id])delete centralSaleSelection[id];else centralSaleSelection[id]=1;renderCentralSales();};
  });
- box.querySelectorAll("[data-sale-qty]").forEach(el=>{
-  el.onclick=e=>e.stopPropagation();
-  el.onchange=()=>{if(centralSaleSelection[el.dataset.saleQty]!=null)centralSaleSelection[el.dataset.saleQty]=Number(el.value)||1;else centralSaleSelection[el.dataset.saleQty]=Number(el.value)||1;renderCentralSales();};
- });
+ const bumpCs=(id,delta)=>{
+  const item=state.inventory.find(x=>x.id===id);
+  const max=item?item.qty:1;
+  let q=Number(centralSaleSelection[id]||0);
+  if(!q&&delta>0)q=1; else q=Math.max(0,Math.min(max,q+delta));
+  if(q<=0)delete centralSaleSelection[id]; else centralSaleSelection[id]=q;
+  renderCentralSales();
+ };
+ box.querySelectorAll("[data-sale-minus]").forEach(btn=>btn.onclick=e=>{e.stopPropagation();bumpCs(btn.dataset.saleMinus,-1);});
+ box.querySelectorAll("[data-sale-plus]").forEach(btn=>btn.onclick=e=>{e.stopPropagation();bumpCs(btn.dataset.salePlus,1);});
 }
 
 function renderExtractTable(){
