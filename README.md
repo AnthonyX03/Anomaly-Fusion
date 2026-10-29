@@ -564,3 +564,12 @@ La descripción de los objetos vuelve al tamaño tipográfico original de las ta
 - Fusión con padres ilegales: rasgo «Herencia» (no fuerza ilegal salvo órganos).
 - Rangos de valor (versiones) también en órganos por nivel.
 - Caché PWA actualizada a r54.
+
+
+### r55 — Órganos con versiones, mercado y créditos
+- Órganos agrupan niveles con «Consultar versión» (como síntesis).
+- Nombres sin sufijo N# (más compactos).
+- Obtención de órganos: solo extracción o Mercado Negro.
+- Mercado: descripción y estadísticas por objeto.
+- Icono exclusivo amarillo de créditos en HUD y precios.
+- Caché PWA actualizada a r55.

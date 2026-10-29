@@ -283,12 +283,23 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
  .picker-grid, #pickerGrid{grid-template-columns:repeat(3,minmax(0,1fr))}
 }
 
+
+.credits-icon{display:inline-block;vertical-align:-3px;margin-right:4px;flex:0 0 auto}
+.credits-stat{display:inline-flex;align-items:center;gap:6px}
+.credits-label{letter-spacing:.08em;font-size:.68rem;color:#f5c542;font-weight:800}
+#credits{display:inline-flex;align-items:center;gap:4px;color:#ffe08a}
+.market-card-desc{margin:0;font-size:.68rem;line-height:1.35;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.market-card-stats{margin:2px 0 4px}
+.market-card-price{display:flex;align-items:center;gap:6px;margin:4px 0 6px;color:#f5c542;font-weight:800}
+.market-card-price b{color:#ffe08a;font-size:.92rem}
+.how-list{margin:8px 0 0;padding-left:18px;color:var(--muted);font-size:.78rem;line-height:1.45}
+
 </style>
 </head>
 <body>
 <header><div class="topbar">
   <div class="brand"><div class="logo"><span>AF</span></div><div><h1>ANOMALY FUSION</h1><small>ANOMALOUS MATTER // BUILD 3.0</small></div></div>
-  <div class="top-stats"><div class="stat">◈ CRÉDITOS <b id="credits">0</b></div><div class="stat">⌁ NIVEL <b id="level">1</b></div><button class="tiny" id="openSettings" aria-label="Ajustes">⚙</button></div>
+  <div class="top-stats"><div class="stat credits-stat"><span class="credits-label">CRÉDITOS</span> <b id="credits">0</b></div><div class="stat">⌁ NIVEL <b id="level">1</b></div><button class="tiny" id="openSettings" aria-label="Ajustes">⚙</button></div>
 </div></header>
 <div class="shell">
 <aside class="sidebar">
