@@ -216,7 +216,7 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 .market-card b{font-size:.8rem;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .market-card small{color:var(--muted);font-size:.66rem}
 .market-card button{margin-top:auto;width:100%}
-.spawn-slots{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,160px));justify-content:center;gap:10px;margin:14px auto 0;max-width:900px}.extract-panel>.slot-row{display:flex;justify-content:center}.extract-panel>.slot-row>.slot{width:min(260px,100%);margin-inline:auto}
+.spawn-slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-top:14px}
 .spawn-slots .slot{min-height:120px}
 /* Mobile nav groups */
 .mobile-nav{display:none}
@@ -375,21 +375,16 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
  <div class="clinic-section" id="clinic-spawn">
   <div class="panel extract-panel">
    <h3>🧬 SÍNTESIS DE CRIATURA · ENGENDRO</h3>
-   <p class="small-note">Coloca <b>5 órganos</b> en las ranuras. El resultado es una criatura <b>Engendro</b> e <b>Ilegal</b>. Proceso de 10 segundos.</p>
+   <p class="small-note">Coloca <b>5 órganos</b> (obligatorio) y una <b>anomalía opcional</b>. Sin anomalía: rasgo Engendro. Con anomalía: <b>Hibridación anómala</b>. Siempre Ilegal. 10 s.</p>
    <div class="spawn-slots" id="spawnSlots">
     <div class="slot" id="spawnSlot0"><div class="slot-icon">＋</div><b id="spawnLabel0">Órgano 1</b><div class="slot-actions"><button class="tiny" id="chooseSpawn0">Elegir</button><button class="tiny hidden" id="clearSpawn0">Retirar</button></div></div>
     <div class="slot" id="spawnSlot1"><div class="slot-icon">＋</div><b id="spawnLabel1">Órgano 2</b><div class="slot-actions"><button class="tiny" id="chooseSpawn1">Elegir</button><button class="tiny hidden" id="clearSpawn1">Retirar</button></div></div>
     <div class="slot" id="spawnSlot2"><div class="slot-icon">＋</div><b id="spawnLabel2">Órgano 3</b><div class="slot-actions"><button class="tiny" id="chooseSpawn2">Elegir</button><button class="tiny hidden" id="clearSpawn2">Retirar</button></div></div>
     <div class="slot" id="spawnSlot3"><div class="slot-icon">＋</div><b id="spawnLabel3">Órgano 4</b><div class="slot-actions"><button class="tiny" id="chooseSpawn3">Elegir</button><button class="tiny hidden" id="clearSpawn3">Retirar</button></div></div>
     <div class="slot" id="spawnSlot4"><div class="slot-icon">＋</div><b id="spawnLabel4">Órgano 5</b><div class="slot-actions"><button class="tiny" id="chooseSpawn4">Elegir</button><button class="tiny hidden" id="clearSpawn4">Retirar</button></div></div>
+    <div class="slot spawn-anomaly-slot" id="spawnSlotAnomaly"><div class="slot-icon">＋</div><b id="spawnLabelAnomaly">Anomalía opcional</b><div class="slot-actions"><button class="tiny" id="chooseSpawnAnomaly">Añadir anomalía</button><button class="tiny hidden" id="clearSpawnAnomaly">Retirar</button></div></div>
    </div>
-   <div class="spawn-anomaly-row" style="display:flex;justify-content:center;margin-top:12px">
-    <div class="slot" id="spawnAnomalySlot" style="width:min(220px,100%);min-height:105px">
-     <div class="slot-icon" id="spawnAnomalyIcon">＋</div><b id="spawnAnomalyLabel">Anomalía opcional</b>
-     <div class="slot-actions"><button class="tiny" id="chooseSpawnAnomaly">Añadir anomalía</button><button class="tiny hidden" id="clearSpawnAnomaly">Retirar</button></div>
-    </div>
-   </div>
-   <p class="small-note">Una anomalía es opcional: consume la anomalía seleccionada y potencia el resultado con el rasgo exclusivo <b>Hibridación anómala</b>.</p>
+   <p class="small-note" id="spawnAnomalyNote" style="margin-top:10px">Una anomalía es opcional: consume la anomalía y otorga el rasgo <b>Hibridación anómala</b> en lugar de solo Engendro.</p>
    <div class="bar-wrap hidden" id="spawnProgress" style="margin-top:12px"><div class="bar-label"><b class="cyan">Sintetizando engendro...</b><span id="spawnPercent">0%</span></div><div class="meter progress"><span id="spawnBar"></span></div></div>
    <button class="danger" id="spawnStartBtn" style="width:100%;margin-top:12px" disabled>🧬 Iniciar síntesis · 10 s</button>
    <p class="small-note" id="spawnMessage" style="margin-top:10px">Los engendros solo pueden venderse en el Mercado Negro.</p>
@@ -413,7 +408,16 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
    <p class="small-note">Catálogo legal. Los objetos de nivel alto requieren nivel de Operador (igual que las recetas). El <b>diario</b> ofrece 10 productos con stock limitado y sin requisito de nivel; se renueva a las 00:00.</p>
    <div class="inventory-controls" style="margin-top:10px">
     <button class="active" data-market-buy-mode="catalog">Catálogo</button>
-    <button data-market-buy-mode="daily">Diario (10)</button>
+    <button data-market-buy-mode="daily">Diario (12)</button>
+   </div>
+   <div class="inventory-controls" id="marketBuyFilters" style="margin-top:10px">
+    <button class="active" data-market-buy-filter="Todos">Todos</button>
+    <button data-market-buy-filter="Material">Materiales</button>
+    <button data-market-buy-filter="Lingote">Lingotes</button>
+    <button data-market-buy-filter="Herramienta">Herramientas</button>
+    <button data-market-buy-filter="Arma">Armas</button>
+    <button data-market-buy-filter="Equipo">Equipo</button>
+    <button data-market-buy-filter="Consumible">Consumibles</button>
    </div>
    <div class="toolbar" style="margin:12px 0"><input id="marketBuySearch" placeholder="Buscar en el mercado..." aria-label="Buscar en el mercado"></div>
    <div id="marketBuyList" class="grid three market-catalog-grid"></div><div class="pagination" id="marketBuyPager"><button class="tiny" id="marketBuyPrev">← Anterior</button><span class="muted" id="marketBuyPageInfo">Página 1</span><button class="tiny" id="marketBuyNext">Siguiente →</button></div>
@@ -427,7 +431,14 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
    <p class="small-note">Todo lo comprado aquí es <b>Ilegal</b>: órganos, armas balísticas, criaturas y contrabando. Mismas reglas de nivel en catálogo; el diario negro no exige nivel.</p>
    <div class="inventory-controls" style="margin-top:10px">
     <button class="active" data-market-bbuy-mode="catalog">Catálogo negro</button>
-    <button data-market-bbuy-mode="daily">Diario negro (10)</button>
+    <button data-market-bbuy-mode="daily">Diario negro (12)</button>
+   </div>
+   <div class="inventory-controls" id="marketBlackBuyFilters" style="margin-top:10px">
+    <button class="active" data-market-bbuy-filter="Todos">Todos</button>
+    <button data-market-bbuy-filter="Órgano">Órganos</button>
+    <button data-market-bbuy-filter="Criatura">Criaturas</button>
+    <button data-market-bbuy-filter="Arma">Armas balísticas</button>
+    <button data-market-bbuy-filter="Otro">Otros ilegales</button>
    </div>
    <div class="toolbar" style="margin:12px 0"><input id="marketBlackBuySearch" placeholder="Buscar contrabando..." aria-label="Buscar contrabando"></div>
    <div id="marketBlackBuyList" class="grid three market-catalog-grid"></div><div class="pagination" id="marketBlackBuyPager"><button class="tiny" id="marketBlackBuyPrev">← Anterior</button><span class="muted" id="marketBlackBuyPageInfo">Página 1</span><button class="tiny" id="marketBlackBuyNext">Siguiente →</button></div>

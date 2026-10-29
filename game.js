@@ -1,5 +1,7 @@
 (() => {
 "use strict";
+let marketBuyFilter="Todos",marketBlackBuyFilter="Todos",spawnAnomalyId=null;
+
 let pendingConfirmAction=null;
 let registrySort="Todos";
 let spawnSelected={};
@@ -679,17 +681,45 @@ function seededRand(seed){
  let s=seed>>>0;
  return ()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296};
 }
+
+function isBallisticWeapon(name,data){
+ const n=String(name||"");
+ const d=data||info(n)||{};
+ if(d.cat!=="Arma"&&!/arma/i.test(String(d.cat||"")))return false;
+ return !!(d.illegal||d.trait==="Ilegal"||/rifle|ak|pistola|bala|balíst|fusil|escopeta|smg|revólver|revolver|lanzagranadas|francotirador/i.test(n));
+}
+function isLegalMarketItem(name,data){
+ const d=data||info(name)||{};
+ if(!d||!d.cat)return false;
+ if(d.illegal||d.trait==="Ilegal"||d.cat==="Órgano"||d.cat==="Criatura"||d.cat==="Anomalía")return false;
+ if(isBallisticWeapon(name,d))return false;
+ return ["Material","Lingote","Herramienta","Arma","Equipo","Consumible"].includes(d.cat);
+}
+function isBlackMarketItem(name,data){
+ const d=data||info(name)||{};
+ if(!d||!d.cat)return false;
+ if(d.illegal||d.trait==="Ilegal"||d.cat==="Órgano")return true;
+ if(d.cat==="Criatura")return true;
+ if(isBallisticWeapon(name,d))return true;
+ return false;
+}
+function marketBuyPageSize(){
+ try{
+  const mobile=window.matchMedia("(max-width:900px)").matches||document.body.classList.contains("layout-mobile");
+  return mobile?4:6;
+ }catch(_){return 6}
+}
 function ensureMarketDay(){
  state.market=state.market||{};
  const key=marketDayKey();
- if(state.market.day===key&&state.market.sellRate&&state.market.dailyLegal&&state.market.dailyBlack)return;
+ if(state.market.day===key&&state.market.sellRate&&state.market.dailyLegal&&state.market.dailyBlack&&state.market.dailyLegal.length===12&&state.market.dailyBlack.length===12)return;
  const seed=Array.from(key).reduce((h,ch)=>((h<<5)-h)+ch.charCodeAt(0)|0,0)>>>0;
  const rnd=seededRand(seed||1);
  const rate=MARKET_RATES[Math.floor(rnd()*MARKET_RATES.length)];
  const blackRate=MARKET_RATES[Math.floor(rnd()*MARKET_RATES.length)];
  // daily legal pool from non-illegal catalog
- const legalPool=Object.keys(itemDB).filter(n=>{const d=itemDB[n];return d&&d.cat&&d.cat!=="Órgano"&&!d.illegal&&d.val>0&&!["pick","axe"].includes(d.slot)});
- const blackPool=Object.keys(itemDB).filter(n=>{const d=itemDB[n];return d&&(d.illegal||d.cat==="Órgano"||d.cat==="Criatura"||d.cat==="Arma")});
+ const legalPool=Object.keys(itemDB).filter(n=>{const d=itemDB[n];return d&&d.val>0&&isLegalMarketItem(n,d)});
+ const blackPool=Object.keys(itemDB).filter(n=>{const d=itemDB[n];return d&&d.val>0&&isBlackMarketItem(n,d)});
  const pickDaily=(pool,n)=>{
   const copy=pool.slice();
   const out=[];
@@ -724,19 +754,42 @@ function renderMarketBuy(isBlack){
  const search=((isBlack?$("marketBlackBuySearch"):$("marketBuySearch"))?.value||"").trim().toLowerCase();
  const mode=isBlack?marketBlackBuyMode:marketBuyMode;
  const daily=mode==="daily";
+ const catFilter=isBlack?marketBlackBuyFilter:marketBuyFilter;
  let rows=[];
  if(daily){
   const list=isBlack?state.market.dailyBlack:state.market.dailyLegal;
-  rows=list.filter(x=>x.stock>0&&x.name.toLowerCase().includes(search)).map(x=>{
+  rows=list.filter(x=>{
+   if(x.stock<=0||!x.name.toLowerCase().includes(search))return false;
+   const data={...info(x.name),...x};
+   if(catFilter==="Todos")return true;
+   if(isBlack){
+    if(catFilter==="Órgano")return data.cat==="Órgano";
+    if(catFilter==="Criatura")return data.cat==="Criatura";
+    if(catFilter==="Arma")return data.cat==="Arma"||isBallisticWeapon(x.name,data);
+    if(catFilter==="Otro")return data.cat!=="Órgano"&&data.cat!=="Criatura"&&!isBallisticWeapon(x.name,data);
+   }else{
+    return data.cat===catFilter;
+   }
+   return true;
+  }).map(x=>{
    const data={...info(x.name),...x};
    return {name:x.name,data,stock:x.stock,daily:true,price:marketBuyPrice(x,true),needLevel:1,unlocked:true};
   });
  }else{
   const pool=Object.keys(itemDB).filter(n=>{
    const d=itemDB[n];
-   if(!d||!d.cat||!d.val)return false;
-   if(isBlack)return d.illegal||d.cat==="Órgano"||d.cat==="Criatura"||d.cat==="Arma"||/rifle|ak|pistola|bala|balíst|fusil|escopeta/i.test(n);
-   return !d.illegal&&d.cat!=="Órgano";
+   if(!d||!d.val)return false;
+   if(isBlack){
+    if(!isBlackMarketItem(n,d))return false;
+    if(catFilter==="Órgano")return d.cat==="Órgano";
+    if(catFilter==="Criatura")return d.cat==="Criatura";
+    if(catFilter==="Arma")return d.cat==="Arma"||isBallisticWeapon(n,d);
+    if(catFilter==="Otro")return d.cat!=="Órgano"&&d.cat!=="Criatura"&&!isBallisticWeapon(n,d);
+    return true;
+   }
+   if(!isLegalMarketItem(n,d))return false;
+   if(catFilter!=="Todos"&&d.cat!==catFilter)return false;
+   return true;
   }).filter(n=>n.toLowerCase().includes(search));
   rows=pool.map(n=>{
    const data=itemDB[n];
@@ -744,7 +797,7 @@ function renderMarketBuy(isBlack){
    return {name:n,data,stock:null,daily:false,price:marketBuyPrice(data,false),needLevel:need,unlocked:state.level>=need};
   }).sort((a,b)=>(a.data.r||1)-(b.data.r||1)||a.name.localeCompare(b.name,"es"));
  }
- const pageSize=6;
+ const pageSize=marketBuyPageSize();
  const page=isBlack?marketBlackBuyPage:marketBuyPage;
  const pages=Math.max(1,Math.ceil(rows.length/pageSize));
  const cur=Math.min(Math.max(1,page),pages);
@@ -758,6 +811,9 @@ function renderMarketBuy(isBlack){
  if(infoEl)infoEl.textContent=`Página ${cur} / ${pages}`;
  if(prev)prev.disabled=cur<=1;
  if(next)next.disabled=cur>=pages;
+ // daily labels
+ const dailyBtn=document.querySelector(isBlack?'[data-market-bbuy-mode="daily"]':'[data-market-buy-mode="daily"]');
+ if(dailyBtn)dailyBtn.textContent=isBlack?"Diario negro (12)":"Diario (12)";
  box.innerHTML=shown.length?shown.map(row=>{
   const locked=!row.unlocked;
   const noStock=row.daily&&row.stock<=0;
@@ -850,7 +906,6 @@ function submitMarketSell(isBlack){
  renderMarketSell(isBlack);renderStats();save();
 }
 function renderSpawnTable(){
- // spawnSelected: {0:itemId,1:itemId,...}
  if(typeof spawnSelected!=="object"||Array.isArray(spawnSelected))spawnSelected={};
  for(let i=0;i<5;i++){
   const id=spawnSelected[i];
@@ -864,12 +919,18 @@ function renderSpawnTable(){
   if(choose){choose.textContent=x?"Cambiar":"Elegir";choose.disabled=!!activeTask}
   if(clear){clear.classList.toggle("hidden",!x);clear.disabled=!!activeTask}
  }
- const filled=Object.values(spawnSelected).filter(Boolean).length;
- const anomaly=spawnAnomalyId?state.inventory.find(it=>it.id===spawnAnomalyId):null;
- if($("spawnAnomalyIcon"))$("spawnAnomalyIcon").innerHTML=anomaly?itemIconMarkup(anomaly.name,anomaly.icon||info(anomaly.name).icon):"＋";
- if($("spawnAnomalyLabel"))$("spawnAnomalyLabel").textContent=anomaly?inventoryDisplayName(anomaly):"Anomalía opcional";
- if($("chooseSpawnAnomaly"))$("chooseSpawnAnomaly").disabled=!!activeTask;
- if($("clearSpawnAnomaly")){$("clearSpawnAnomaly").classList.toggle("hidden",!anomaly);$("clearSpawnAnomaly").disabled=!!activeTask}
+ // anomaly optional
+ const ax=spawnAnomalyId?state.inventory.find(it=>it.id===spawnAnomalyId):null;
+ if(!ax)spawnAnomalyId=null;
+ const aSlot=$("spawnSlotAnomaly");
+ if(aSlot)aSlot.classList.toggle("filled",!!ax);
+ const aIcon=aSlot&&aSlot.querySelector(".slot-icon");
+ if(aIcon)aIcon.innerHTML=ax?itemIconMarkup(ax.name,ax.icon||info(ax.name).icon):"＋";
+ if($("spawnLabelAnomaly"))$("spawnLabelAnomaly").textContent=ax?inventoryDisplayName(ax):"Anomalía opcional";
+ if($("chooseSpawnAnomaly")){$("chooseSpawnAnomaly").textContent=ax?"Cambiar anomalía":"Añadir anomalía";$("chooseSpawnAnomaly").disabled=!!activeTask}
+ if($("clearSpawnAnomaly")){$("clearSpawnAnomaly").classList.toggle("hidden",!ax);$("clearSpawnAnomaly").disabled=!!activeTask}
+ if($("spawnAnomalyNote"))$("spawnAnomalyNote").innerHTML=ax?`Anomalía lista: se consumirá y el resultado tendrá rasgo <b>Hibridación anómala</b>.`:`Una anomalía es opcional: consume la anomalía y otorga el rasgo <b>Hibridación anómala</b> en lugar de solo Engendro.`;
+ const filled=[0,1,2,3,4].filter(i=>spawnSelected[i]).length;
  if($("spawnStartBtn"))$("spawnStartBtn").disabled=filled!==5||!!activeTask;
 }
 
@@ -877,43 +938,44 @@ function startCreatureSpawn(){
  if(activeTask)return;
  const ids=[0,1,2,3,4].map(i=>spawnSelected[i]).filter(Boolean);
  if(ids.length!==5)return toast("Coloca exactamente 5 órganos.",true);
- // unique inventory rows required
  if(new Set(ids).size!==5)return toast("Cada ranura debe usar un órgano distinto del inventario.",true);
  const organs=ids.map(id=>state.inventory.find(x=>x.id===id)).filter(Boolean);
  if(organs.length!==5||organs.some(o=>o.cat!=="Órgano"))return toast("Selección inválida.",true);
+ const anomaly=spawnAnomalyId?state.inventory.find(x=>x.id===spawnAnomalyId):null;
+ if(spawnAnomalyId&&(!anomaly||anomaly.cat!=="Anomalía"))return toast("La anomalía seleccionada ya no es válida.",true);
+ const anomalyId=anomaly?anomaly.id:null;
+ const anomalyName=anomaly?anomaly.name:null;
  beginTask("spawn",10000,()=>{
   for(const o of organs){if(!takeById(o.id,1)){toast("Faltan órganos.",true);return;}}
-  const anomaly=spawnAnomalyId?state.inventory.find(x=>x.id===spawnAnomalyId):null;
-  if(spawnAnomalyId&&(!anomaly||!takeById(spawnAnomalyId,1))){toast("La anomalía seleccionada ya no está disponible.",true);return;}
-  const avgR=Math.max(1,Math.min(5,Math.round(organs.reduce((s,o)=>s+(Number(o.r)||1),0)/5)));
-  const roots=["Engendro","Quimera","Vástago sintético","Simbionte ilegal","Coloso menor","Híbrido de clínica"];
-  const adjs=["Umbrío","Carmesí","Anómalo","de FASE","del Umbral","Clandestino","Resonante"];
+  if(anomalyId&&!takeById(anomalyId,1)){toast("La anomalía ya no está disponible.",true);return;}
+  const avgR=Math.max(1,Math.min(5,Math.round(organs.reduce((s,o)=>s+(Number(o.r)||1),0)/5)+(anomaly?1:0)));
+  const rFinal=Math.min(5,avgR);
+  const useAnomaly=!!anomalyName;
+  const trait=useAnomaly?"Hibridación anómala":"Engendro";
+  const roots=useAnomaly?["Híbrido anómalo","Quimera de fase","Vástago resonante","Simbionte prismático","Coloso de umbral","Engendro híbrido"]:["Engendro","Quimera","Vástago sintético","Simbionte ilegal","Coloso menor","Híbrido de clínica"];
+  const adjs=useAnomaly?["Anómalo","de FASE","Prismático","Resonante","del Umbral","Espectral"]:["Umbrío","Carmesí","Anómalo","de FASE","del Umbral","Clandestino","Resonante"];
   const name=roots[Math.floor(Math.random()*roots.length)]+" "+adjs[Math.floor(Math.random()*adjs.length)];
-  const anomalyBoost=!!anomaly;
-  const out={name,icon:"🧬",cat:"Criatura",r:Math.min(5,avgR+(anomalyBoost?1:0)),val:30+avgR*25+(anomalyBoost?35:0),desc:anomalyBoost?`Criatura sintetizada con cinco órganos y una anomalía (${anomaly.name}). Rasgo Hibridación anómala e Ilegal.`:"Criatura sintetizada en clínica a partir de cinco órganos. Rasgo Engendro e Ilegal.",trait:anomalyBoost?"Hibridación anómala":"Engendro",affix:anomalyBoost?"Hibridación anómala":"Engendro",illegal:true,secondaryTrait:"Ilegal",abilities:[{name:anomalyBoost?"Resonancia híbrida":"Instinto de engendro",effect:anomalyBoost?"+"+(12+avgR*3)+"% de potencia de combate":"+"+(8+avgR*2)+"% de botín en exploración"},{name:anomalyBoost?"Adaptación anómala":"Tejido inestable",effect:anomalyBoost?"+"+(8+avgR*2)+"% de captura y suerte":"+"+(5+avgR)+" defensa residual"}],companion:true,origin:"síntesis de criatura"};
+  const abilities=useAnomaly?[
+   {name:"Hibridación anómala",effect:"+"+(12+rFinal*3)+"% hallazgos anómalos"},
+   {name:"Inestabilidad controlada",effect:"+"+(6+rFinal)+" defensa residual"}
+  ]:[
+   {name:"Instinto de engendro",effect:"+"+(8+rFinal*2)+"% de botín en exploración"},
+   {name:"Tejido inestable",effect:"+"+(5+rFinal)+" defensa residual"}
+  ];
+  const out={name,icon:useAnomaly?"🧬":"🧟",cat:"Criatura",r:rFinal,val:30+rFinal*25+(useAnomaly?40:0),desc:useAnomaly?`Criatura sintetizada con órganos y la anomalía ${anomalyName}. Rasgo Hibridación anómala e Ilegal.`:`Criatura sintetizada en clínica a partir de cinco órganos. Rasgo Engendro e Ilegal.`,trait,affix:trait,illegal:true,secondaryTrait:"Ilegal",abilities,companion:true,origin:"síntesis de criatura"};
   itemDB[name]=out;
   addItem(name,1,out);
   state.discovered=state.discovered||{};state.discovered[name]={...out};
   if(!state.seen.includes(name))state.seen.push(name);
-  spawnSelected={};
-  xp(15+avgR*3);
-  log(`Síntesis de criatura: <b>${escapeHtml(name)}</b> (N${out.r}) · ${escapeHtml(out.trait)} / Ilegal.`);
-  if($("spawnMessage"))$("spawnMessage").innerHTML=`Creado: <b>${escapeHtml(name)}</b> · N${avgR} · Engendro · Ilegal.`;
-  toast(`Engendro creado: ${name}`);
+  spawnSelected={};spawnAnomalyId=null;
+  xp(15+rFinal*3+(useAnomaly?8:0));
+  log(`Síntesis de criatura: <b>${escapeHtml(name)}</b> (N${rFinal}) · ${trait} / Ilegal${useAnomaly?" · anomalía consumida":""}.`);
+  if($("spawnMessage"))$("spawnMessage").innerHTML=`Creado: <b>${escapeHtml(name)}</b> · N${rFinal} · ${escapeHtml(trait)} · Ilegal.`;
+  toast(`Criatura creada: ${name}`);
   renderSpawnTable();render();save();
  },{panel:$("spawnProgress"),bar:$("spawnBar"),percent:$("spawnPercent"),status:null,button:$("spawnStartBtn")});
 }
 
-
-const stateDefault=()=>({
- credits:0,level:1,xp:0,expeditions:0,fusions:0,
- inventory:[],
- equipped:{pick:null,axe:null,tongs:null,weapon:null,armor:null,anomaly:null,companion:null},
- history:[],pendingFusion:null,pendingSupply:null,activity:[],seen:[],discovered:{},synthesisVariants:{},valueRanges:{},
- settings:{sound:true,soundVolume:75,scale:"1",motion:false,layoutMode:"auto"},
- market:null,
- version:10
-});
 function loadState(){try{const s=JSON.parse(localStorage.getItem("anomalyFusionSave")||localStorage.getItem("joyaCeroSave"));if(s&&(s.version===2||s.version===3||s.version===4||s.version===5||s.version===6||s.version===7||s.version===8||s.version===9||s.version===10)&&s.inventory&&s.equipped)return Object.assign(stateDefault(),s,{version:10,equipped:{...stateDefault().equipped,...s.equipped},history:(s.history||[]).slice(0,3),pendingFusion:s.pendingFusion||null,pendingSupply:s.pendingSupply||null,seen:[...new Set([...(s.seen||[]),...(s.inventory||[]).map(x=>x.name)])],discovered:{...(s.discovered||{}),...Object.fromEntries((s.inventory||[]).map(x=>[x.name,x]))},synthesisVariants:{...(s.synthesisVariants||{})},valueRanges:{...(s.valueRanges||{})}})}catch(e){}return stateDefault()}
 function save(){try{localStorage.setItem("anomalyFusionSave",JSON.stringify(state))}catch(e){toast("No se pudo guardar la partida. Comprueba el espacio disponible del navegador.",true)}}
 let state=loadState();
@@ -1389,7 +1451,7 @@ function fight(){
  render();save();
 }
 function renderFusionSelects(){["A","B"].forEach(k=>{const id=state.fusionSlots?.[k];const x=state.inventory.find(x=>x.id===id);const slot=$("slot"+k);slot.classList.toggle("filled",!!x);slot.querySelector(".slot-icon").innerHTML=x?itemIconMarkup(x.name,x.icon||info(x.name).icon):"＋";$("fusion"+k+"Label").textContent=x?inventoryDisplayName(x):`Objeto ${k}`;$("chooseFusion"+k).textContent=x?"Cambiar objeto":"Elegir del inventario";const clearBtn=$("clearFusion"+k);if(clearBtn){clearBtn.classList.toggle("hidden",!x);clearBtn.disabled=!!activeTask||!!state.pendingFusion}});$("fuseBtn").disabled=!!activeTask||!!state.pendingFusion||!state.inventory.some(x=>x.id===state.fusionSlots?.A)||!state.inventory.some(x=>x.id===state.fusionSlots?.B);$("chooseFusionA").disabled=!!state.pendingFusion||!!activeTask;$("chooseFusionB").disabled=!!state.pendingFusion||!!activeTask}
-function openPicker(mode,slot=null){pickerMode=mode;pickerSlot=slot;pickerFilter="Todos";pickerPage=1;$("pickerSearch").value="";$("pickerTitle").textContent=mode==="fusion"?`▤ INVENTARIO · OBJETO ${slot}`:mode==="spawn"?`▤ INVENTARIO · ÓRGANO ${Number(slot)+1}`:mode==="spawnAnomaly"?"▤ INVENTARIO · ANOMALÍA PARA SÍNTESIS":mode==="extract"?"▤ INVENTARIO · EXTRACCIÓN":mode==="sell"?"▤ INVENTARIO · VENDER":"▤ INVENTARIO · EQUIPAR";$("pickerDescription").textContent=mode==="fusion"?"Selecciona un objeto propio del juego para la cámara de fusión.":mode==="spawn"?"Selecciona un órgano del inventario.":mode==="spawnAnomaly"?"Selecciona una anomalía para mejorar la síntesis de criatura.":mode==="extract"?"Selecciona una criatura orgánica. Las unidades robóticas no sirven.":mode==="sell"?"Selecciona el objeto que quieres vender.":"Selecciona una pieza compatible con el espacio de equipo.";$("pickerFilterMenu").classList.toggle("hidden",mode!=="fusion");$("pickerFilterLabel").textContent=pickerFilter;$("inventoryPicker").classList.remove("hidden");renderPicker()}
+function openPicker(mode,slot=null){pickerMode=mode;pickerSlot=slot;pickerFilter="Todos";pickerPage=1;$("pickerSearch").value="";$("pickerTitle").textContent=mode==="fusion"?`▤ INVENTARIO · OBJETO ${slot}`:mode==="spawnAnomaly"?"▤ INVENTARIO · ANOMALÍA":mode==="spawn"?`▤ INVENTARIO · ÓRGANO ${Number(slot)+1}`:mode==="extract"?"▤ INVENTARIO · EXTRACCIÓN":mode==="sell"?"▤ INVENTARIO · VENDER":"▤ INVENTARIO · EQUIPAR";$("pickerDescription").textContent=mode==="fusion"?"Selecciona un objeto propio del juego para la cámara de fusión.":mode==="spawnAnomaly"?"Selecciona una anomalía del inventario (opcional).":mode==="spawn"?"Selecciona un órgano del inventario.":mode==="extract"?"Selecciona una criatura orgánica. Las unidades robóticas no sirven.":mode==="sell"?"Selecciona el objeto que quieres vender.":"Selecciona una pieza compatible con el espacio de equipo.";$("pickerFilterMenu").classList.toggle("hidden",mode!=="fusion");$("pickerFilterLabel").textContent=pickerFilter;$("inventoryPicker").classList.remove("hidden");renderPicker()}
 function renderPicker(){let list=state.inventory.filter(x=>x.qty>0&&x.name.toLowerCase().includes($("pickerSearch").value.toLowerCase()));if(pickerMode==="fusion"&&pickerFilter!=="Todos")list=list.filter(x=>pickerFilter==="Síntesis"?isSynthesisItem(x):pickerFilter==="Lingote"?(x.cat==="Lingote"||x.name.startsWith("Lingote de ")):pickerFilter==="Otro"?!( ["Material","Lingote","Herramienta","Arma","Equipo","Consumible","Criatura","Órgano","Anomalía"].includes(x.cat)):x.cat===pickerFilter);if(pickerMode==="extract")list=list.filter(x=>x.cat==="Criatura"&&!isRoboticCreature(x));
 if(pickerMode==="spawn")list=list.filter(x=>x.cat==="Órgano"&&!Object.values(spawnSelected||{}).includes(x.id));
 if(pickerMode==="spawnAnomaly")list=list.filter(x=>x.cat==="Anomalía");
@@ -1801,8 +1863,12 @@ if($("chooseExtractCreature"))$("chooseExtractCreature").onclick=()=>openPicker(
 if($("extractStartBtn"))$("extractStartBtn").onclick=startExtraction;
 
 if($("spawnStartBtn"))$("spawnStartBtn").onclick=startCreatureSpawn;
+
 if($("chooseSpawnAnomaly"))$("chooseSpawnAnomaly").onclick=()=>openPicker("spawnAnomaly");
 if($("clearSpawnAnomaly"))$("clearSpawnAnomaly").onclick=()=>{spawnAnomalyId=null;renderSpawnTable();sound(400,.05,"sine")};
+document.querySelectorAll("[data-market-buy-filter]").forEach(b=>b.onclick=()=>{marketBuyFilter=b.dataset.marketBuyFilter;marketBuyPage=1;document.querySelectorAll("[data-market-buy-filter]").forEach(x=>x.classList.toggle("active",x===b));renderMarketBuy(false)});
+document.querySelectorAll("[data-market-bbuy-filter]").forEach(b=>b.onclick=()=>{marketBlackBuyFilter=b.dataset.marketBbuyFilter;marketBlackBuyPage=1;document.querySelectorAll("[data-market-bbuy-filter]").forEach(x=>x.classList.toggle("active",x===b));renderMarketBuy(true)});
+
 
 if($("clearExtractCreature"))$("clearExtractCreature").onclick=()=>{extractCreatureId=null;extractSelected={};extractOrgansPage=1;renderExtractTable();sound(400,.05,"sine")};
 if($("extractOrgansPrev"))$("extractOrgansPrev").onclick=()=>{extractOrgansPage=Math.max(1,(extractOrgansPage||1)-1);renderExtractTable()};
