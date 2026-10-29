@@ -573,3 +573,10 @@ La descripción de los objetos vuelve al tamaño tipográfico original de las ta
 - Mercado: descripción y estadísticas por objeto.
 - Icono exclusivo amarillo de créditos en HUD y precios.
 - Caché PWA actualizada a r55.
+
+
+### r56 — Paginación fija, créditos en ventas y cursor PC
+- Paginación sin salto de layout (anchos/alturas fijos).
+- Icono amarillo de créditos en Solicitar suministro, Envío de suministros y mercados de venta.
+- Cursor personalizado en PC (flecha cian + acento dorado).
+- Caché PWA actualizada a r56.
