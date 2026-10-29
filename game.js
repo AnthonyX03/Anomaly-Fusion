@@ -1323,15 +1323,29 @@ function applyMusicVolume(){
 }
 function ensureBgMusic(){
  const a=getBgMusic(); if(!a)return;
+ // Rutas alternativas por si el mp3 está en otra carpeta
+ if(a.error||!a.currentSrc){
+  const candidates=["AnomalyFusion.mp3","./AnomalyFusion.mp3","main/AnomalyFusion.mp3","./main/AnomalyFusion.mp3"];
+  if(!candidates.includes(a.getAttribute("src")))a.src=candidates[0];
+ }
  applyMusicVolume();
  if(state.settings.musicMuted){try{a.pause()}catch(e){} return}
- const play=()=>{applyMusicVolume(); const p=a.play(); if(p&&p.catch)p.catch(()=>{});};
- try{if(audioCtx&&audioCtx.state==="suspended")audioCtx.resume().then(play).catch(play);else play()}catch(e){play()}
+ const play=()=>{
+  applyMusicVolume();
+  a.loop=true;
+  const p=a.play();
+  if(p&&p.catch)p.catch(err=>{console.warn("Música:",err&&err.message);});
+ };
+ try{
+  if(audioCtx&&audioCtx.state==="suspended")audioCtx.resume().then(play).catch(play);
+  else play();
+ }catch(e){play()}
 }
 function setMusicVolume(v){
  state.settings.musicVolume=Math.max(0,Math.min(100,Number(v)||0));
  if(state.settings.musicVolume>0)state.settings.musicMuted=false;
  applyMusicVolume();
+ if(!state.settings.musicMuted)ensureBgMusic();
  syncSettingsUI();
  save();
 }
@@ -2092,8 +2106,9 @@ function openRegistryItem(name,level=null){
  const valMin=range?Number(range.min):Math.max(1,Number(d.val)||Number(base.val)||0);
  const valMax=range?Number(range.max):valMin;
  // Precio fijo: objetos base del juego. Variables: síntesis, órganos, procedurales.
- // Órganos y objetos base: Valor Base fijo. Síntesis/procedurales: Valor Aprox (min-max vistos).
- const fixedPrice=isOrgan||(!isSynthesisItem(base)&&!base.procedural&&!(d&&d.procedural));
+ // TODOS los de síntesis → Valor Aprox. Base y órganos no-síntesis → Valor Base fijo.
+ const isSynth=isSynthesisItem(base)||isSynthesisItem(d)||!!(d&&d.trait==="Síntesis de convergencia");
+ const fixedPrice=!isSynth&&!base.procedural&&!(d&&d.procedural);
  const approxChip=fixedPrice
   ?`<span class="chip">Valor Base: ${Math.max(1,Number(d.val)||Number(base.val)||0)}</span>`
   :`<span class="chip">Valor Aprox: ${valMin} - ${valMax}</span>`;
@@ -2204,7 +2219,7 @@ function syncSettingsUI(){
  if($("fullscreenToggle"))$("fullscreenToggle").textContent=document.fullscreenElement?"⛶ Desactivar":"⛶ Activar";
  applyMusicVolume();
 }
-$("openSettings").onclick=()=>{syncSettingsUI();$("settingsModal").classList.remove("hidden")};$("closeSettings").onclick=()=>$("settingsModal").classList.add("hidden");$("settingsModal").addEventListener("click",e=>{if(e.target===$("settingsModal"))$("settingsModal").classList.add("hidden")});
+$("openSettings").onclick=()=>{syncSettingsUI();try{ensureAudio();ensureBgMusic()}catch(e){};$("settingsModal").classList.remove("hidden")};$("closeSettings").onclick=()=>$("settingsModal").classList.add("hidden");$("settingsModal").addEventListener("click",e=>{if(e.target===$("settingsModal"))$("settingsModal").classList.add("hidden")});
 $("sortInventoryTrigger").onclick=()=>{const m=$("sortInventoryOptions"),opening=m.classList.contains("hidden");closeSortMenus(opening?m.id:null);m.classList.toggle("hidden",!opening);$("sortInventoryTrigger").setAttribute("aria-expanded",String(opening))};$("registrySortTrigger").onclick=()=>{const m=$("registrySortOptions"),opening=m.classList.contains("hidden");closeSortMenus(opening?m.id:null);m.classList.toggle("hidden",!opening);$("registrySortTrigger").setAttribute("aria-expanded",String(opening))};document.querySelectorAll("[data-sort-target]").forEach(b=>b.onclick=()=>setSortMenu(b.dataset.sortTarget,b.dataset.sortValue));document.addEventListener("click",e=>{if(!e.target.closest(".sort-menu"))closeSortMenus()});
 $("confirmCancel").onclick=closeConfirm;$("confirmAccept").onclick=()=>{const action=pendingConfirmAction;closeConfirm();if(action)action()};$("confirmModal").addEventListener("click",e=>{if(e.target===$("confirmModal"))closeConfirm()});document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeConfirm();closeSortMenus();["settingsModal","inventoryPicker","registryModal","inventoryDetailModal"].forEach(id=>$(id)?.classList.add("hidden"))}});
 $("soundToggle").onchange=e=>{state.settings.sound=e.target.checked;save();syncSettingsUI();if(e.target.checked)sound(600)};

@@ -614,3 +614,10 @@ La descripción de los objetos vuelve al tamaño tipográfico original de las ta
 - Reproduce `AnomalyFusion.mp3` en bucle (colocar el archivo junto a index.html).
 - Esquinas superiores de Partida / Sonido / Adaptabilidad corregidas.
 - Caché PWA actualizada a r61.
+
+
+### r62 — Barras iguales, música y Valor Aprox síntesis
+- Barras de música y efectos con el mismo ancho.
+- Música: reintento de reproducción tras interacción; rutas alt. del mp3.
+- Registro: TODOS los objetos de síntesis usan Valor Aprox (incl. órganos fusionados).
+- Caché PWA actualizada a r62.

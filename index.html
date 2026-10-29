@@ -470,6 +470,34 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 .settings-mute-actions{display:flex;flex-wrap:wrap;gap:8px}
 .settings-toggle-btn.on{border-color:#f07178;color:#ffb4b8;background:#2a1518}
 
+
+/* Barras de volumen idénticas */
+.settings-volume-row{
+  display:grid!important;
+  grid-template-columns:minmax(140px,1fr) 220px;
+  align-items:center;
+  gap:12px;
+}
+.settings-volume-row > div:first-child{min-width:0}
+.settings-volume-row .hud-volume,
+.settings-volume.hud-volume{
+  width:220px!important;
+  max-width:220px!important;
+  min-width:220px!important;
+  box-sizing:border-box;
+  justify-self:end;
+}
+@media(max-width:520px){
+  .settings-volume-row{grid-template-columns:1fr}
+  .settings-volume-row .hud-volume,
+  .settings-volume.hud-volume{
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    justify-self:stretch;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -838,5 +866,5 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 </div>
 <div class="modal-backdrop hidden" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle"><div class="modal"><div class="modal-head"><h3 id="confirmTitle">CONFIRMAR ACCIÓN</h3><span class="tag">HUD · SISTEMA</span></div><p class="confirm-copy" id="confirmMessage"></p><div class="confirm-actions"><button id="confirmCancel">Cancelar</button><button class="primary" id="confirmAccept">Confirmar</button></div></div></div>
 <script src="game.js"></script>
-<audio id="bgMusic" src="AnomalyFusion.mp3" loop preload="auto" playsinline></audio>
+<audio id="bgMusic" src="AnomalyFusion.mp3" data-alt-src="main/AnomalyFusion.mp3" loop preload="auto" playsinline></audio>
 </body></html>
