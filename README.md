@@ -606,3 +606,11 @@ La descripción de los objetos vuelve al tamaño tipográfico original de las ta
 - Extracción: tarjetas con icono del órgano; al pulsar se resalta y marca.
 - Envío de suministros y mercados de venta: sin casillas; la fila se selecciona al pulsar.
 - Caché PWA actualizada a r60.
+
+
+### r61 — Música de fondo y ajustes de sonido
+- Controles separados: volumen música + volumen efectos (barras estilo HUD).
+- Botones silenciar música / silenciar efectos (desactivan su barra).
+- Reproduce `AnomalyFusion.mp3` en bucle (colocar el archivo junto a index.html).
+- Esquinas superiores de Partida / Sonido / Adaptabilidad corregidas.
+- Caché PWA actualizada a r61.

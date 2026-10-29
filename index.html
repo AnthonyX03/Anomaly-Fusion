@@ -393,6 +393,83 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 .central-sale-row .sale-qty{cursor:pointer}
 .central-sale-row input[type=checkbox]{display:none!important}
 
+
+/* Ajustes: esquinas superiores intactas */
+#settingsModal .modal{
+  overflow-x:hidden;
+  overflow-y:auto;
+  border-radius:16px;
+  padding:16px;
+}
+#settingsModal .settings-section,
+.settings-section.settings-panel{
+  border-radius:14px!important;
+  overflow:hidden!important;
+  border:1px solid var(--line);
+  background:#0a0f14;
+  margin:6px 2px 10px!important;
+  isolation:isolate;
+}
+#settingsModal .settings-section-head,
+.settings-section.settings-panel .settings-section-head{
+  border-top-left-radius:13px!important;
+  border-top-right-radius:13px!important;
+  border-bottom-left-radius:0!important;
+  border-bottom-right-radius:0!important;
+  overflow:hidden;
+  background:#0d141b;
+}
+/* Barras de volumen estilo HUD */
+.hud-volume{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  width:min(100%,280px);
+  padding:8px 12px;
+  border:1px solid #2a3d48;
+  border-radius:10px;
+  background:linear-gradient(180deg,#0e171e,#0a1218);
+  box-shadow:inset 0 0 0 1px #132029;
+}
+.hud-volume input[type=range]{
+  flex:1;
+  height:6px;
+  -webkit-appearance:none;
+  appearance:none;
+  background:#1b2c36;
+  border-radius:999px;
+  outline:none;
+}
+.hud-volume input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  width:16px;height:16px;border-radius:50%;
+  background:var(--cyan);
+  border:2px solid #0a1218;
+  box-shadow:0 0 10px #53f2d166;
+  cursor:pointer;
+}
+.hud-volume input[type=range]::-moz-range-thumb{
+  width:16px;height:16px;border-radius:50%;
+  background:var(--cyan);
+  border:2px solid #0a1218;
+  cursor:pointer;
+}
+.hud-volume output{
+  min-width:42px;
+  text-align:right;
+  color:var(--cyan);
+  font-weight:800;
+  font-size:.75rem;
+  font-variant-numeric:tabular-nums;
+}
+.hud-volume.is-muted{
+  opacity:.38;
+  pointer-events:none;
+  filter:grayscale(.4);
+}
+.settings-mute-actions{display:flex;flex-wrap:wrap;gap:8px}
+.settings-toggle-btn.on{border-color:#f07178;color:#ffb4b8;background:#2a1518}
+
 </style>
 </head>
 <body>
@@ -702,20 +779,28 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
  </section>
 
  <section class="settings-section settings-panel" data-settings-panel="sonido" aria-labelledby="settingsSonidoTitle">
-  <div class="settings-section-head"><div><h4 id="settingsSonidoTitle">SONIDO</h4><small>Efectos de interfaz sintetizados</small></div></div>
+  <div class="settings-section-head"><div><h4 id="settingsSonidoTitle">SONIDO</h4><small>Música de fondo y efectos de interfaz</small></div></div>
   <div class="settings-section-body">
-   <div class="settings-row"><div><label for="soundToggle">Sonido</label><small>Activa o silencia todos los efectos.</small></div>
-    <div class="settings-actions">
-     <button type="button" class="settings-toggle-btn on" id="soundMuteBtn" aria-pressed="false">🔇 Silenciar</button>
-     <input type="checkbox" id="soundToggle" checked class="hidden" aria-hidden="true">
+   <div class="settings-row settings-volume-row">
+    <div><label for="musicVolume">Música de fondo</label><small>Tema Anomaly Fusion</small></div>
+    <div class="settings-volume hud-volume">
+     <input type="range" id="musicVolume" min="0" max="100" step="1" value="40" aria-label="Volumen de la música">
+     <output id="musicVolumeValue" for="musicVolume">40%</output>
     </div>
    </div>
-   <div class="settings-row"><div><label for="soundVolume">Volumen</label><small>Ajuste en tiempo real.</small></div>
-    <div class="settings-volume">
-     <button type="button" class="tiny" id="volumeDownBtn" aria-label="Bajar volumen">−</button>
-     <input type="range" id="soundVolume" min="0" max="100" step="1" value="75" aria-label="Volumen del sonido">
-     <button type="button" class="tiny" id="volumeUpBtn" aria-label="Subir volumen">+</button>
+   <div class="settings-row settings-volume-row">
+    <div><label for="soundVolume">Efectos de sonido</label><small>Beeps, fusión, exploración…</small></div>
+    <div class="settings-volume hud-volume">
+     <input type="range" id="soundVolume" min="0" max="100" step="1" value="75" aria-label="Volumen de efectos">
      <output id="soundVolumeValue" for="soundVolume">75%</output>
+    </div>
+   </div>
+   <div class="settings-row">
+    <div><label>Silenciar</label><small>Desactiva la barra de volumen correspondiente</small></div>
+    <div class="settings-actions settings-mute-actions">
+     <button type="button" class="settings-toggle-btn" id="musicMuteBtn" aria-pressed="false">🎵 Silenciar música</button>
+     <button type="button" class="settings-toggle-btn" id="soundMuteBtn" aria-pressed="false">🔇 Silenciar efectos</button>
+     <input type="checkbox" id="soundToggle" checked class="hidden" aria-hidden="true">
     </div>
    </div>
   </div>
@@ -753,4 +838,5 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 </div>
 <div class="modal-backdrop hidden" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle"><div class="modal"><div class="modal-head"><h3 id="confirmTitle">CONFIRMAR ACCIÓN</h3><span class="tag">HUD · SISTEMA</span></div><p class="confirm-copy" id="confirmMessage"></p><div class="confirm-actions"><button id="confirmCancel">Cancelar</button><button class="primary" id="confirmAccept">Confirmar</button></div></div></div>
 <script src="game.js"></script>
+<audio id="bgMusic" src="AnomalyFusion.mp3" loop preload="auto" playsinline></audio>
 </body></html>

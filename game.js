@@ -1071,7 +1071,7 @@ const stateDefault=()=>({
  inventory:[],
  equipped:{pick:null,axe:null,tongs:null,weapon:null,armor:null,anomaly:null,companion:null},
  history:[],pendingFusion:null,pendingSupply:null,activity:[],seen:[],discovered:{},synthesisVariants:{},valueRanges:{},organVariants:{},
- settings:{sound:true,soundVolume:75,scale:"1",motion:false,layoutMode:"auto"},
+ settings:{sound:true,soundVolume:75,soundMuted:false,musicVolume:40,musicMuted:false,scale:"1",motion:false,layoutMode:"auto"},
  market:null,
  version:10
 });
@@ -1114,6 +1114,9 @@ function normalizeImportedState(raw){
  if(!["0.9","1","1.1"].includes(String(next.settings.scale)))next.settings.scale="1";
  next.settings.sound=next.settings.sound!==false;
  next.settings.soundVolume=Math.max(0,Math.min(100,Number(next.settings.soundVolume??75)||0));
+ next.settings.soundMuted=!!next.settings.soundMuted||next.settings.sound===false;
+ next.settings.musicVolume=Math.max(0,Math.min(100,Number(next.settings.musicVolume??40)||0));
+ next.settings.musicMuted=!!next.settings.musicMuted;
  next.settings.motion=!!next.settings.motion;
  if(!["auto","mobile","pc16"].includes(next.settings.layoutMode))next.settings.layoutMode="auto";
  return next;
@@ -1309,22 +1312,66 @@ function ensureAudio(){
  if(audioCtx.state==="suspended")audioCtx.resume().catch(()=>{});
  return audioCtx;
 }
-function setSoundVolume(value){
- state.settings.soundVolume=Math.max(0,Math.min(100,Number(value)||0));
+
+function getBgMusic(){return $("bgMusic")}
+function applyMusicVolume(){
+ const a=getBgMusic(); if(!a)return;
+ const muted=!!state.settings.musicMuted;
+ const vol=Math.max(0,Math.min(100,Number(state.settings.musicVolume??40)))/100;
+ a.muted=muted;
+ a.volume=muted?0:Math.max(0,Math.min(1,vol));
+}
+function ensureBgMusic(){
+ const a=getBgMusic(); if(!a)return;
+ applyMusicVolume();
+ if(state.settings.musicMuted){try{a.pause()}catch(e){} return}
+ const play=()=>{applyMusicVolume(); const p=a.play(); if(p&&p.catch)p.catch(()=>{});};
+ try{if(audioCtx&&audioCtx.state==="suspended")audioCtx.resume().then(play).catch(play);else play()}catch(e){play()}
+}
+function setMusicVolume(v){
+ state.settings.musicVolume=Math.max(0,Math.min(100,Number(v)||0));
+ if(state.settings.musicVolume>0)state.settings.musicMuted=false;
+ applyMusicVolume();
+ syncSettingsUI();
+ save();
+}
+function setMusicMuted(on){
+ state.settings.musicMuted=!!on;
+ applyMusicVolume();
+ if(!on)ensureBgMusic();
+ else{const a=getBgMusic();if(a)try{a.pause()}catch(e){}}
+ syncSettingsUI();
+ save();
+}
+function setSoundMuted(on){
+ state.settings.soundMuted=!!on;
+ state.settings.sound=!state.settings.soundMuted;
+ const gain=state.settings.soundMuted?0:(Math.max(0,Math.min(100,Number(state.settings.soundVolume??75)))/100)*0.8;
  if(masterGain&&audioCtx){
   const now=audioCtx.currentTime;
   masterGain.gain.cancelScheduledValues(now);
-  masterGain.gain.setTargetAtTime((state.settings.soundVolume/100)*0.8,now,.05);
+  masterGain.gain.setTargetAtTime(gain,now,.05);
  }
- const slider=$("soundVolume"),label=$("soundVolumeValue");
- if(slider)slider.value=state.settings.soundVolume;
- if(label)label.textContent=state.settings.soundVolume+"%";
+ syncSettingsUI();
+ save();
+}
+
+function setSoundVolume(value){
+ state.settings.soundVolume=Math.max(0,Math.min(100,Number(value)||0));
+ if(state.settings.soundVolume>0){state.settings.soundMuted=false;state.settings.sound=true;}
+ const gain=state.settings.soundMuted?0:(state.settings.soundVolume/100)*0.8;
+ if(masterGain&&audioCtx){
+  const now=audioCtx.currentTime;
+  masterGain.gain.cancelScheduledValues(now);
+  masterGain.gain.setTargetAtTime(gain,now,.05);
+ }
+ syncSettingsUI();
  save();
 }
 // Anti-petardeo móvil: no solapar beeps, ataque/release más largos, nunca cortar con gain>0
 let _lastBeepAt=0;
 function sound(freq=520,dur=.08,type="sine"){
- if(!state.settings.sound||Number(state.settings.soundVolume)===0)return;
+ if(state.settings.soundMuted||!state.settings.sound||Number(state.settings.soundVolume)===0)return;
  try{
   ensureAudio();
   const now=audioCtx.currentTime;
@@ -1355,7 +1402,7 @@ function sound(freq=520,dur=.08,type="sine"){
  }catch(e){}
 }
 function soundSale(){
- if(!state.settings.sound||Number(state.settings.soundVolume)===0)return;
+ if(state.settings.soundMuted||!state.settings.sound||Number(state.settings.soundVolume)===0)return;
  try{
   ensureAudio();
   const ctx=audioCtx;
@@ -1434,7 +1481,7 @@ function stopFusionHum(){
 }
 
 function startFusionHum(){
- if(!state.settings.sound||Number(state.settings.soundVolume)===0)return;
+ if(state.settings.soundMuted||!state.settings.sound||Number(state.settings.soundVolume)===0)return;
  try{
   if(fusionHum)return;
   ensureAudio();
@@ -2119,15 +2166,22 @@ $("closeInventoryDetail").onclick=()=>$("inventoryDetailModal").classList.add("h
 $("installApp").onclick=async()=>{if(deferredInstallPrompt){deferredInstallPrompt.prompt();try{await deferredInstallPrompt.userChoice}catch(e){}deferredInstallPrompt=null;$("installApp").classList.add("hidden")}else{toast("Para instalar, publica Anomaly Fusion en HTTPS y usa el menú del navegador: «Instalar aplicación».");}};window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredInstallPrompt=e;$("installApp").classList.remove("hidden")});window.addEventListener("appinstalled",()=>{$("installApp").textContent="✓ Instalada";$("installApp").disabled=true});
 
 function syncSettingsUI(){
- const soundOn=!!state.settings.sound;
+ const sfxMuted=!!state.settings.soundMuted||state.settings.sound===false;
+ const musicMuted=!!state.settings.musicMuted;
  const motionOn=!!state.settings.motion;
- if($("soundToggle"))$("soundToggle").checked=soundOn;
+ if($("soundToggle"))$("soundToggle").checked=!sfxMuted;
  if($("motionToggle"))$("motionToggle").checked=motionOn;
  const muteBtn=$("soundMuteBtn");
  if(muteBtn){
-  muteBtn.textContent=soundOn?"🔇 Silenciar":"🔊 Activar sonido";
-  muteBtn.classList.toggle("on",!soundOn);
-  muteBtn.setAttribute("aria-pressed",soundOn?"false":"true");
+  muteBtn.textContent=sfxMuted?"🔊 Activar efectos":"🔇 Silenciar efectos";
+  muteBtn.classList.toggle("on",sfxMuted);
+  muteBtn.setAttribute("aria-pressed",sfxMuted?"true":"false");
+ }
+ const musicMuteBtn=$("musicMuteBtn");
+ if(musicMuteBtn){
+  musicMuteBtn.textContent=musicMuted?"🎵 Activar música":"🎵 Silenciar música";
+  musicMuteBtn.classList.toggle("on",musicMuted);
+  musicMuteBtn.setAttribute("aria-pressed",musicMuted?"true":"false");
  }
  const motionBtn=$("motionBtn");
  if(motionBtn){
@@ -2135,15 +2189,29 @@ function syncSettingsUI(){
   motionBtn.classList.toggle("on",motionOn);
   motionBtn.setAttribute("aria-pressed",motionOn?"true":"false");
  }
- if($("soundVolume"))$("soundVolume").value=state.settings.soundVolume??75;
+ if($("soundVolume")){
+  $("soundVolume").value=state.settings.soundVolume??75;
+  $("soundVolume").disabled=sfxMuted;
+  const wrap=$("soundVolume").closest(".hud-volume"); if(wrap)wrap.classList.toggle("is-muted",sfxMuted);
+ }
  if($("soundVolumeValue"))$("soundVolumeValue").textContent=(state.settings.soundVolume??75)+"%";
+ if($("musicVolume")){
+  $("musicVolume").value=state.settings.musicVolume??40;
+  $("musicVolume").disabled=musicMuted;
+  const wrap=$("musicVolume").closest(".hud-volume"); if(wrap)wrap.classList.toggle("is-muted",musicMuted);
+ }
+ if($("musicVolumeValue"))$("musicVolumeValue").textContent=(state.settings.musicVolume??40)+"%";
  if($("fullscreenToggle"))$("fullscreenToggle").textContent=document.fullscreenElement?"⛶ Desactivar":"⛶ Activar";
+ applyMusicVolume();
 }
 $("openSettings").onclick=()=>{syncSettingsUI();$("settingsModal").classList.remove("hidden")};$("closeSettings").onclick=()=>$("settingsModal").classList.add("hidden");$("settingsModal").addEventListener("click",e=>{if(e.target===$("settingsModal"))$("settingsModal").classList.add("hidden")});
 $("sortInventoryTrigger").onclick=()=>{const m=$("sortInventoryOptions"),opening=m.classList.contains("hidden");closeSortMenus(opening?m.id:null);m.classList.toggle("hidden",!opening);$("sortInventoryTrigger").setAttribute("aria-expanded",String(opening))};$("registrySortTrigger").onclick=()=>{const m=$("registrySortOptions"),opening=m.classList.contains("hidden");closeSortMenus(opening?m.id:null);m.classList.toggle("hidden",!opening);$("registrySortTrigger").setAttribute("aria-expanded",String(opening))};document.querySelectorAll("[data-sort-target]").forEach(b=>b.onclick=()=>setSortMenu(b.dataset.sortTarget,b.dataset.sortValue));document.addEventListener("click",e=>{if(!e.target.closest(".sort-menu"))closeSortMenus()});
 $("confirmCancel").onclick=closeConfirm;$("confirmAccept").onclick=()=>{const action=pendingConfirmAction;closeConfirm();if(action)action()};$("confirmModal").addEventListener("click",e=>{if(e.target===$("confirmModal"))closeConfirm()});document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeConfirm();closeSortMenus();["settingsModal","inventoryPicker","registryModal","inventoryDetailModal"].forEach(id=>$(id)?.classList.add("hidden"))}});
 $("soundToggle").onchange=e=>{state.settings.sound=e.target.checked;save();syncSettingsUI();if(e.target.checked)sound(600)};
-if($("soundMuteBtn"))$("soundMuteBtn").onclick=()=>{state.settings.sound=!state.settings.sound;if($("soundToggle"))$("soundToggle").checked=state.settings.sound;save();syncSettingsUI();if(state.settings.sound)sound(600)};
+if($("soundMuteBtn"))$("soundMuteBtn").onclick=()=>{setSoundMuted(!(state.settings.soundMuted||state.settings.sound===false));};
+if($("musicMuteBtn"))$("musicMuteBtn").onclick=()=>{setMusicMuted(!state.settings.musicMuted);};
+if($("musicVolume"))$("musicVolume").addEventListener("input",e=>setMusicVolume(e.target.value));
+
 $("soundVolume").addEventListener("input",e=>{setSoundVolume(e.target.value)});
 $("soundVolume").addEventListener("change",()=>sound(560,.08,"sine"));
 if($("volumeDownBtn"))$("volumeDownBtn").onclick=()=>{setSoundVolume(Math.max(0,(Number(state.settings.soundVolume)||0)-10));syncSettingsUI();sound(480,.06,"sine")};
@@ -2191,6 +2259,6 @@ document.querySelectorAll("[data-settings-panel].settings-tab, .settings-tab[dat
   document.querySelectorAll(".settings-panel").forEach(x=>x.classList.toggle("active",x.dataset.settingsPanel===key));
  });
 });
-migrateOrganVariants();migrateIllegalPolicy();bindNavigation();updateHomeClock();setInterval(updateHomeClock,1000);if($("soundToggle"))$("soundToggle").checked=state.settings.sound;if($("scaleSelect"))$("scaleSelect").value=state.settings.scale||"1";document.documentElement.style.setProperty("--scale",state.settings.scale||"1");if($("motionToggle"))$("motionToggle").checked=!!state.settings.motion;document.body.classList.toggle("reduce-motion",!!state.settings.motion);applyLayoutMode(state.settings.layoutMode||"auto");setSoundVolume(state.settings.soundVolume??75);syncSettingsUI();render();if(state.pendingSupply&&state.pendingSupply.stage==="animating"){setTimeout(()=>{if(state.pendingSupply&&state.pendingSupply.stage==="animating"){state.pendingSupply.stage="ready";renderSupplyDelivery();renderSupplies();save()}},1200)}if("serviceWorker"in navigator&&location.protocol.startsWith("http")){navigator.serviceWorker.register("./sw.js",{updateViaCache:"none"}).then(reg=>{checkForAppUpdates(reg);setInterval(()=>checkForAppUpdates(reg),60000);document.addEventListener("visibilitychange",()=>{if(!document.hidden)checkForAppUpdates(reg)});window.addEventListener("focus",()=>checkForAppUpdates(reg));}).catch(()=>{});}}
+migrateOrganVariants();migrateIllegalPolicy();applyMusicVolume();bindNavigation();updateHomeClock();setInterval(updateHomeClock,1000);if($("soundToggle"))$("soundToggle").checked=state.settings.sound;if($("scaleSelect"))$("scaleSelect").value=state.settings.scale||"1";document.documentElement.style.setProperty("--scale",state.settings.scale||"1");if($("motionToggle"))$("motionToggle").checked=!!state.settings.motion;document.body.classList.toggle("reduce-motion",!!state.settings.motion);applyLayoutMode(state.settings.layoutMode||"auto");setSoundVolume(state.settings.soundVolume??75);syncSettingsUI();render();if(state.pendingSupply&&state.pendingSupply.stage==="animating"){setTimeout(()=>{if(state.pendingSupply&&state.pendingSupply.stage==="animating"){state.pendingSupply.stage="ready";renderSupplyDelivery();renderSupplies();save()}},1200)}if("serviceWorker"in navigator&&location.protocol.startsWith("http")){navigator.serviceWorker.register("./sw.js",{updateViaCache:"none"}).then(reg=>{checkForAppUpdates(reg);setInterval(()=>checkForAppUpdates(reg),60000);document.addEventListener("visibilitychange",()=>{if(!document.hidden)checkForAppUpdates(reg)});window.addEventListener("focus",()=>checkForAppUpdates(reg));}).catch(()=>{});}}
 init();
 })();
