@@ -754,7 +754,7 @@ function marketBuyPageSize(){
 function ensureMarketDay(){
  state.market=state.market||{};
  const key=marketDayKey();
- if(state.market.day===key&&state.market.sellRate&&state.market.dailyLegal&&state.market.dailyBlack&&state.market.dailyLegal.length===10&&state.market.dailyBlack.length===10)return;
+ if(state.market.day===key&&state.market.sellRate&&state.market.dailyLegal&&state.market.dailyBlack&&state.market.dailyLegal.length===12&&state.market.dailyBlack.length===12)return;
  const seed=Array.from(key).reduce((h,ch)=>((h<<5)-h)+ch.charCodeAt(0)|0,0)>>>0;
  const rnd=seededRand(seed||1);
  const rate=MARKET_RATES[Math.floor(rnd()*MARKET_RATES.length)];
@@ -777,8 +777,8 @@ function ensureMarketDay(){
   day:key,
   sellRate:rate,
   blackSellRate:blackRate,
-  dailyLegal:pickDaily(legalPool,10),
-  dailyBlack:pickDaily(blackPool.length?blackPool:legalPool,10)
+  dailyLegal:pickDaily(legalPool,12),
+  dailyBlack:pickDaily(blackPool.length?blackPool:legalPool,12)
  };
 }
 function marketRequiredLevel(item){
@@ -878,7 +878,7 @@ function renderMarketBuy(isBlack){
  if(next)next.disabled=cur>=pages;
  // daily labels
  const dailyBtn=document.querySelector(isBlack?'[data-market-bbuy-mode="daily"]':'[data-market-buy-mode="daily"]');
- if(dailyBtn)dailyBtn.textContent=isBlack?"Diario negro (10)":"Diario (10)";
+ if(dailyBtn)dailyBtn.textContent=isBlack?"Diario negro (12)":"Diario (12)";
  const cardHtml=row=>{
   const locked=!row.unlocked;
   const noStock=row.daily&&row.stock<=0;
@@ -1489,7 +1489,25 @@ if(x.defense)skillLines.push(`Defensa +${x.defense}`);
 if(x.passive&&(x.passive.value||x.passive.type))skillLines.push(String(x.passive.value||x.passive.type));
 const skillHtml=skillLines.length?`<div class="small-note" style="margin-top:7px;color:var(--cyan)">✦ ${skillLines.map(escapeHtml).join(" / ")}</div>`:"";
 const synthesisHtml=isSynthesisItem(x)?`<div class="small-note" style="margin-top:5px;color:var(--cyan)">◇ Rasgo: Síntesis de convergencia</div>`:"";return `<div class="item-card rarity-${r}"><div class="item-top"><div class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</div><div style="min-width:0"><h4 title="${escapeHtml(inventoryDisplayName(x))}">${escapeHtml(inventoryDisplayName(x))} ${x.qty>1?`<span class="muted">×${x.qty}</span>`:""}</h4><div class="rarity r${r}">NIVEL ${r} · ${rarityNames[r]}</div></div></div><div class="desc">${escapeHtml(x.desc||info(x.name).desc||"Objeto sin descripción.")}</div>${skillHtml}${synthesisHtml}<div class="item-bottom"><span class="muted" style="font-size:.68rem">${escapeHtml(x.cat||info(x.name).cat)} · Valor base (100%): ${Number(x.val||info(x.name).val)} cr.</span>${opts.sell?`<span class="muted" style="font-size:.62rem">Envío de suministro</span>`:""}</div>${opts.equip?`<button class="tiny" style="width:100%;margin-top:8px" data-equip-id="${x.id}">Equipar</button>`:""}</div>`}
-function nav(page){if(currentEnemy){toast("Hay un combate en curso. Resuélvelo antes de cambiar de pantalla.",true);return}const requestedSupplies=page==="supplies";if(requestedSupplies)page="central";document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id==="page-"+page));document.querySelectorAll("[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===page));if(typeof closeMobileNavPanels==="function")closeMobileNavPanels();if(requestedSupplies){document.querySelectorAll("[data-central-tab]").forEach(b=>b.classList.toggle("active",b.dataset.centralTab==="supplies"));document.querySelectorAll("#page-central .central-section").forEach(x=>x.classList.toggle("active",x.id==="central-supplies"))}if(page==="clinic"){renderExtractTable();renderSpawnTable()}if(page==="market"){try{ensureMarketDay();renderMarketBuy(false);renderMarketBuy(true);renderMarketSell(false);renderMarketSell(true)}catch(err){console.error(err)}}window.scrollTo({top:0,behavior:state.settings.motion?"auto":"smooth"});render()}
+function nav(page){
+ // Combate activo: solo se permite volver a Exploración para no quedar atrapado fuera del HUD de combate
+ if(currentEnemy){
+  if(page!=="explore"&&page!=="supplies"){
+   toast("Hay un combate en curso. Vuelve a Exploración para resolverlo.",true);
+   return;
+  }
+  if(page==="supplies"){toast("Hay un combate en curso. Vuelve a Exploración para resolverlo.",true);return}
+  // page === explore → permitir y reabrir el combate
+ }
+ const requestedSupplies=page==="supplies";if(requestedSupplies)page="central";document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id==="page-"+page));document.querySelectorAll("[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===page));if(typeof closeMobileNavPanels==="function")closeMobileNavPanels();if(requestedSupplies){document.querySelectorAll("[data-central-tab]").forEach(b=>b.classList.toggle("active",b.dataset.centralTab==="supplies"));document.querySelectorAll("#page-central .central-section").forEach(x=>x.classList.toggle("active",x.id==="central-supplies"))}if(page==="clinic"){renderExtractTable();renderSpawnTable()}if(page==="market"){try{ensureMarketDay();renderMarketBuy(false);renderMarketBuy(true);renderMarketSell(false);renderMarketSell(true)}catch(err){console.error(err)}}
+ // Si hay combate en curso, forzar HUD de zona + panel de combate visibles en Exploración
+ if(currentEnemy&&page==="explore"){
+  zoneHudOpen=true;
+  const cp=$("combatPanel");
+  if(cp)cp.classList.remove("hidden");
+  if(selectedZone){renderZoneCards();renderZoneDetail();renderZoneLoot()}
+ }
+ window.scrollTo({top:0,behavior:state.settings.motion?"auto":"smooth"});render()}
 function bindNavigation(){document.querySelectorAll("[data-page]").forEach(b=>b.addEventListener("click",()=>nav(b.dataset.page)));document.querySelectorAll("[data-goto]").forEach(b=>b.addEventListener("click",()=>nav(b.dataset.goto)))}
 function renderStats(){if($("operatorRank"))$("operatorRank").textContent=operatorRank();if($("profileRank"))$("profileRank").textContent=operatorRank();$("credits").innerHTML=creditsIconMarkup(14)+"<span>"+state.credits.toLocaleString("es-ES")+"</span>";$("level").textContent=state.level;const seenNames=[...new Set((state.seen||[]).filter(Boolean))];let baseCount=0,synthCount=0;seenNames.forEach(name=>{const item={name,...knownInfo(name)};if(isSynthesisItem(item))synthCount++;else baseCount++});if($("itemCountBase"))$("itemCountBase").textContent=baseCount;if($("itemCountSynth"))$("itemCountSynth").textContent=synthCount;if($("itemCount"))$("itemCount").textContent=baseCount+synthCount;$("expCount").textContent=state.expeditions;$("fusionCount").textContent=state.fusions;$("activityLog").innerHTML=state.activity.length?state.activity.map(a=>`<div class="activity"><span class="muted">[${a.time}]</span> ${a.msg}</div>`).join(""):'<div class="empty">Sin actividad registrada. Tu historia empieza ahora.</div>';$("profileLevel").textContent=state.level;$("xpText").textContent=`${state.xp} / ${state.level*100} XP`;$("xpBar").style.width=(state.xp/(state.level*100)*100)+"%";$("statDamage").textContent=damage();$("statDefense").textContent=defense();$("statGather").textContent=stat("gather")+"%";$("statLuck").textContent=Math.max(0,(state.level-1)*2+stat("luck"))+"%";$("statCredits").textContent=state.credits}
 function openZoneHud(zoneId){const target=zones.find(z=>z.id===zoneId);if(!target)return;if(!zoneUnlocked(target)){toast(`Zona bloqueada. Necesitas nivel ${zoneRequiredLevel(target)} de Operador.`,true);return}selectedZone=zoneId;zoneHudOpen=true;lootHudOpen=false;renderZoneCards();renderZoneDetail();renderZoneLoot();sound(470,.07,"triangle");window.scrollTo({top:0,behavior:state.settings.motion?"auto":"smooth"})}
