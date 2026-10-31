@@ -1769,8 +1769,8 @@ function renderUpgradeMachine(){
   if(chanceEl){
     chanceEl.textContent=pct?pct+"%":"—";
     chanceEl.classList.remove("chance-high","chance-mid","chance-low");
-    if(pct>=70)chanceEl.classList.add("chance-high");
-    else if(pct>=40)chanceEl.classList.add("chance-mid");
+    if(pct>=50)chanceEl.classList.add("chance-high");
+    else if(pct>=20)chanceEl.classList.add("chance-mid");
     else if(pct>0)chanceEl.classList.add("chance-low");
   }
   if(arc)arc.style.setProperty("--success-deg",(pct/100*360)+"deg");
@@ -1816,31 +1816,36 @@ function spinUpgradeRoulette(){
   if(!removed){upgradeSpinning=false;renderUpgradeMachine();return toast("Error al consumir la entrada.",true)}
   const needle=$("upgradeNeedle");
   const roulette=$("upgradeRoulette");
+  const successSpan=pct/100*360;
+  const win=Math.random()*100<pct;
+  const spins=7+Math.floor(Math.random()*3); // 7-9 vueltas
+  let finalDeg;
+  if(win)finalDeg=360*spins + Math.random()*Math.max(6,successSpan-3);
+  else finalDeg=360*spins + successSpan + 6 + Math.random()*Math.max(6,360-successSpan-12);
+  // Reiniciar aguja sin transición, luego animar en el siguiente frame
   if(needle){
     needle.classList.remove("is-spinning");
     needle.style.transition="none";
     needle.style.transform="rotate(0deg)";
-    void needle.offsetWidth;
-    needle.classList.add("is-spinning");
   }
   if(roulette)roulette.classList.add("is-spinning");
-  // Ángulo final: éxito = zona [0, pct%*360) desde 0deg (arco desde arriba)
-  const successSpan=pct/100*360;
-  const win=Math.random()*100<pct;
-  let finalDeg;
-  // 6-8 vueltas + posición final
-  const spins=6+Math.floor(Math.random()*3);
-  if(win)finalDeg=360*spins + Math.random()*Math.max(8,successSpan-4);
-  else finalDeg=360*spins + successSpan + 4 + Math.random()*Math.max(8,360-successSpan-8);
-  if(needle)needle.style.transform=`rotate(${finalDeg}deg)`;
   const resultEl=$("upgradeResult");
   if(resultEl)resultEl.textContent="Ruleta en marcha… no se puede cancelar ni cambiar la apuesta.";
-  // Sonido de ruleta: ticks + tono de suspense
   try{
     sound(180,.06,"square");
-    const tickIv=setInterval(()=>{if(!upgradeSpinning){clearInterval(tickIv);return}sound(260+Math.random()*80,.03,"square")},180);
-    setTimeout(()=>clearInterval(tickIv),3800);
+    const tickIv=setInterval(()=>{if(!upgradeSpinning){clearInterval(tickIv);return}sound(240+Math.random()*100,.025,"square")},160);
+    setTimeout(()=>clearInterval(tickIv),4000);
   }catch(e){}
+  // Doble rAF para forzar repaint antes de la transición (móvil)
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(()=>{
+      if(needle){
+        needle.style.transition="transform 4.2s cubic-bezier(0.12, 0.75, 0.08, 1)";
+        needle.classList.add("is-spinning");
+        needle.style.transform="rotate("+finalDeg+"deg)";
+      }
+    });
+  });
   setTimeout(()=>{
     if(roulette)roulette.classList.remove("is-spinning");
     if(win){
@@ -1857,9 +1862,14 @@ function spinUpgradeRoulette(){
     }
     upgradeSpinning=false;
     upgradeInputId=null;upgradeInputQty=1;
-    if(needle){needle.classList.remove("is-spinning");needle.style.transition="transform .4s ease-out";needle.style.transform=`rotate(${finalDeg%360}deg)`}
+    // Dejar la aguja en el ángulo final sin saltar (no usar % 360 aquí)
+    if(needle){
+      needle.classList.remove("is-spinning");
+      needle.style.transition="none";
+      needle.style.transform="rotate("+finalDeg+"deg)";
+    }
     renderUpgradeMachine();render();save();
-  },4200);
+  },4300);
 }
 function removeItemById(id,qty){
   const x=state.inventory.find(i=>i.id===id);

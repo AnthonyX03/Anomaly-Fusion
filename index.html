@@ -698,12 +698,12 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 @keyframes upgradePulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.12)}}
 .upgrade-roulette-track{position:absolute;inset:8px;border-radius:50%;overflow:hidden}
 .upgrade-roulette-success{position:absolute;inset:0;border-radius:50%;background:conic-gradient(from -90deg,#53f2d1 0deg, #53f2d1 var(--success-deg,0deg), transparent var(--success-deg,0deg));opacity:.9;transition:--success-deg .35s ease}
-.upgrade-roulette-needle{position:absolute;left:50%;top:50%;width:4px;height:44%;margin-left:-2px;margin-top:-44%;background:linear-gradient(#fff3c4,#f5c542 40%,#c49212);border-radius:3px 3px 1px 1px;transform-origin:50% 100%;transform:rotate(0deg);box-shadow:0 0 10px #f5c542aa,0 0 2px #000;z-index:2;transition:none}
-.upgrade-roulette-needle.is-spinning{transition:transform 4.1s cubic-bezier(.08,.82,.12,1)}
-.upgrade-chance{position:absolute;inset:0;display:grid;place-items:center;font-size:1.7rem;font-weight:900;color:var(--cyan);text-shadow:0 0 12px #53f2d155;pointer-events:none;z-index:3;transition:color .25s,text-shadow .25s}
-.upgrade-chance.chance-high{color:#53f2d1;text-shadow:0 0 14px #53f2d166,0 0 4px #053}
-.upgrade-chance.chance-mid{color:#f5a623;text-shadow:0 0 14px #f5a62366,0 0 4px #532}
-.upgrade-chance.chance-low{color:#ff6b7a;text-shadow:0 0 14px #ff6b7a66,0 0 4px #500}
+.upgrade-roulette-needle{position:absolute;left:50%;top:50%;width:5px;height:46%;margin-left:-2.5px;margin-top:-46%;background:linear-gradient(#fff8d6,#f5c542 35%,#c49212);border-radius:3px 3px 1px 1px;transform-origin:50% 100%;transform:rotate(0deg);box-shadow:0 0 12px #f5c542cc,0 0 3px #000;z-index:2;will-change:transform;transition:none}
+.upgrade-roulette-needle.is-spinning{/* transition se aplica por JS inline para fiabilidad en móvil */}
+.upgrade-chance{position:absolute;inset:0;display:grid;place-items:center;font-size:1.75rem;font-weight:900;color:#8a9aa5;text-shadow:none;pointer-events:none;z-index:3;transition:color .2s,text-shadow .2s}
+.upgrade-chance.chance-high{color:#00ff9c;text-shadow:0 0 18px #00ff9caa,0 0 6px #00ff9c,0 0 2px #003}
+.upgrade-chance.chance-mid{color:#ff9500;text-shadow:0 0 18px #ff9500aa,0 0 6px #ff9500,0 0 2px #530}
+.upgrade-chance.chance-low{color:#ff2d4a;text-shadow:0 0 18px #ff2d4aaa,0 0 6px #ff2d4a,0 0 2px #500}
 #nexusTabs button:disabled{opacity:.4;cursor:not-allowed}
 
 </style>
