@@ -709,9 +709,9 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   mask:radial-gradient(farthest-side,transparent calc(100% - 14px),#000 calc(100% - 13px));
   opacity:1}
 .upgrade-roulette-inner{position:absolute;inset:16px;border-radius:50%;background:#0c1218;box-shadow:inset 0 0 16px #0008;z-index:1;pointer-events:none}
-.upgrade-roulette-needle{position:absolute;left:50%;top:50%;width:5px;height:48%;margin-left:-2.5px;margin-top:-48%;background:linear-gradient(#ffffff 0%,#fff8d6 12%,#f5c542 40%,#c49212 100%);border-radius:3px 3px 1px 1px;transform-origin:50% 100%;transform:rotate(0deg);box-shadow:0 0 8px #f5c54299,0 0 2px #000;z-index:2;will-change:transform;transition:none}
+.upgrade-roulette-needle{position:absolute;left:50%;top:50%;width:4px;height:38%;margin-left:-2px;margin-top:-38%;background:#f5c542;border-radius:1px;transform-origin:50% 100%;transform:rotate(0deg);box-shadow:none;z-index:2;will-change:transform;transition:none}
 .upgrade-roulette-needle.is-spinning{}
-.upgrade-roulette-needle::before{content:"";position:absolute;left:50%;top:0;width:8px;height:8px;margin-left:-4px;margin-top:-3px;background:#fff;border-radius:50%;box-shadow:0 0 6px #fff}
+.upgrade-roulette-needle::before{content:"";position:absolute;left:50%;top:-7px;width:0;height:0;margin-left:-6px;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:10px solid #f5c542;box-shadow:none}
 .exchange-box-list{display:flex;flex-direction:column;gap:8px;max-height:280px;overflow:auto;margin-top:10px}
 .exchange-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:#0c1117}
 .exchange-row small{display:block;color:var(--muted);margin-top:2px}
@@ -994,7 +994,7 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 <div class="footer-note">ANOMALY FUSION // NOTHING IS EVER JUST ONE THING</div>
 
 <section class="page" id="page-nexus">
- <div class="page-head"><div><div class="eyebrow">SISTEMA 09 / CONVERSIÓN</div><h2>Nexo</h2><p>Hub de módulos avanzados. La Máquina de Mejora permite intercambiar objetos base del registro mediante una ruleta de riesgo.</p></div><span class="tag">4 MÓDULOS</span></div>
+ <div class="page-head"><div><div class="eyebrow">SISTEMA 09 / CONVERSIÓN</div><h2>Nexo</h2><p>Centro de conversión avanzada. La Máquina de Mejora transforma objetos base con una ruleta de riesgo; el Intercambio empaqueta materia descubierta y devuelve un lote aleatorio del Registro Base.</p></div><span class="tag">4 MÓDULOS</span></div>
  <div class="inventory-controls" style="margin-bottom:14px" id="nexusTabs">
   <button class="active" data-nexus-tab="upgrade">◎ Máquina de Mejora</button>
   <button data-nexus-tab="mod2">▦ Intercambio</button>
@@ -1009,6 +1009,7 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
     <div class="upgrade-col">
      <div class="eyebrow">ENTRADA · LO QUE ENTREGAS</div>
      <button type="button" class="equip-slot upgrade-slot" id="upgradeInputPick">＋ Elegir objeto de entrada</button>
+     <button type="button" class="tiny hidden" id="upgradeInputClear" style="margin-top:8px;width:100%">Retirar</button>
      <div id="upgradeInputInfo" class="small-note" style="margin-top:8px">Ningún objeto seleccionado.</div>
      <div class="qty-stepper" style="margin-top:10px" id="upgradeInputStepper">
       <button type="button" class="qty-btn" id="upgradeInMinus" aria-label="Menos">‹</button>
@@ -1033,6 +1034,7 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
     <div class="upgrade-col">
      <div class="eyebrow">OBJETIVO · LO QUE QUIERES</div>
      <button type="button" class="equip-slot upgrade-slot" id="upgradeTargetPick">＋ Elegir del Registro Base</button>
+     <button type="button" class="tiny hidden" id="upgradeTargetClear" style="margin-top:8px;width:100%">Retirar</button>
      <div id="upgradeTargetInfo" class="small-note" style="margin-top:8px">Ningún objetivo seleccionado.</div>
      <div class="qty-stepper" style="margin-top:10px" id="upgradeTargetStepper">
       <button type="button" class="qty-btn" id="upgradeOutMinus" aria-label="Menos">‹</button>
@@ -1178,6 +1180,24 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
  <div class="modal">
   <div class="modal-head"><h3>▣ RESULTADO DEL INTERCAMBIO</h3></div>
   <div id="exchangeResultBody"></div>
+ </div>
+</div>
+
+
+<div class="modal-backdrop hidden" id="exchangeQtyModal" role="dialog" aria-modal="true">
+ <div class="modal" style="max-width:360px">
+  <div class="modal-head"><h3 id="exchangeQtyTitle">▣ CANTIDAD</h3><button class="tiny" id="exchangeQtyClose" aria-label="Cerrar">✕</button></div>
+  <div id="exchangeQtyItem" class="exchange-row" style="margin-bottom:12px"></div>
+  <div class="picker-qty-bar" style="margin:0">
+   <button type="button" class="qty-btn" id="exchangeQtyMinus" aria-label="Menos">‹</button>
+   <span class="qty-val" id="exchangeQtyVal">×1</span>
+   <button type="button" class="qty-btn" id="exchangeQtyPlus" aria-label="Más">›</button>
+  </div>
+  <p class="small-note" id="exchangeQtyHint" style="margin-top:10px;text-align:center"></p>
+  <div class="picker-confirm-row" style="margin-top:14px">
+   <button type="button" class="primary" id="exchangeQtyOk">Aceptar</button>
+   <button type="button" class="tiny" id="exchangeQtyCancel">Cancelar</button>
+  </div>
  </div>
 </div>
 

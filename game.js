@@ -1802,6 +1802,7 @@ function renderUpgradeMachine(){
     if(inItem){pick.innerHTML=`<span class="item-icon">${itemIconMarkup(inItem.name,inItem.icon||info(inItem.name).icon)}</span> ${escapeHtml(inventoryDisplayName(inItem))} · ×${inItem.qty}`;}
     else pick.textContent="＋ Elegir objeto de entrada";
   }
+  if($("upgradeInputClear"))$("upgradeInputClear").classList.toggle("hidden",!inItem||upgradeSpinning);
   if(infoEl)infoEl.textContent=inItem?`N${inItem.r||1} · ${inItem.cat||info(inItem.name).cat} · Base ${Math.max(1,Number(inItem.val)||Number(info(inItem.name).val)||1)} cr./u`:"Ningún objeto seleccionado.";
   if(inQty)inQty.textContent="×"+upgradeInputQty;
   if(inVal)inVal.innerHTML=formatCredits(upgradeInputValue(),14);
@@ -1811,6 +1812,7 @@ function renderUpgradeMachine(){
     if(upgradeTargetName){tPick.innerHTML=`<span class="item-icon">${itemIconMarkup(upgradeTargetName,info(upgradeTargetName).icon)}</span> ${escapeHtml(upgradeTargetName)}`;}
     else tPick.textContent="＋ Elegir del Registro Base";
   }
+  if($("upgradeTargetClear"))$("upgradeTargetClear").classList.toggle("hidden",!upgradeTargetName||upgradeSpinning);
   if(tInfo)tInfo.textContent=upgradeTargetName?`N${info(upgradeTargetName).r||1} · ${info(upgradeTargetName).cat||"?"} · Base ${Math.max(1,Number(info(upgradeTargetName).val)||1)} cr./u`:"Ningún objetivo seleccionado.";
   if(tQty)tQty.textContent="×"+upgradeTargetQty;
   if(tVal)tVal.innerHTML=formatCredits(upgradeTargetValue(),14);
@@ -1944,7 +1946,7 @@ function renderExchangeModule(){
     const rows=Object.entries(exchangeBox).map(([id,qty])=>{
       const x=state.inventory.find(i=>i.id===id);
       if(!x||qty<=0)return "";
-      return `<div class="exchange-row"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><div style="min-width:0;flex:1"><b>${escapeHtml(inventoryDisplayName(x))}</b><small>N${x.r||1} · ${escapeHtml(x.cat||"?")} · ×${qty}</small></div><button type="button" class="tiny" data-ex-remove="${id}">Quitar</button></div>`;
+      return `<div class="exchange-row"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><div style="min-width:0;flex:1"><b>${escapeHtml(inventoryDisplayName(x))}</b><small>N${x.r||1} · ${escapeHtml(x.cat||"?")} · ×${qty}</small></div><button type="button" class="tiny" data-ex-remove="${id}">Retirar</button></div>`;
     }).filter(Boolean);
     list.innerHTML=rows.length?rows.join(""):'<div class="empty">La caja está vacía. Añade 1–10 objetos base.</div>';
     list.querySelectorAll("[data-ex-remove]").forEach(b=>b.onclick=()=>{delete exchangeBox[b.dataset.exRemove];renderExchangeModule()});
@@ -1964,6 +1966,36 @@ function openExchangePicker(){
   $("inventoryPicker").classList.remove("hidden");
   renderPicker();
 }
+
+function openExchangeQtyModal(itemId,maxQty){
+  const x=state.inventory.find(i=>i.id===itemId);
+  if(!x||maxQty<1)return;
+  let qty=1;
+  const modal=$("exchangeQtyModal");
+  if(!modal)return;
+  const itemEl=$("exchangeQtyItem");
+  if(itemEl)itemEl.innerHTML=`<span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><div style="min-width:0;flex:1"><b>${escapeHtml(inventoryDisplayName(x))}</b><small>N${x.r||1} · Disponible ×${x.qty} · Máx. en caja ×${maxQty}</small></div>`;
+  const sync=()=>{if($("exchangeQtyVal"))$("exchangeQtyVal").textContent="×"+qty;if($("exchangeQtyHint"))$("exchangeQtyHint").textContent=`Se añadirán ${qty} unidad${qty===1?"":"es"} a la caja (${exchangeBoxCount()+qty}/10).`;};
+  sync();
+  if($("exchangeQtyMinus"))$("exchangeQtyMinus").onclick=()=>{qty=Math.max(1,qty-1);sync()};
+  if($("exchangeQtyPlus"))$("exchangeQtyPlus").onclick=()=>{qty=Math.min(maxQty,qty+1);sync()};
+  const close=()=>modal.classList.add("hidden");
+  if($("exchangeQtyClose"))$("exchangeQtyClose").onclick=close;
+  if($("exchangeQtyCancel"))$("exchangeQtyCancel").onclick=close;
+  if($("exchangeQtyOk"))$("exchangeQtyOk").onclick=()=>{
+    const already=Number(exchangeBox[itemId]||0);
+    const room=10-exchangeBoxCount();
+    const add=Math.min(qty,maxQty,room);
+    if(add<=0){toast("No cabe más en la caja.",true);close();return}
+    exchangeBox[itemId]=already+add;
+    close();
+    renderExchangeModule();
+    sound(500);
+  };
+  modal.classList.remove("hidden");
+  sound(400,.05,"sine");
+}
+
 function runExchange(){
   if(exchangeBusy||exchangeBoxCount()<1)return;
   const inputVal=exchangeBoxValue();
@@ -1997,24 +2029,79 @@ function runExchange(){
   renderExchangeModule();
   const roll=Math.random();
   const mult=roll<0.33?0.5:roll<0.66?1:1.5;
-  let targetVal=Math.max(1,Math.round(inputVal*mult));
-  // Rellenar caja de salida hasta targetVal
-  const outItems={};
-  let filled=0;
-  let guard=0;
-  while(filled<targetVal&&guard++<200){
-    const name=pool[Math.floor(Math.random()*pool.length)];
-    const unit=Math.max(1,Number(info(name).val)||1);
-    if(filled+unit>targetVal*1.15&&filled>0)break;
-    outItems[name]=(outItems[name]||0)+1;
-    filled+=unit;
-    if(filled>=targetVal)break;
+  let targetVal=mult===1?inputVal:Math.max(1,Math.round(inputVal*mult));
+  // Rellenar EXACTO al valor objetivo (50% / 100% / 150%)
+  const unitOf=n=>Math.max(1,Number(info(n).val)||1);
+  function packExact(target,names){
+    const out={}; let left=target; let guard=0;
+    const sorted=names.slice().sort((a,b)=>unitOf(a)-unitOf(b));
+    while(left>0&&guard++<600){
+      let fit=sorted.filter(n=>unitOf(n)<=left);
+      if(!fit.length){
+        // Relleno forzado con el más barato (ajustar unidades)
+        const cheap=sorted[0]||names[0];
+        if(!cheap)break;
+        const u=unitOf(cheap);
+        // si no cabe exacto, sumar y recortar otras entradas
+        out[cheap]=(out[cheap]||0)+1;
+        left-=u;
+        if(left<0){
+          // sobrepaso: intentar equilibrar quitando items caros
+          left=0;
+        }
+        break;
+      }
+      // Preferir unidades que dividen el resto
+      const divs=fit.filter(n=>left%unitOf(n)===0);
+      const pick=(divs.length?divs:fit)[Math.floor(Math.random()*(divs.length?divs.length:fit.length))];
+      out[pick]=(out[pick]||0)+1;
+      left-=unitOf(pick);
+    }
+    // Si quedó resto por valores que no dividen, completar con el item de menor valor
+    if(left>0){
+      const cheap=sorted[0]||names[0];
+      if(cheap){
+        const u=unitOf(cheap);
+        if(u===1){out[cheap]=(out[cheap]||0)+left;left=0;}
+        else{
+          // Añadir unidades hasta igualar o superar y luego aceptar solo si exacto
+          while(left>0){out[cheap]=(out[cheap]||0)+1;left-=u;}
+        }
+      }
+    }
+    // Calcular valor real; si no coincide, reconstruir solo con el item más barato
+    let total=Object.entries(out).reduce((s,[n,q])=>s+unitOf(n)*q,0);
+    if(total!==target&&sorted.length){
+      const cheap=sorted[0];
+      const u=unitOf(cheap);
+      if(target%u===0){
+        return {[cheap]:target/u};
+      }
+      // Buscar combinación: item barato + ajustes
+      // Último recurso: usar Hojas/Ramas/Madera si val 1-2
+      const pads=["Hojas","Ramas","Madera","Resina","Piedra","Carbón"].filter(n=>names.includes(n)||info(n).cat==="Material");
+      const pad=pads.find(n=>unitOf(n)===1)||pads[0]||cheap;
+      const pu=unitOf(pad);
+      if(target%pu===0)return {[pad]:Math.max(1,target/pu)};
+      // Forzar: floor + remainder with next pad of 1 if exists in itemDB
+      const ones=Object.keys(itemDB).filter(n=>itemDB[n].cat==="Material"&&Math.max(1,Number(itemDB[n].val)||1)===1);
+      const one=ones[0];
+      if(one){
+        const main=cheap;
+        const mu=unitOf(main);
+        const mainQty=Math.floor(target/mu);
+        const rest=target-mainQty*mu;
+        const o={};
+        if(mainQty>0)o[main]=mainQty;
+        if(rest>0)o[one]=rest;
+        return o;
+      }
+      return {[cheap]:Math.max(1,Math.round(target/u))};
+    }
+    return out;
   }
-  if(!Object.keys(outItems).length){
-    const name=pool[0];
-    outItems[name]=1;
-    filled=Math.max(1,Number(info(name).val)||1);
-  }
+  const outItems=packExact(targetVal,pool);
+  const filled=Object.entries(outItems).reduce((s,[n,q])=>s+unitOf(n)*q,0);
   exchangePending={inputVal,outVal:filled,mult,items:outItems};
   let modal=$("exchangeResultModal");
   if(!modal){
@@ -2032,7 +2119,8 @@ function runExchange(){
     if(!exchangePending)return;
     const p=exchangePending;
     const lines=Object.entries(p.items).map(([n,q])=>`<div class="exchange-row"><span class="item-icon">${itemIconMarkup(n,info(n).icon)}</span><div><b>${escapeHtml(n)}</b><small>×${q} · ${Math.max(1,Number(info(n).val)||1)} cr./u</small></div></div>`).join("");
-    const outcome=p.mult>1?'<span class="cyan">Ganancia (+50%)</span>':p.mult<1?'<span class="red">Pérdida (−50%)</span>':'<span class="gold">Neutro</span>';
+    const ratio=p.inputVal?p.outVal/p.inputVal:1;
+    const outcome=ratio>=1.4?'<span class="cyan">Ganancia (+50%)</span>':ratio<=0.6?'<span class="red">Pérdida (−50%)</span>':'<span class="gold">Neutro</span>';
     if(body)body.innerHTML=`
       <div class="statline"><span>Valor entregado</span><b class="gold">${p.inputVal} cr.</b></div>
       <div class="statline"><span>Valor recibido</span><b class="gold">${p.outVal} cr.</b></div>
@@ -2249,6 +2337,7 @@ function fight(){
 function renderFusionSelects(){["A","B"].forEach(k=>{const id=state.fusionSlots?.[k];const x=state.inventory.find(x=>x.id===id);const slot=$("slot"+k);slot.classList.toggle("filled",!!x);slot.querySelector(".slot-icon").innerHTML=x?itemIconMarkup(x.name,x.icon||info(x.name).icon):"＋";$("fusion"+k+"Label").textContent=x?inventoryDisplayName(x):`Objeto ${k}`;$("chooseFusion"+k).textContent=x?"Cambiar objeto":"Elegir del inventario";const clearBtn=$("clearFusion"+k);if(clearBtn){clearBtn.classList.toggle("hidden",!x);clearBtn.disabled=!!activeTask||!!state.pendingFusion}});$("fuseBtn").disabled=!!activeTask||!!state.pendingFusion||!state.inventory.some(x=>x.id===state.fusionSlots?.A)||!state.inventory.some(x=>x.id===state.fusionSlots?.B);$("chooseFusionA").disabled=!!state.pendingFusion||!!activeTask;$("chooseFusionB").disabled=!!state.pendingFusion||!!activeTask}
 function openPicker(mode,slot=null){pickerMode=mode;pickerSlot=slot;pickerFilter="Todos";pickerPage=1;$("pickerSearch").value="";$("pickerTitle").textContent=mode==="fusion"?`▤ INVENTARIO · OBJETO ${slot}`:mode==="spawnAnomaly"?"▤ INVENTARIO · ANOMALÍA":mode==="spawn"?`▤ INVENTARIO · ÓRGANO ${Number(slot)+1}`:mode==="extract"?"▤ INVENTARIO · EXTRACCIÓN":mode==="sell"?"▤ INVENTARIO · VENDER":"▤ INVENTARIO · EQUIPAR";$("pickerDescription").textContent=mode==="fusion"?"Selecciona un objeto propio del juego para la cámara de fusión.":mode==="spawnAnomaly"?"Selecciona una anomalía del inventario (opcional).":mode==="spawn"?"Selecciona un órgano del inventario.":mode==="extract"?"Selecciona una criatura orgánica. Las unidades robóticas no sirven.":mode==="sell"?"Selecciona el objeto que quieres vender.":"Selecciona una pieza compatible con el espacio de equipo.";$("pickerFilterMenu").classList.toggle("hidden",mode!=="fusion");$("pickerFilterLabel").textContent=pickerFilter;$("inventoryPicker").classList.remove("hidden");renderPicker()}
 function renderPicker(){
+ if(pickerMode!=="exchangeInput"){const qb=$("pickerQtyBar"),qc=$("pickerQtyConfirm");if(qb)qb.classList.add("hidden");if(qc)qc.classList.add("hidden");}
  const search=(($("pickerSearch")&&$("pickerSearch").value)||"").trim().toLowerCase();
  // --- Máquina de Mejora: objetivo desde Registro Base ---
  if(pickerMode==="upgradeTarget"){
@@ -2321,43 +2410,7 @@ function renderPicker(){
   pickerPage=Math.min(Math.max(1,pickerPage),pages);
   const shown=list.slice((pickerPage-1)*pageSize,pickerPage*pageSize);
   $("pickerGrid").innerHTML=shown.length?shown.map(x=>`<button type="button" class="picker-item" data-pick-id="${x.id}"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><span style="min-width:0"><b title="${escapeHtml(x.name)}">${escapeHtml(inventoryDisplayName(x))}</b><small>N${x.r||1} · ×${x.qty}</small></span></button>`).join(""):'<div class="empty" style="grid-column:1/-1">No hay objetos base disponibles.</div>';
-  // Barra de cantidad
-  let qtyBar=$("pickerQtyBar");
-  if(!qtyBar){
-    qtyBar=document.createElement("div");
-    qtyBar.id="pickerQtyBar";
-    qtyBar.className="picker-qty-bar hidden";
-    qtyBar.innerHTML=`<button type="button" class="qty-btn" id="pickerQtyMinus">‹</button><span class="qty-val" id="pickerQtyVal">×1</span><button type="button" class="qty-btn" id="pickerQtyPlus">›</button>`;
-    const conf=document.createElement("div");
-    conf.id="pickerQtyConfirm";
-    conf.className="picker-confirm-row hidden";
-    conf.innerHTML=`<button type="button" class="primary" id="pickerQtyOk">Añadir a la caja</button><button type="button" class="tiny" id="pickerQtyCancel">Cancelar</button>`;
-    const grid=$("pickerGrid");
-    if(grid&&grid.parentNode){grid.parentNode.insertBefore(qtyBar,grid.nextSibling);grid.parentNode.insertBefore(conf,qtyBar.nextSibling);}
-  }
-  let pendingId=null,pendingQty=1,pendingMax=1;
-  const hideQty=()=>{pendingId=null;qtyBar.classList.add("hidden");$("pickerQtyConfirm").classList.add("hidden");};
-  hideQty();
-  const syncQty=()=>{if($("pickerQtyVal"))$("pickerQtyVal").textContent="×"+pendingQty};
-  if($("pickerQtyMinus"))$("pickerQtyMinus").onclick=()=>{pendingQty=Math.max(1,pendingQty-1);syncQty()};
-  if($("pickerQtyPlus"))$("pickerQtyPlus").onclick=()=>{pendingQty=Math.min(pendingMax,pendingQty+1);syncQty()};
-  if($("pickerQtyCancel"))$("pickerQtyCancel").onclick=hideQty;
-  if($("pickerQtyOk"))$("pickerQtyOk").onclick=()=>{
-    if(!pendingId)return;
-    const x=state.inventory.find(i=>i.id===pendingId);if(!x)return;
-    const used=exchangeBoxCount();
-    const already=Number(exchangeBox[x.id]||0);
-    const room=10-used;
-    const add=Math.min(pendingQty,x.qty-already,room);
-    if(add<=0){toast("No cabe más en la caja.",true);return}
-    exchangeBox[x.id]=already+add;
-    hideQty();
-    $("inventoryPicker").classList.add("hidden");
-    renderExchangeModule();sound(500);
-  };
-  if($("pickerPageInfo"))$("pickerPageInfo").textContent=`Página ${pickerPage} / ${pages}`;
-  if($("pickerPrev")){$("pickerPrev").disabled=pickerPage<=1;$("pickerPrev").onclick=()=>{pickerPage=Math.max(1,pickerPage-1);renderPicker()};}
-  if($("pickerNext")){$("pickerNext").disabled=pickerPage>=pages;$("pickerNext").onclick=()=>{pickerPage++;renderPicker()};}
+  // Cantidad en HUD aparte (no dentro del picker)
   $("pickerGrid").querySelectorAll("[data-pick-id]").forEach(b=>b.onclick=()=>{
     const x=state.inventory.find(i=>i.id===b.dataset.pickId);if(!x)return;
     if(isSynthesisItem(x)){toast("Solo objetos base.",true);return}
@@ -2366,13 +2419,13 @@ function renderPicker(){
     const room=10-used;
     const can=Math.min(x.qty-already,room);
     if(can<=0){toast("Máximo 10 unidades en la caja.",true);return}
-    if(can===1){
-      exchangeBox[x.id]=already+1;
-      $("inventoryPicker").classList.add("hidden");renderExchangeModule();sound(500);return;
-    }
-    pendingId=x.id;pendingMax=can;pendingQty=1;syncQty();
-    qtyBar.classList.remove("hidden");$("pickerQtyConfirm").classList.remove("hidden");
+    // Cerrar picker e abrir modal de cantidad
+    $("inventoryPicker").classList.add("hidden");
+    openExchangeQtyModal(x.id,can);
   });
+  if($("pickerPageInfo"))$("pickerPageInfo").textContent=`Página ${pickerPage} / ${pages}`;
+  if($("pickerPrev")){$("pickerPrev").disabled=pickerPage<=1;$("pickerPrev").onclick=()=>{pickerPage=Math.max(1,pickerPage-1);renderPicker()};}
+  if($("pickerNext")){$("pickerNext").disabled=pickerPage>=pages;$("pickerNext").onclick=()=>{pickerPage++;renderPicker()};}
   return;
  }
  let list=state.inventory.filter(x=>x.qty>0&&x.name.toLowerCase().includes(search));
@@ -2889,7 +2942,7 @@ function openInventoryItem(id){const x=state.inventory.find(i=>i.id===id);if(!x)
 
 function applyLayoutMode(mode){const valid=["auto","mobile","pc16"].includes(mode)?mode:"auto";state.settings.layoutMode=valid;document.body.classList.toggle("layout-mobile",valid==="mobile");document.body.classList.toggle("layout-pc16",valid==="pc16");document.body.classList.toggle("layout-auto",valid==="auto");const select=$("layoutModeSelect");if(select&&select.value!==valid)select.value=valid;}
 function render(){renderPendingFusion();renderSupplyDelivery();renderStats();renderZoneCards();renderZoneDetail();renderZoneLoot();renderFusionSelects();renderRecipes();renderSmelt();renderBonus();renderSupplies();renderCentralSales();renderExtractTable();renderSpawnTable();renderInventory();renderEquipment();renderFusionHistory();renderRegistry();save()}
-$("fuseBtn").addEventListener("click",doFuse);if($("claimSupply"))$("claimSupply").addEventListener("click",claimSupply);$("chooseFusionA").onclick=()=>openPicker("fusion","A");$("chooseFusionB").onclick=()=>openPicker("fusion","B");$("clearFusionA").onclick=()=>{if(state.fusionSlots)state.fusionSlots.A=null;renderFusionSelects();sound(400,.05,"sine")};$("clearFusionB").onclick=()=>{if(state.fusionSlots)state.fusionSlots.B=null;renderFusionSelects();sound(400,.05,"sine")};$("fightBtn").addEventListener("click",fight);$("closePicker").onclick=()=>$("inventoryPicker").classList.add("hidden");$("inventoryPicker").addEventListener("click",e=>{if(e.target===$("inventoryPicker"))$("inventoryPicker").classList.add("hidden")});$("pickerSearch").addEventListener("input",()=>{pickerPage=1;renderPicker()});$("pickerFilterTrigger").onclick=()=>{$("pickerFilterOptions").classList.toggle("hidden");$("pickerFilterTrigger").setAttribute("aria-expanded",!$("pickerFilterOptions").classList.contains("hidden"))};document.querySelectorAll("[data-picker-filter]").forEach(b=>b.onclick=()=>{pickerFilter=b.dataset.pickerFilter;$("pickerFilterLabel").textContent=pickerFilter;document.querySelectorAll("[data-picker-filter]").forEach(x=>x.setAttribute("aria-selected",x===b?"true":"false"));$("pickerFilterOptions").classList.add("hidden");pickerPage=1;renderPicker()});$("centralSaleSearch").addEventListener("input",renderCentralSales);$("centralSaleFilterTrigger").onclick=()=>{const menu=$("centralSaleFilterOptions"),opening=menu.classList.contains("hidden");closeSortMenus(opening?menu.id:null);menu.classList.toggle("hidden",!opening);$("centralSaleFilterTrigger").setAttribute("aria-expanded",String(opening))};document.querySelectorAll("[data-sale-filter]").forEach(b=>b.onclick=()=>{centralSaleFilter=b.dataset.saleFilter;$("centralSaleFilterLabel").textContent=centralSaleFilter;document.querySelectorAll("[data-sale-filter]").forEach(x=>x.setAttribute("aria-selected",x===b?"true":"false"));$("centralSaleFilterOptions").classList.add("hidden");$("centralSaleFilterTrigger").setAttribute("aria-expanded","false");renderCentralSales()});$("centralSaleSelectAll").onclick=()=>{const equipped=new Set(Object.values(state.equipped||{}).filter(Boolean)),search=$("centralSaleSearch").value.trim().toLowerCase();state.inventory.filter(x=>x.qty>0&&!equipped.has(x.id)&&x.name.toLowerCase().includes(search)&&(centralSaleFilter==="Todos"||(centralSaleFilter==="Síntesis"?isSynthesisItem(x):centralSaleFilter==="Lingote"?(x.cat==="Lingote"||x.name.startsWith("Lingote de ")):centralSaleFilter==="Otro"?!( ["Material","Lingote","Herramienta","Arma","Equipo","Consumible","Criatura","Órgano","Anomalía"].includes(x.cat)):x.cat===centralSaleFilter))).forEach(x=>centralSaleSelection[x.id]=x.qty);renderCentralSales()};$("centralSaleClear").onclick=()=>{centralSaleSelection={};renderCentralSales()};$("centralSaleSubmit").onclick=sellCentralSelection;
+$("fuseBtn").addEventListener("click",doFuse);if($("claimSupply"))$("claimSupply").addEventListener("click",claimSupply);$("chooseFusionA").onclick=()=>openPicker("fusion","A");$("chooseFusionB").onclick=()=>openPicker("fusion","B");$("clearFusionA").onclick=()=>{if(state.fusionSlots)state.fusionSlots.A=null;renderFusionSelects();sound(400,.05,"sine")};$("clearFusionB").onclick=()=>{if(state.fusionSlots)state.fusionSlots.B=null;renderFusionSelects();sound(400,.05,"sine")};$("fightBtn").addEventListener("click",fight);$("closePicker").onclick=()=>{const qb=$("pickerQtyBar"),qc=$("pickerQtyConfirm");if(qb)qb.classList.add("hidden");if(qc)qc.classList.add("hidden");$("inventoryPicker").classList.add("hidden")};$("inventoryPicker").addEventListener("click",e=>{if(e.target===$("inventoryPicker"))$("inventoryPicker").classList.add("hidden")});$("pickerSearch").addEventListener("input",()=>{pickerPage=1;renderPicker()});$("pickerFilterTrigger").onclick=()=>{$("pickerFilterOptions").classList.toggle("hidden");$("pickerFilterTrigger").setAttribute("aria-expanded",!$("pickerFilterOptions").classList.contains("hidden"))};document.querySelectorAll("[data-picker-filter]").forEach(b=>b.onclick=()=>{pickerFilter=b.dataset.pickerFilter;$("pickerFilterLabel").textContent=pickerFilter;document.querySelectorAll("[data-picker-filter]").forEach(x=>x.setAttribute("aria-selected",x===b?"true":"false"));$("pickerFilterOptions").classList.add("hidden");pickerPage=1;renderPicker()});$("centralSaleSearch").addEventListener("input",renderCentralSales);$("centralSaleFilterTrigger").onclick=()=>{const menu=$("centralSaleFilterOptions"),opening=menu.classList.contains("hidden");closeSortMenus(opening?menu.id:null);menu.classList.toggle("hidden",!opening);$("centralSaleFilterTrigger").setAttribute("aria-expanded",String(opening))};document.querySelectorAll("[data-sale-filter]").forEach(b=>b.onclick=()=>{centralSaleFilter=b.dataset.saleFilter;$("centralSaleFilterLabel").textContent=centralSaleFilter;document.querySelectorAll("[data-sale-filter]").forEach(x=>x.setAttribute("aria-selected",x===b?"true":"false"));$("centralSaleFilterOptions").classList.add("hidden");$("centralSaleFilterTrigger").setAttribute("aria-expanded","false");renderCentralSales()});$("centralSaleSelectAll").onclick=()=>{const equipped=new Set(Object.values(state.equipped||{}).filter(Boolean)),search=$("centralSaleSearch").value.trim().toLowerCase();state.inventory.filter(x=>x.qty>0&&!equipped.has(x.id)&&x.name.toLowerCase().includes(search)&&(centralSaleFilter==="Todos"||(centralSaleFilter==="Síntesis"?isSynthesisItem(x):centralSaleFilter==="Lingote"?(x.cat==="Lingote"||x.name.startsWith("Lingote de ")):centralSaleFilter==="Otro"?!( ["Material","Lingote","Herramienta","Arma","Equipo","Consumible","Criatura","Órgano","Anomalía"].includes(x.cat)):x.cat===centralSaleFilter))).forEach(x=>centralSaleSelection[x.id]=x.qty);renderCentralSales()};$("centralSaleClear").onclick=()=>{centralSaleSelection={};renderCentralSales()};$("centralSaleSubmit").onclick=sellCentralSelection;
 if($("chooseExtractCreature"))$("chooseExtractCreature").onclick=()=>openPicker("extract");
 if($("extractStartBtn"))$("extractStartBtn").onclick=startExtraction;
 
@@ -2949,6 +3002,9 @@ document.querySelectorAll("[data-nexus-tab]").forEach(b=>b.onclick=()=>{
 
 if($("upgradeInputPick"))$("upgradeInputPick").onclick=()=>{if(!upgradeSpinning)openUpgradeInputPicker()};
 if($("upgradeTargetPick"))$("upgradeTargetPick").onclick=()=>{if(!upgradeSpinning)openUpgradeTargetPicker()};
+if($("upgradeInputClear"))$("upgradeInputClear").onclick=()=>{if(upgradeSpinning)return;upgradeInputId=null;upgradeInputQty=1;renderUpgradeMachine();sound(400,.05,"sine")};
+if($("upgradeTargetClear"))$("upgradeTargetClear").onclick=()=>{if(upgradeSpinning)return;upgradeTargetName=null;upgradeTargetQty=1;renderUpgradeMachine();sound(400,.05,"sine")};
+
 if($("upgradeInMinus"))$("upgradeInMinus").onclick=()=>{if(upgradeSpinning)return;upgradeInputQty=Math.max(1,upgradeInputQty-1);renderUpgradeMachine()};
 if($("upgradeInPlus"))$("upgradeInPlus").onclick=()=>{if(upgradeSpinning)return;const it=state.inventory.find(i=>i.id===upgradeInputId);upgradeInputQty=Math.min(it?it.qty:1,upgradeInputQty+1);renderUpgradeMachine()};
 if($("upgradeOutMinus"))$("upgradeOutMinus").onclick=()=>{if(upgradeSpinning)return;upgradeTargetQty=Math.max(1,upgradeTargetQty-1);renderUpgradeMachine()};
