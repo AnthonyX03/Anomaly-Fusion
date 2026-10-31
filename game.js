@@ -951,16 +951,16 @@ const MARKET_RATES=[50,75,100,150,200];
  ["Ametralladora de iridio",{icon:"🔫",cat:"Arma",r:5,val:250,desc:"Ametralladora pesada de iridio. Contrabando de guerra.",slot:"weapon",damage:52,ballistic:true,illegal:true,trait:"Ilegal",affix:"Ilegal"}],
  ["Lanzagranadas de chatarra",{icon:"💣",cat:"Arma",r:4,val:170,desc:"Lanzagranadas improvisado. Extremadamente ilegal.",slot:"weapon",damage:40,ballistic:true,illegal:true,trait:"Ilegal",affix:"Ilegal"}],
  // Contrabando (Otros ilegales)
- ["Fichero robado",{icon:"📁",cat:"Otro",r:1,val:22,desc:"Documentación clasificada extraída de un terminal. Contrabando de datos.",illegal:true,trait:"Ilegal",affix:"Ilegal",contraband:true}],
- ["Chip de acceso negro",{icon:"💾",cat:"Otro",r:2,val:40,desc:"Chip que abre puertas de zonas restringidas. Ilegal.",illegal:true,trait:"Ilegal",affix:"Ilegal",contraband:true}],
- ["Estupefaciente de espora",{icon:"💊",cat:"Otro",r:2,val:45,desc:"Dosis compacta de espora procesada. Contrabando químico.",illegal:true,trait:"Ilegal",affix:"Ilegal",contraband:true}],
- ["Contrato de silenciador",{icon:"📜",cat:"Otro",r:3,val:70,desc:"Documento que autoriza un trabajo oscuro. Mercado negro.",illegal:true,trait:"Ilegal",affix:"Ilegal",contraband:true}],
- ["Célula de contrabando",{icon:"🔋",cat:"Otro",r:3,val:75,desc:"Batería militar robada de un convoy. Ilegal.",illegal:true,trait:"Ilegal",affix:"Ilegal",contraband:true}],
- ["Implante de memoria pirata",{icon:"🧠",cat:"Otro",r:4,val:110,desc:"Implante neural con datos robados. Contrabando tecnológico.",illegal:true,trait:"Ilegal",affix:"Ilegal",contraband:true}],
- ["Llave de bóveda negra",{icon:"🗝️",cat:"Otro",r:4,val:120,desc:"Llave física de una bóveda de la red clandestina.",illegal:true,trait:"Ilegal",affix:"Ilegal",contraband:true}],
- ["Núcleo de arma prohibida",{icon:"⚛️",cat:"Otro",r:5,val:180,desc:"Núcleo energético para armamento restringido. Máxima ilegalidad.",illegal:true,trait:"Ilegal",affix:"Ilegal",contraband:true}],
- ["Manifiesto del Colapso",{icon:"📕",cat:"Otro",r:5,val:200,desc:"Texto prohibido sobre el día del Colapso. Censurado por la Central.",illegal:true,trait:"Ilegal",affix:"Ilegal",contraband:true}],
- ["Valija diplomática falsa",{icon:"💼",cat:"Otro",r:3,val:80,desc:"Maletín con sellos falsificados para pasar controles.",illegal:true,trait:"Ilegal",affix:"Ilegal",contraband:true}]
+ ["Fichero robado",{icon:"📁",cat:"Contrabando",r:1,val:22,desc:"Documentación clasificada extraída de un terminal. Contrabando de datos.",illegal:true,trait:"Ilegal",affix:"Ilegal",contraband:true}],
+ ["Chip de acceso negro",{icon:"💾",cat:"Contrabando",r:2,val:40,desc:"Chip que abre puertas de zonas restringidas. Ilegal.",illegal:true,trait:"Ilegal",affix:"Ilegal",contraband:true}],
+ ["Estupefaciente de espora",{icon:"💊",cat:"Contrabando",r:2,val:45,desc:"Dosis compacta de espora procesada. Contrabando químico.",illegal:true,trait:"Ilegal",affix:"Ilegal",contraband:true}],
+ ["Contrato de silenciador",{icon:"📜",cat:"Contrabando",r:3,val:70,desc:"Documento que autoriza un trabajo oscuro. Mercado negro.",illegal:true,trait:"Ilegal",affix:"Ilegal",contraband:true}],
+ ["Célula de contrabando",{icon:"🔋",cat:"Contrabando",r:3,val:75,desc:"Batería militar robada de un convoy. Ilegal.",illegal:true,trait:"Ilegal",affix:"Ilegal",contraband:true}],
+ ["Implante de memoria pirata",{icon:"🧠",cat:"Contrabando",r:4,val:110,desc:"Implante neural con datos robados. Contrabando tecnológico.",illegal:true,trait:"Ilegal",affix:"Ilegal",contraband:true}],
+ ["Llave de bóveda negra",{icon:"🗝️",cat:"Contrabando",r:4,val:120,desc:"Llave física de una bóveda de la red clandestina.",illegal:true,trait:"Ilegal",affix:"Ilegal",contraband:true}],
+ ["Núcleo de arma prohibida",{icon:"⚛️",cat:"Contrabando",r:5,val:180,desc:"Núcleo energético para armamento restringido. Máxima ilegalidad.",illegal:true,trait:"Ilegal",affix:"Ilegal",contraband:true}],
+ ["Manifiesto del Colapso",{icon:"📕",cat:"Contrabando",r:5,val:200,desc:"Texto prohibido sobre el día del Colapso. Censurado por la Central.",illegal:true,trait:"Ilegal",affix:"Ilegal",contraband:true}],
+ ["Valija diplomática falsa",{icon:"💼",cat:"Contrabando",r:3,val:80,desc:"Maletín con sellos falsificados para pasar controles.",illegal:true,trait:"Ilegal",affix:"Ilegal",contraband:true}]
 ].forEach(([name,data])=>{if(!itemDB[name])itemDB[name]={name,...data};else Object.assign(itemDB[name],data);});
 
 function marketDayKey(){
@@ -994,6 +994,16 @@ function isLegalMarketItem(name,data){
  if(["Herramienta","Arma","Equipo"].includes(cat))return isMarketRecipeItem(name)||!!d.marketLegal;
  return false;
 }
+
+function isRefineDust(x){
+  const n=typeof x==="string"?x:(x&&x.name)||"";
+  const d=typeof x==="object"&&x?x:info(n);
+  return n==="Polvo de refinadora"||!!(d&&d.refineDust);
+}
+function isContrabandItem(x){
+  const d=typeof x==="object"&&x?{...info(x.name),...x}:info(x);
+  return !!(d&&(d.contraband||d.cat==="Contrabando"));
+}
 function isBlackMarketItem(name,data){
  const d=data||info(name)||{};
  if(!d||!d.cat)return false;
@@ -1001,7 +1011,7 @@ function isBlackMarketItem(name,data){
  if(d.cat==="Criatura")return false;
  // Órganos: solo selección propia (sin raíz de criatura) para el catálogo; el diario puede usar marketOrgan
  if(d.cat==="Órgano")return !!(d.marketOrgan||(!d.organRoot&&d.illegal));
- if(d.contraband||d.ballistic)return true;
+ if(d.contraband||d.cat==="Contrabando"||d.ballistic)return true;
  if(isBallisticWeapon(name,d))return true;
  if(d.illegal||d.trait==="Ilegal")return d.cat!=="Criatura";
  return false;
@@ -1092,7 +1102,7 @@ function renderMarketBuy(isBlack){
    if(isBlack){
     if(catFilter==="Órgano")return data.cat==="Órgano";
     if(catFilter==="Arma")return isBallisticWeapon(x.name,data)||data.ballistic;
-    if(catFilter==="Otro")return !!(data.contraband||(data.illegal&&data.cat==="Otro"));
+    if(catFilter==="Contrabando"||catFilter==="Otro")return !!(data.contraband||data.cat==="Contrabando"||(data.illegal&&(data.cat==="Otro"||data.cat==="Contrabando")));
     return data.cat!=="Criatura";
    }else{
     return data.cat===catFilter;
@@ -1110,7 +1120,7 @@ function renderMarketBuy(isBlack){
     if(!isBlackMarketItem(n,d))return false;
     if(catFilter==="Órgano")return d.cat==="Órgano"&&(d.marketOrgan||!d.organRoot);
     if(catFilter==="Arma")return isBallisticWeapon(n,d)||d.ballistic;
-    if(catFilter==="Otro")return !!(d.contraband||(d.illegal&&d.cat==="Otro"));
+    if(catFilter==="Contrabando"||catFilter==="Otro")return !!(d.contraband||d.cat==="Contrabando"||(d.illegal&&(d.cat==="Otro"||d.cat==="Contrabando")));
     // Todos: sin criaturas
     return d.cat!=="Criatura";
    }
@@ -1556,6 +1566,7 @@ function addItem(name,qty=1,opts={}){
  else state.inventory.push({...resolved,id:uid(),name,qty,cat:cat||d.cat,r:resolved.r||d.r||1,val:resolved.val||d.val||5,desc:resolved.desc||d.desc||"",icon:resolved.icon||d.icon||"❔",slot});
  state.discovered=state.discovered||{};state.discovered[name]={...d,...resolved,name,cat:cat||d.cat,r:resolved.r||d.r||1,val:resolved.val||d.val||5,desc:resolved.desc||d.desc||"",icon:resolved.icon||d.icon||"❔"};
  if(!state.seen.includes(name))state.seen.push(name);
+ if((cat||d.cat)==="Anomalía"||(resolved.cat==="Anomalía")){state.achievements=state.achievements||{};state.achievements.anomaly_fusion=true;trackAchievement("anomaly_fusion")}
  recordObservedValue({...resolved,name,cat:cat||d.cat,r:resolved.r||d.r||1,val:resolved.val||d.val||5});
 }
 function takeById(id,n=1){const x=state.inventory.find(i=>i.id===id);if(!x||x.qty<n)return false;x.qty-=n;if(x.qty<=0){state.inventory=state.inventory.filter(i=>i.id!==id);for(const k of Object.keys(state.equipped||{}))if(state.equipped[k]===id)state.equipped[k]=null;}return true}
@@ -1904,6 +1915,7 @@ function spinUpgradeRoulette(){
   setTimeout(()=>{
     if(roulette)roulette.classList.remove("is-spinning");
     if(win){
+      state.achievements=state.achievements||{};state.achievements.upgrade_success=true;
       addItem(upgradeTargetName,upgradeTargetQty,{origin:"mejora"});
       log(`Mejora exitosa: entregaste entrada y obtuviste <b>${upgradeTargetQty}× ${escapeHtml(upgradeTargetName)}</b> (${pct}%).`);
       toast(`¡Éxito! +${upgradeTargetQty}× ${upgradeTargetName}`);
@@ -2146,6 +2158,343 @@ function claimExchangeResult(){
   sound(700,.12,"triangle");
 }
 
+
+function refineChancePct(){return Math.min(100,20+Math.max(0,refineDustQty)*5)}
+function countDust(){return count("Polvo de refinadora")}
+function renderRefineMachine(){
+  const inItem=refineInputId?state.inventory.find(i=>i.id===refineInputId):null;
+  if(refineInputId&&!inItem){refineInputId=null}
+  if(inItem&&isItemEquipped(inItem.id)){refineInputId=null}
+  const pick=$("refineInputPick"),infoEl=$("refineInputInfo"),clr=$("refineInputClear");
+  if(pick){
+    if(inItem)pick.innerHTML=`<span class="item-icon">${itemIconMarkup(inItem.name,inItem.icon||info(inItem.name).icon)}</span> ${escapeHtml(inventoryDisplayName(inItem))}`;
+    else pick.textContent="＋ Elegir objeto";
+  }
+  if(infoEl)infoEl.textContent=inItem?`N${inItem.r||1} · ${inItem.cat||"?"} · ${Math.max(1,Number(inItem.val)||Number(info(inItem.name).val)||1)} cr.`:"Ningún objeto.";
+  if(clr)clr.classList.toggle("hidden",!inItem||refineBusy);
+  const tPick=$("refineTargetPick"),tInfo=$("refineTargetInfo"),tClr=$("refineTargetClear");
+  if(tPick){
+    if(refineTargetName)tPick.innerHTML=`<span class="item-icon">${itemIconMarkup(refineTargetName,info(refineTargetName).icon)}</span> ${escapeHtml(refineTargetName)}`;
+    else tPick.textContent="＋ Elegir del Registro";
+  }
+  if(tInfo)tInfo.textContent=refineTargetName?`N${info(refineTargetName).r||1} · ${info(refineTargetName).cat||"?"} · ${Math.max(1,Number(info(refineTargetName).val)||1)} cr.`:"Ningún objetivo.";
+  if(tClr)tClr.classList.toggle("hidden",!refineTargetName||refineBusy);
+  const dustInv=countDust();
+  refineDustQty=Math.min(refineDustQty,dustInv,16); // max +80% -> 100%
+  if($("refineDustInv"))$("refineDustInv").textContent=String(dustInv);
+  if($("refineDustUse"))$("refineDustUse").textContent=String(refineDustQty);
+  if($("refineDustQty"))$("refineDustQty").textContent="×"+refineDustQty;
+  const pct=refineChancePct();
+  if($("refineChanceLabel"))$("refineChanceLabel").textContent=pct+"%";
+  const btn=$("refineStartBtn");
+  if(btn){
+    btn.disabled=refineBusy||!inItem||!refineTargetName||!!activeTask||!!currentEnemy||!!refinePending;
+    const inVal=inItem?Math.max(1,Number(inItem.val)||Number(info(inItem.name).val)||1):0;
+    const outVal=refineTargetName?Math.max(1,Number(info(refineTargetName).val)||1):0;
+    if(inItem&&refineTargetName&&outVal<=inVal)btn.disabled=true;
+  }
+  if($("refineClaimBtn"))$("refineClaimBtn").classList.toggle("hidden",!refinePending||refineBusy);
+  if($("refineStatus")&&!refineBusy&&!refinePending)$("refineStatus").textContent="En espera";
+}
+function openRefineInputPicker(){
+  if(refineBusy)return;
+  pickerMode="refineInput";pickerSlot=null;pickerFilter="Todos";pickerPage=1;
+  if($("pickerSearch"))$("pickerSearch").value="";
+  if($("pickerTitle"))$("pickerTitle").textContent="▤ REFINADORA · ENTRADA";
+  if($("pickerDescription"))$("pickerDescription").textContent="Objeto a refinar (no equipado, no síntesis).";
+  if($("pickerFilterMenu"))$("pickerFilterMenu").classList.remove("hidden");
+  $("inventoryPicker").classList.remove("hidden");renderPicker();
+}
+function openRefineTargetPicker(){
+  if(refineBusy)return;
+  pickerMode="refineTarget";pickerSlot=null;pickerFilter="Todos";pickerPage=1;
+  if($("pickerSearch"))$("pickerSearch").value="";
+  if($("pickerTitle"))$("pickerTitle").textContent="▤ REFINADORA · OBJETIVO";
+  if($("pickerDescription"))$("pickerDescription").textContent="Solo objetos del Registro Base con valor superior a la entrada.";
+  if($("pickerFilterMenu"))$("pickerFilterMenu").classList.remove("hidden");
+  $("inventoryPicker").classList.remove("hidden");renderPicker();
+}
+function startRefine(){
+  if(refineBusy||refinePending)return;
+  const item=state.inventory.find(i=>i.id===refineInputId);
+  if(!item||!refineTargetName)return;
+  if(isItemEquipped(item.id))return toast("Desequipa el objeto primero.",true);
+  if(isSynthesisItem(item))return toast("No se admiten síntesis.",true);
+  const inVal=Math.max(1,Number(item.val)||Number(info(item.name).val)||1);
+  const outVal=Math.max(1,Number(info(refineTargetName).val)||1);
+  if(outVal<=inVal)return toast("El objetivo debe tener mayor valor que la entrada.",true);
+  const dustNeed=refineDustQty;
+  if(dustNeed>countDust())return toast("No tienes suficiente Polvo de refinadora.",true);
+  const pct=refineChancePct();
+  // Consumir entrada y polvo
+  if(!removeItemById(item.id,1))return toast("Error al consumir la entrada.",true);
+  if(dustNeed>0)take("Polvo de refinadora",dustNeed);
+  refineBusy=true;refineInputId=null;
+  if($("refineBarFill"))$("refineBarFill").style.width="0%";
+  if($("refineStatus"))$("refineStatus").textContent="Refinando…";
+  if($("refineArrow"))$("refineArrow").textContent="⟶";
+  renderRefineMachine();
+  sound(300,.08,"sine");
+  const t0=Date.now();const dur=5000;
+  const tick=()=>{
+    if(!refineBusy)return;
+    const p=Math.min(1,(Date.now()-t0)/dur);
+    if($("refineBarFill"))$("refineBarFill").style.width=(p*100)+"%";
+    if(p<1){requestAnimationFrame(tick);return}
+    const win=Math.random()*100<pct;
+    if(win){
+      state.achievements=state.achievements||{};state.achievements.refine_success=true;
+      refinePending={ok:true,name:refineTargetName,qty:1};
+      if($("refineStatus"))$("refineStatus").textContent="Éxito · listo para reclamar";
+      if($("refineResult"))$("refineResult").innerHTML=`<span class="cyan">Éxito (${pct}%).</span> Reclama <b>${escapeHtml(refineTargetName)}</b>.`;
+      sound(720,.15,"triangle");
+    }else{
+      refinePending={ok:false,name:"Polvo de refinadora",qty:1};
+      if($("refineStatus"))$("refineStatus").textContent="Fallo · polvo listo";
+      if($("refineResult"))$("refineResult").innerHTML=`<span class="red">Fallo (${100-pct}%).</span> Obtienes <b>Polvo de refinadora</b>.`;
+      sound(140,.2,"sawtooth");
+    }
+    refineBusy=false;
+    refineDustQty=0;
+    renderRefineMachine();save();
+  };
+  requestAnimationFrame(tick);
+}
+function claimRefine(){
+  if(!refinePending)return;
+  const p=refinePending;
+  addItem(p.name,p.qty,{origin:"refinadora"});
+  toast(p.ok?`Refinado: ${p.name}`:`+${p.qty}× Polvo de refinadora`);
+  log(`Refinadora: ${p.ok?"éxito":"fallo"} → <b>${escapeHtml(p.name)}</b>.`);
+  refinePending=null;refineTargetName=null;
+  if($("refineBarFill"))$("refineBarFill").style.width="0%";
+  if($("refineResult"))$("refineResult").textContent="";
+  if($("refineStatus"))$("refineStatus").textContent="En espera";
+  renderRefineMachine();render();save();sound(600,.1,"triangle");
+}
+
+
+// === CENTRO: ASISTENTE · MISIONES · LOGROS ===
+const ASSISTANT_TOPICS=[
+ {id:"mision",label:"Misión principal"},
+ {id:"explorar",label:"Exploración"},
+ {id:"central",label:"La Central"},
+ {id:"fusion",label:"Fusión"},
+ {id:"nexus",label:"Nexo"},
+ {id:"mercado",label:"Mercado"},
+ {id:"clinica",label:"Clínica"},
+ {id:"equipo",label:"Equipo e inventario"},
+ {id:"misiones",label:"Misiones y logros"}
+];
+const ASSISTANT_TEXT={
+ mision:"Tu misión principal es reunir recursos, sintetizar materiales y fabricar hasta poder generar anomalías. Cada anomalía es un hito: demuestra que controlas la materia inestable del Colapso. Explora zonas, funde menas, sigue recetas y usa la Fusión cuando estés listo.",
+ explorar:"En Exploración eliges una zona desbloqueada según tu nivel de Operador. Gastas tiempo de expedición y obtienes botín del listado de esa zona. A veces hay combate: si ganas conservas el botín; si caes, lo pierdes. Sube de nivel para abrir zonas más peligrosas y rentables.",
+ central:"La Central concentra la Mesa de creación (recetas con nivel), el Horno (lingotes), Solicitar suministros y el Envío de suministro. Fabrica solo lo que tengas desbloqueado. Los suministros dan un empujón diario de recursos básicos.",
+ fusion:"La Máquina de fusión combina dos objetos propios. Puede crear materiales nuevos, equipos o, en el caso clave, anomalías. Es experimental: el resultado depende de lo que combines. Crear tu primera anomalía es un logro del operador.",
+ nexus:"El Nexo tiene tres módulos activos: Máquina de Mejora (ruleta de riesgo entre objetos base), Intercambio (caja 1–10 unidades por un lote del registro) y Refinadora (subir de valor con riesgo y Polvo de refinadora). Usa solo objetos base descubiertos.",
+ mercado:"El Mercado legal vende materiales, lingotes y recetas sensatas por nivel. El Mercado negro trafica órganos sueltos, armas balísticas y contrabando. El diario rota stock; el catálogo exige nivel de Operador.",
+ clinica:"En la Clínica extraes órganos de criaturas orgánicas (riesgo de fallo) y puedes sintetizar engendros. Todo lo orgánico lleva rasgo ilegal y se mueve en el mercado negro.",
+ equipo:"El inventario muestra todo lo que posees. Las armas, herramientas y equipos equipados quedan marcados y no puedes gastarlos hasta desequiparlos. Mira el origen de los materiales: si salen de una zona, verás su nombre.",
+ misiones:"Las misiones son entregas radiales e infinitas: siempre tres activas, solo con objetos que ya puedes obtener. Al completar una nace otra. Los logros son hitos difíciles con recompensa en créditos."
+};
+function ensureProgressMeta(){
+ state.missions=state.missions||[];
+ state.missionHistory=state.missionHistory||[];
+ state.achievements=state.achievements||{};
+}
+function unlockedMaterialPool(){
+ const names=new Set();
+ (zones||[]).forEach(z=>{
+   if(typeof zoneUnlocked==="function"&&!zoneUnlocked(z))return;
+   (z.loot||[]).forEach(n=>names.add(n));
+ });
+ (recipes||[]).forEach(r=>{
+   if(typeof recipeUnlocked==="function"&&!recipeUnlocked(r))return;
+   if(r.out)names.add(r.out);
+   Object.keys(r.cost||{}).forEach(n=>names.add(n));
+ });
+ // lingotes de menas conocidas
+ Object.keys(itemDB||{}).forEach(n=>{
+   const d=itemDB[n];
+   if(!d||d.cat!=="Lingote")return;
+   const base=n.replace(/^Lingote de /,"");
+   const mena="Mena de "+base;
+   if(names.has(mena)||names.has(n)||names.has(base))names.add(n);
+ });
+ return [...names].filter(n=>{
+   const d=info(n);
+   if(!d||!d.cat)return false;
+   if(["Criatura","Órgano","Anomalía"].includes(d.cat))return false;
+   if(d.illegal)return false;
+   return ["Material","Lingote","Consumible"].includes(d.cat);
+ });
+}
+function generateMission(){
+ ensureProgressMeta();
+ const pool=unlockedMaterialPool();
+ if(pool.length<1)return null;
+ const needTypes=1+Math.floor(Math.random()*2); // 1-2 tipos
+ const reqs=[];
+ const used=new Set();
+ for(let i=0;i<needTypes;i++){
+   let tries=0,name=null;
+   while(tries++<30){
+     name=pool[Math.floor(Math.random()*pool.length)];
+     if(!used.has(name))break;
+   }
+   if(!name||used.has(name))continue;
+   used.add(name);
+   const unit=Math.max(1,Number(info(name).val)||1);
+   const qty=1+Math.floor(Math.random()*(unit<=5?4:2));
+   reqs.push({name,qty});
+ }
+ if(!reqs.length)return null;
+ const value=reqs.reduce((s,r)=>s+Math.max(1,Number(info(r.name).val)||1)*r.qty,0);
+ const reward=Math.max(1,Math.ceil(value*1.25));
+ const id="m_"+Date.now().toString(36)+"_"+Math.floor(Math.random()*9999);
+ const titles=["Contrato de campo","Pedido de la Central","Suministro radial","Encargo de archivo","Ruta de recogida"];
+ return {
+   id,
+   title:titles[Math.floor(Math.random()*titles.length)],
+   reqs,
+   reward,
+   created:Date.now()
+ };
+}
+function ensureMissions(){
+ ensureProgressMeta();
+ // Validar que siguen siendo obtenibles; si no, regenerar
+ state.missions=state.missions.filter(m=>{
+   const pool=new Set(unlockedMaterialPool());
+   return m.reqs.every(r=>pool.has(r.name));
+ });
+ while(state.missions.length<3){
+   const m=generateMission();
+   if(!m)break;
+   state.missions.push(m);
+ }
+}
+function missionProgress(m){
+ return m.reqs.map(r=>({...r,have:count(r.name),ok:count(r.name)>=r.qty}));
+}
+function canCompleteMission(m){return missionProgress(m).every(r=>r.ok)}
+function completeMission(id){
+ ensureMissions();
+ const m=state.missions.find(x=>x.id===id);
+ if(!m||!canCompleteMission(m))return toast("No cumples los requisitos.",true);
+ for(const r of m.reqs){
+   if(!take(r.name,r.qty))return toast("Faltan objetos.",true);
+ }
+ state.credits+=m.reward;
+ state.missionHistory.push({id:m.id,reward:m.reward,at:Date.now()});
+ state.missions=state.missions.filter(x=>x.id!==id);
+ const next=generateMission();
+ if(next)state.missions.push(next);
+ ensureMissions();
+ toast(`Misión completada · +${m.reward} cr.`);
+ log(`Misión completada: <b>${escapeHtml(m.title)}</b> · +${m.reward} créditos.`);
+ sound(660,.12,"triangle");
+ renderMissionsUI();render();save();
+ trackAchievement("missions_done");
+}
+const ACHIEVEMENTS=[
+ {id:"anomaly_fusion",name:"Anomaly Fusión",desc:"Crea tu primera anomalía en la Máquina de fusión.",reward:150,check:s=>!!s.achievements?.anomaly_fusion},
+ {id:"first_explore",name:"Primera expedición",desc:"Completa al menos una exploración con botín.",reward:40,check:s=>(s.expeditions||0)>=1},
+ {id:"level_5",name:"Operador N5",desc:"Alcanza el nivel de Operador 5.",reward:80,check:s=>(s.level||1)>=5},
+ {id:"level_10",name:"Operador N10",desc:"Alcanza el nivel de Operador 10.",reward:120,check:s=>(s.level||1)>=10},
+ {id:"missions_10",name:"Contratista radial",desc:"Completa 10 misiones de entrega.",reward:100,check:s=>(s.missionHistory||[]).length>=10},
+ {id:"missions_25",name:"Logística del Colapso",desc:"Completa 25 misiones de entrega.",reward:200,check:s=>(s.missionHistory||[]).length>=25},
+ {id:"smelt_5",name:"Fundidor",desc:"Funde 5 lingotes en el horno.",reward:60,check:s=>(s.stats?.smelted||0)>=5},
+ {id:"craft_10",name:"Artesano de campo",desc:"Fabrica 10 objetos en la mesa de creación.",reward:90,check:s=>(s.stats?.crafted||0)>=10},
+ {id:"refine_success",name:"Refinador",desc:"Completa un refinamiento exitoso en el Nexo.",reward:70,check:s=>!!s.achievements?.refine_success},
+ {id:"upgrade_success",name:"Mejora arriesgada",desc:"Gana una tirada en la Máquina de Mejora.",reward:70,check:s=>!!s.achievements?.upgrade_success},
+ {id:"black_buy",name:"Contrabando",desc:"Compra un objeto en el mercado negro.",reward:50,check:s=>!!s.achievements?.black_buy},
+ {id:"full_equip",name:"Operador armado",desc:"Equipa arma, herramienta y equipo a la vez.",reward:110,check:s=>{const e=s.equipped||{};return !!(e.weapon&&e.tool&&e.armor)}}
+];
+function trackAchievement(flag){
+ ensureProgressMeta();
+ if(flag&&!state.achievements[flag]){
+   state.achievements[flag]=true;
+ }
+ // Auto-claim passive checks
+ ACHIEVEMENTS.forEach(a=>{
+   if(state.achievements[a.id+"_claimed"])return;
+   let ok=false;
+   try{ok=a.check(state)}catch(_){}
+   if(ok&&!state.achievements[a.id+"_claimed"]){
+     // mark unlocked for display; claim happens on open or auto
+     state.achievements[a.id+"_ready"]=true;
+   }
+ });
+}
+function claimAchievement(id){
+ ensureProgressMeta();
+ const a=ACHIEVEMENTS.find(x=>x.id===id);
+ if(!a)return;
+ if(state.achievements[id+"_claimed"])return toast("Ya reclamado.",true);
+ let ok=false;try{ok=a.check(state)}catch(_){}
+ if(!ok)return toast("Logro no completado.",true);
+ state.achievements[id+"_claimed"]=true;
+ state.credits+=a.reward;
+ toast(`Logro: ${a.name} · +${a.reward} cr.`);
+ log(`Logro desbloqueado: <b>${escapeHtml(a.name)}</b> · +${a.reward} créditos.`);
+ sound(800,.14,"triangle");
+ renderAchievementsUI();render();save();
+}
+function renderMissionsUI(){
+ ensureMissions();
+ const box=$("missionsList");
+ if(!box)return;
+ box.innerHTML=state.missions.map(m=>{
+   const prog=missionProgress(m);
+   const can=prog.every(r=>r.ok);
+   const reqHtml=prog.map(r=>`<span class="chip ${r.ok?"common":""}">${itemIconMarkup(r.name,info(r.name).icon)} ${escapeHtml(r.name)} ${r.have}/${r.qty}</span>`).join(" ");
+   return `<div class="mission-card"><h4>${escapeHtml(m.title)}</h4><div class="loot-chips">${reqHtml}</div><div class="statline" style="margin-top:8px"><span>Recompensa</span><span class="mission-reward">${m.reward} cr.</span></div><button class="primary" style="width:100%;margin-top:10px" data-mission-complete="${m.id}" ${can?"":"disabled"}>Entregar</button></div>`;
+ }).join("")||'<div class="empty">No hay misiones disponibles aún. Desbloquea zonas o recetas.</div>';
+ box.querySelectorAll("[data-mission-complete]").forEach(b=>b.onclick=()=>completeMission(b.dataset.missionComplete));
+ if($("missionsBadge"))$("missionsBadge").textContent=String(state.missions.length);
+}
+function renderAchievementsUI(){
+ ensureProgressMeta();trackAchievement();
+ const box=$("achievementsList");
+ if(!box)return;
+ box.innerHTML=ACHIEVEMENTS.map(a=>{
+   let ok=false;try{ok=a.check(state)}catch(_){}
+   const claimed=!!state.achievements[a.id+"_claimed"];
+   return `<div class="ach-card ${claimed||ok?"done":""}"><h4>${escapeHtml(a.name)} ${claimed?"✓":ok?"●":""}</h4><p class="small-note">${escapeHtml(a.desc)}</p><div class="statline"><span>Recompensa</span><span class="ach-reward">${a.reward} cr.</span></div><button class="tiny" style="margin-top:8px" data-ach-claim="${a.id}" ${ok&&!claimed?"":"disabled"}>${claimed?"Reclamado":ok?"Reclamar":"Bloqueado"}</button></div>`;
+ }).join("");
+ box.querySelectorAll("[data-ach-claim]").forEach(b=>b.onclick=()=>claimAchievement(b.dataset.achClaim));
+}
+function assistantSay(text,who="bot"){
+ const chat=$("assistantChat");if(!chat)return;
+ const div=document.createElement("div");
+ div.className="assistant-msg "+who;
+ div.textContent=text;
+ chat.appendChild(div);
+ chat.scrollTop=chat.scrollHeight;
+}
+function openAssistant(){
+ const modal=$("assistantModal");if(!modal)return;
+ modal.classList.remove("hidden");
+ const chat=$("assistantChat");
+ if(chat)chat.innerHTML="";
+ assistantSay("Operador, soy el Asistente AF. Puedo guiarte por cada sección del sistema. Tu misión principal: reunir recursos, sintetizar y crear anomalías.");
+ const topics=$("assistantTopics");
+ if(topics){
+   topics.innerHTML=ASSISTANT_TOPICS.map(t=>`<button type="button" class="tiny" data-assistant-topic="${t.id}">${escapeHtml(t.label)}</button>`).join("");
+   topics.querySelectorAll("[data-assistant-topic]").forEach(b=>b.onclick=()=>{
+     const id=b.dataset.assistantTopic;
+     const label=ASSISTANT_TOPICS.find(t=>t.id===id)?.label||id;
+     assistantSay(label,"user");
+     setTimeout(()=>assistantSay(ASSISTANT_TEXT[id]||"Sección en calibración."),280);
+     sound(420,.05,"sine");
+   });
+ }
+ sound(500,.08,"triangle");
+}
+function openMissions(){ensureMissions();renderMissionsUI();$("missionsModal")?.classList.remove("hidden");sound(480,.06,"sine")}
+function openAchievements(){renderAchievementsUI();$("achievementsModal")?.classList.remove("hidden");sound(480,.06,"sine")}
+
 function removeItemById(id,qty){
   const x=state.inventory.find(i=>i.id===id);
   if(!x||x.qty<qty)return false;
@@ -2164,7 +2513,7 @@ function nav(page){
   if(page==="supplies"){toast("Hay un combate en curso. Vuelve a Exploración para resolverlo.",true);return}
   // page === explore → permitir y reabrir el combate
  }
- const requestedSupplies=page==="supplies";if(requestedSupplies)page="central";document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id==="page-"+page));document.querySelectorAll("[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===page));if(typeof closeMobileNavPanels==="function")closeMobileNavPanels();if(requestedSupplies){document.querySelectorAll("[data-central-tab]").forEach(b=>b.classList.toggle("active",b.dataset.centralTab==="supplies"));document.querySelectorAll("#page-central .central-section").forEach(x=>x.classList.toggle("active",x.id==="central-supplies"))}if(page==="clinic"){renderExtractTable();renderSpawnTable()}if(page==="nexus"){renderUpgradeMachine();renderExchangeModule()}if(page==="market"){try{ensureMarketDay();renderMarketBuy(false);renderMarketBuy(true);renderMarketSell(false);renderMarketSell(true)}catch(err){console.error(err)}}
+ const requestedSupplies=page==="supplies";if(requestedSupplies)page="central";document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id==="page-"+page));document.querySelectorAll("[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===page));if(typeof closeMobileNavPanels==="function")closeMobileNavPanels();if(requestedSupplies){document.querySelectorAll("[data-central-tab]").forEach(b=>b.classList.toggle("active",b.dataset.centralTab==="supplies"));document.querySelectorAll("#page-central .central-section").forEach(x=>x.classList.toggle("active",x.id==="central-supplies"))}if(page==="clinic"){renderExtractTable();renderSpawnTable()}if(page==="nexus"){renderUpgradeMachine();renderExchangeModule();renderRefineMachine()}if(page==="market"){try{ensureMarketDay();renderMarketBuy(false);renderMarketBuy(true);renderMarketSell(false);renderMarketSell(true)}catch(err){console.error(err)}}
  // Si hay combate en curso, forzar HUD de zona + panel de combate visibles en Exploración
  if(currentEnemy&&page==="explore"){
   zoneHudOpen=true;
@@ -2345,7 +2694,7 @@ function renderPicker(){
    .filter(n=>{
      const d=info(n);
      if(!d||!d.cat)return false;
-     if(isSynthesisItem({name:n,...d}))return false;
+     if(isSynthesisItem({name:n,...d})||isRefineDust(n))return false;
      if(["Criatura","Órgano"].includes(d.cat))return false;
      if(!["Material","Lingote","Herramienta","Arma","Equipo","Consumible","Otro","Anomalía"].includes(d.cat))return false;
      if(pickerFilter&&pickerFilter!=="Todos"){
@@ -2356,7 +2705,7 @@ function renderPicker(){
    })
    .filter(n=>n.toLowerCase().includes(search))
    .sort((a,b)=>(info(a).r||1)-(info(b).r||1)||a.localeCompare(b,"es"));
-  const pageSize=12;
+  const pageSize=pickerPageSize();
   const pages=Math.max(1,Math.ceil(names.length/pageSize));
   pickerPage=Math.min(Math.max(1,pickerPage),pages);
   const shown=names.slice((pickerPage-1)*pageSize,pickerPage*pageSize);
@@ -2373,14 +2722,14 @@ function renderPicker(){
  // --- Máquina de Mejora: entrada desde inventario (solo base) ---
  if(pickerMode==="upgradeInput"){
   let list=state.inventory.filter(x=>{
-    if(x.qty<=0||isSynthesisItem(x))return false;
+    if(x.qty<=0||isSynthesisItem(x)||isItemEquipped(x.id)||isRefineDust(x))return false;
     if(pickerFilter&&pickerFilter!=="Todos"){
       if(pickerFilter==="Síntesis")return false;
       if((x.cat||info(x.name).cat)!==pickerFilter)return false;
     }
     return x.name.toLowerCase().includes(search);
   });
-  const pageSize=12;
+  const pageSize=pickerPageSize();
   const pages=Math.max(1,Math.ceil(list.length/pageSize));
   pickerPage=Math.min(Math.max(1,pickerPage),pages);
   const shown=list.slice((pickerPage-1)*pageSize,pickerPage*pageSize);
@@ -2395,9 +2744,63 @@ function renderPicker(){
   });
   return;
  }
+
+ if(pickerMode==="refineInput"){
+  let list=state.inventory.filter(x=>{
+    if(x.qty<=0||isSynthesisItem(x)||isItemEquipped(x.id)||isRefineDust(x))return false;
+    if(pickerFilter&&pickerFilter!=="Todos"){
+      if(pickerFilter==="Síntesis")return false;
+      if((x.cat||info(x.name).cat)!==pickerFilter)return false;
+    }
+    return x.name.toLowerCase().includes(search);
+  });
+  const pageSize=pickerPageSize();
+  const pages=Math.max(1,Math.ceil(list.length/pageSize));
+  pickerPage=Math.min(Math.max(1,pickerPage),pages);
+  const shown=list.slice((pickerPage-1)*pageSize,pickerPage*pageSize);
+  $("pickerGrid").innerHTML=shown.length?shown.map(x=>`<button type="button" class="picker-item" data-pick-id="${x.id}"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><span style="min-width:0"><b>${escapeHtml(inventoryDisplayName(x))}</b><small>N${x.r||1} · ${Math.max(1,Number(x.val)||1)} cr. · ×${x.qty}</small></span></button>`).join(""):'<div class="empty" style="grid-column:1/-1">Sin objetos válidos.</div>';
+  if($("pickerPageInfo"))$("pickerPageInfo").textContent=`Página ${pickerPage} / ${pages}`;
+  if($("pickerPrev")){$("pickerPrev").disabled=pickerPage<=1;$("pickerPrev").onclick=()=>{pickerPage=Math.max(1,pickerPage-1);renderPicker()};}
+  if($("pickerNext")){$("pickerNext").disabled=pickerPage>=pages;$("pickerNext").onclick=()=>{pickerPage++;renderPicker()};}
+  $("pickerGrid").querySelectorAll("[data-pick-id]").forEach(b=>b.onclick=()=>{
+    refineInputId=b.dataset.pickId;$("inventoryPicker").classList.add("hidden");renderRefineMachine();sound(500);
+  });
+  return;
+ }
+ if(pickerMode==="refineTarget"){
+  const inItem=refineInputId?state.inventory.find(i=>i.id===refineInputId):null;
+  const minVal=inItem?Math.max(1,Number(inItem.val)||Number(info(inItem.name).val)||1)+1:2;
+  const names=[...new Set([...(state.seen||[]),...Object.keys(state.discovered||{})])]
+   .filter(n=>{
+     const d=info(n);
+     if(!d||!d.cat)return false;
+     if(isSynthesisItem({name:n,...d}))return false;
+     if(["Criatura"].includes(d.cat))return false;
+     if(Math.max(1,Number(d.val)||1)<minVal)return false;
+     if(pickerFilter&&pickerFilter!=="Todos"){
+       if(pickerFilter==="Síntesis")return false;
+       if(d.cat!==pickerFilter)return false;
+     }
+     return true;
+   })
+   .filter(n=>n.toLowerCase().includes(search))
+   .sort((a,b)=>(info(a).val||1)-(info(b).val||1)||a.localeCompare(b,"es"));
+  const pageSize=pickerPageSize();
+  const pages=Math.max(1,Math.ceil(names.length/pageSize));
+  pickerPage=Math.min(Math.max(1,pickerPage),pages);
+  const shown=names.slice((pickerPage-1)*pageSize,pickerPage*pageSize);
+  $("pickerGrid").innerHTML=shown.length?shown.map(n=>`<button type="button" class="picker-item" data-refine-target="${escapeHtml(n)}"><span class="item-icon">${itemIconMarkup(n,info(n).icon)}</span><span style="min-width:0"><b>${escapeHtml(n)}</b><small>N${info(n).r||1} · ${Math.max(1,Number(info(n).val)||1)} cr.</small></span></button>`).join(""):'<div class="empty" style="grid-column:1/-1">No hay objetivos de mayor valor descubiertos.</div>';
+  if($("pickerPageInfo"))$("pickerPageInfo").textContent=`Página ${pickerPage} / ${pages}`;
+  if($("pickerPrev")){$("pickerPrev").disabled=pickerPage<=1;$("pickerPrev").onclick=()=>{pickerPage=Math.max(1,pickerPage-1);renderPicker()};}
+  if($("pickerNext")){$("pickerNext").disabled=pickerPage>=pages;$("pickerNext").onclick=()=>{pickerPage++;renderPicker()};}
+  $("pickerGrid").querySelectorAll("[data-refine-target]").forEach(b=>b.onclick=()=>{
+    refineTargetName=b.dataset.refineTarget;$("inventoryPicker").classList.add("hidden");renderRefineMachine();sound(500);
+  });
+  return;
+ }
  if(pickerMode==="exchangeInput"){
   let list=state.inventory.filter(x=>{
-    if(x.qty<=0||isSynthesisItem(x)||x.unique)return false;
+    if(x.qty<=0||isSynthesisItem(x)||x.unique||isItemEquipped(x.id)||isRefineDust(x))return false;
     if(!["Material","Lingote","Consumible","Herramienta","Arma","Equipo","Otro"].includes(x.cat||info(x.name).cat))return false;
     if(pickerFilter&&pickerFilter!=="Todos"){
       if(pickerFilter==="Síntesis")return false;
@@ -2405,7 +2808,7 @@ function renderPicker(){
     }
     return x.name.toLowerCase().includes(search);
   });
-  const pageSize=12;
+  const pageSize=pickerPageSize();
   const pages=Math.max(1,Math.ceil(list.length/pageSize));
   pickerPage=Math.min(Math.max(1,pickerPage),pages);
   const shown=list.slice((pickerPage-1)*pageSize,pickerPage*pageSize);
@@ -2428,7 +2831,7 @@ function renderPicker(){
   if($("pickerNext")){$("pickerNext").disabled=pickerPage>=pages;$("pickerNext").onclick=()=>{pickerPage++;renderPicker()};}
   return;
  }
- let list=state.inventory.filter(x=>x.qty>0&&x.name.toLowerCase().includes(search));
+ let list=state.inventory.filter(x=>x.qty>0&&x.name.toLowerCase().includes(search)&&!isItemEquipped(x.id));
  if(pickerMode==="fusion"&&pickerFilter!=="Todos")list=list.filter(x=>pickerFilter==="Síntesis"?isSynthesisItem(x):pickerFilter==="Lingote"?(x.cat==="Lingote"||x.name.startsWith("Lingote de ")):pickerFilter==="Otro"?!( ["Material","Lingote","Herramienta","Arma","Equipo","Consumible","Criatura","Órgano","Anomalía"].includes(x.cat)):x.cat===pickerFilter);
  if(pickerMode==="extract")list=list.filter(x=>x.cat==="Criatura"&&!isRoboticCreature(x));
  if(pickerMode==="spawn")list=list.filter(x=>x.cat==="Órgano"&&!Object.values(spawnSelected||{}).includes(x.id));
@@ -2446,6 +2849,30 @@ function renderPicker(){
 
 function fusionOutcome(a,b){
  const da={...info(a.name),...a},db={...info(b.name),...b},text=(a.name+" "+b.name+" "+da.cat+" "+db.cat).toLowerCase();
+ // Dos objetos de contrabando → siempre nuevo contrabando ilegal
+ if(isContrabandItem(a)&&isContrabandItem(b)){
+  const r=Math.min(5,Math.max(Number(da.r)||1,Number(db.r)||1)+((Math.random()<.45)?1:0));
+  const val=Math.max(Number(da.val)||10,Number(db.val)||10)+8+r*6+Math.floor(Math.random()*12);
+  const heads=["Paquete","Lote","Carga","Sello","Manifiesto","Célula","Valija","Núcleo","Chip","Implante"];
+  const tails=["negro","oculto","robado","de sombra","clandestino","de contrabando","del mercado","prohibido","sellado","pirata"];
+  const icons=["📦","📁","💾","🗝️","📕","💼","🔋","⚛️","🧠","💊"];
+  const name=heads[Math.floor(Math.random()*heads.length)]+" "+tails[Math.floor(Math.random()*tails.length)]+" "+uid().slice(0,3).toUpperCase();
+  return {
+    name,
+    icon:icons[Math.floor(Math.random()*icons.length)],
+    cat:"Contrabando",
+    r,
+    val,
+    desc:"Producto de contrabando fusionado. Rasgo ilegal. Procedencia: mercado negro.",
+    illegal:true,
+    trait:"Ilegal",
+    affix:"Ilegal",
+    contraband:true,
+    unique:true,
+    procedural:true,
+    origin:"fusion"
+  };
+ }
  const creature=da.cat==="Criatura"||db.cat==="Criatura"||/zombie|mutante|ghoul|híbrido|infectado|merodeador|aberración|cosechador|dron biológico/.test(text);
  const organish=da.cat==="Órgano"||db.cat==="Órgano"||/corazón|higado|hígado|pulmón|riñón|médula|órgano|organo/.test(text);
  const plant=/madera|rama|hoja|resina|seta|hongo|espora|mutada|jardinero|fibra|vegetal/.test(text),metal=/chatarra|hierro|cobre|oro|lingote|tornillo|cable|placa|metal|pico|hacha|titanio|acero/.test(text),energy=/batería|núcleo|energético|cristal|geoda|eléctrica|solar|neón|cuántico|fase/.test(text);
@@ -2938,10 +3365,17 @@ function openRegistryItem(name,level=null){
  }
 }
 
-function openInventoryItem(id){const x=state.inventory.find(i=>i.id===id);if(!x)return;const d={...info(x.name),...x};const skills=Array.isArray(d.abilities)?d.abilities:(d.ability?[d.ability]:[]);const chips=[`<span class="chip">Tipo: ${escapeHtml(d.cat||"Otro")}</span>`,`<span class="chip">Nivel ${Number(d.r)||1} · ${escapeHtml(rarityNames[Number(d.r)||1]||"Común")}</span>`,`<span class="chip">Valor base (100%): ${Number(d.val||info(d.name).val||1)} cr.</span>`];if(isSynthesisItem(d))chips.push(`<span class="chip">Rasgo de fusión: Síntesis de convergencia</span>`);else if(d.affix)chips.push(`<span class="chip">Rasgo: ${escapeHtml(d.affix)}</span>`);if(d.secondaryTrait)chips.push(`<span class="chip">Rasgo adicional: ${escapeHtml(d.secondaryTrait)}</span>`);if(d.passive)chips.push(`<span class="chip">Pasiva: ${escapeHtml(d.passive.value||d.passive.type||"")}</span>`);skills.forEach(a=>chips.push(`<span class="chip">Habilidad: ${escapeHtml(a.name)}${a.desc?" · "+escapeHtml(a.desc):""}</span>`));if(d.damage)chips.push(`<span class="chip">Daño: +${d.damage}</span>`);if(d.defense)chips.push(`<span class="chip">Defensa: +${d.defense}</span>`);if(d.gather)chips.push(`<span class="chip">Recolección: +${d.gather}%</span>`);if(d.health)chips.push(`<span class="chip">Salud: +${d.health}</span>`);if(d.speed)chips.push(`<span class="chip">Velocidad: +${d.speed}</span>`);if(d.crit)chips.push(`<span class="chip">Crítico: +${d.crit}</span>`);const slot=Object.entries(state.equipped||{}).find(([,eid])=>eid===x.id)?.[0];$("inventoryDetailTitle").textContent=inventoryDisplayName(x);$("inventoryDetailBody").innerHTML=`<div class="inventory-detail-head"><div class="registry-big-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</div><div><div class="rarity r${Number(d.r)||1}">NIVEL ${Number(d.r)||1} · ${escapeHtml(rarityNames[Number(d.r)||1]||"COMÚN")}</div><h3 class="inventory-detail-name">${escapeHtml(inventoryDisplayName(x))}</h3><div class="small-note">Cantidad: ×${x.qty}${slot?` · Equipado en: ${escapeHtml(slot)}`:""}</div></div></div><p class="inventory-detail-description">${escapeHtml(d.desc||"Sin descripción disponible.")}</p><div class="loot-chips inventory-detail-chips">${chips.join("")}</div><div class="section-title"><h3>INFORMACIÓN DEL OBJETO</h3></div><div class="inventory-detail-stats">${[["Tipo de objeto",objectTypeLabel(d)],["Valor",`${Number(d.val||info(d.name).val||1)} cr.`],["Rareza",rarityNames[Number(d.r)||1]||"Común"],["Nivel",`N${Number(d.r)||1}`],...(d.origin?[["Origen",d.origin]]:[]),...(d.fusionDepth?[["Generación de fusión",d.fusionDepth]]:[])].map(([k,v])=>`<div class="statline"><span>${escapeHtml(k)}</span><b>${escapeHtml(String(v))}</b></div>`).join("")}</div>`;$("inventoryDetailModal").classList.remove("hidden")}
+function openInventoryItem(id){const x=state.inventory.find(i=>i.id===id);if(!x)return;const d={...info(x.name),...x};const skills=Array.isArray(d.abilities)?d.abilities:(d.ability?[d.ability]:[]);const chips=[`<span class="chip">Tipo: ${escapeHtml(d.cat||"Otro")}</span>`,`<span class="chip">Nivel ${Number(d.r)||1} · ${escapeHtml(rarityNames[Number(d.r)||1]||"Común")}</span>`,`<span class="chip">Valor base (100%): ${Number(d.val||info(d.name).val||1)} cr.</span>`];if(isSynthesisItem(d))chips.push(`<span class="chip">Rasgo de fusión: Síntesis de convergencia</span>`);else if(d.affix)chips.push(`<span class="chip">Rasgo: ${escapeHtml(d.affix)}</span>`);if(d.secondaryTrait)chips.push(`<span class="chip">Rasgo adicional: ${escapeHtml(d.secondaryTrait)}</span>`);if(d.passive)chips.push(`<span class="chip">Pasiva: ${escapeHtml(d.passive.value||d.passive.type||"")}</span>`);skills.forEach(a=>chips.push(`<span class="chip">Habilidad: ${escapeHtml(a.name)}${a.desc?" · "+escapeHtml(a.desc):""}</span>`));if(d.damage)chips.push(`<span class="chip">Daño: +${d.damage}</span>`);if(d.defense)chips.push(`<span class="chip">Defensa: +${d.defense}</span>`);if(d.gather)chips.push(`<span class="chip">Recolección: +${d.gather}%</span>`);if(d.health)chips.push(`<span class="chip">Salud: +${d.health}</span>`);if(d.speed)chips.push(`<span class="chip">Velocidad: +${d.speed}</span>`);if(d.crit)chips.push(`<span class="chip">Crítico: +${d.crit}</span>`);const slot=Object.entries(state.equipped||{}).find(([,eid])=>eid===x.id)?.[0];$("inventoryDetailTitle").textContent=inventoryDisplayName(x);$("inventoryDetailBody").innerHTML=`<div class="inventory-detail-head"><div class="registry-big-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</div><div><div class="rarity r${Number(d.r)||1}">NIVEL ${Number(d.r)||1} · ${escapeHtml(rarityNames[Number(d.r)||1]||"COMÚN")}</div><h3 class="inventory-detail-name">${escapeHtml(inventoryDisplayName(x))}</h3><div class="small-note">Cantidad: ×${x.qty}${slot?` · Equipado en: ${escapeHtml(slot)}`:""}</div></div></div><p class="inventory-detail-description">${escapeHtml(d.desc||"Sin descripción disponible.")}</p><div class="loot-chips inventory-detail-chips">${chips.join("")}</div><div class="section-title"><h3>INFORMACIÓN DEL OBJETO</h3></div><div class="inventory-detail-stats">${[["Tipo de objeto",objectTypeLabel(d)],["Valor",`${Number(d.val||info(d.name).val||1)} cr.`],["Rareza",rarityNames[Number(d.r)||1]||"Común"],["Nivel",`N${Number(d.r)||1}`],...(d.origin?[
+      ["Origen", (()=>{
+        const zonesFound=itemOriginZones(d.name||x.name);
+        if(zonesFound.length)return zonesFound.join(", ");
+        return String(d.origin);
+      })()]
+    ]:[] ),...(d.fusionDepth?[["Generación de fusión",d.fusionDepth]]:[])].map(([k,v])=>`<div class="statline"><span>${escapeHtml(k)}</span><b>${escapeHtml(String(v))}</b></div>`).join("")}</div>`;$("inventoryDetailModal").classList.remove("hidden")}
 
 function applyLayoutMode(mode){const valid=["auto","mobile","pc16"].includes(mode)?mode:"auto";state.settings.layoutMode=valid;document.body.classList.toggle("layout-mobile",valid==="mobile");document.body.classList.toggle("layout-pc16",valid==="pc16");document.body.classList.toggle("layout-auto",valid==="auto");const select=$("layoutModeSelect");if(select&&select.value!==valid)select.value=valid;}
 function render(){renderPendingFusion();renderSupplyDelivery();renderStats();renderZoneCards();renderZoneDetail();renderZoneLoot();renderFusionSelects();renderRecipes();renderSmelt();renderBonus();renderSupplies();renderCentralSales();renderExtractTable();renderSpawnTable();renderInventory();renderEquipment();renderFusionHistory();renderRegistry();save()}
+ try{ensureMissions();if($("missionsBadge"))$("missionsBadge").textContent=String((state.missions||[]).length);trackAchievement()}catch(_e){}
 $("fuseBtn").addEventListener("click",doFuse);if($("claimSupply"))$("claimSupply").addEventListener("click",claimSupply);$("chooseFusionA").onclick=()=>openPicker("fusion","A");$("chooseFusionB").onclick=()=>openPicker("fusion","B");$("clearFusionA").onclick=()=>{if(state.fusionSlots)state.fusionSlots.A=null;renderFusionSelects();sound(400,.05,"sine")};$("clearFusionB").onclick=()=>{if(state.fusionSlots)state.fusionSlots.B=null;renderFusionSelects();sound(400,.05,"sine")};$("fightBtn").addEventListener("click",fight);$("closePicker").onclick=()=>{const qb=$("pickerQtyBar"),qc=$("pickerQtyConfirm");if(qb)qb.classList.add("hidden");if(qc)qc.classList.add("hidden");$("inventoryPicker").classList.add("hidden")};$("inventoryPicker").addEventListener("click",e=>{if(e.target===$("inventoryPicker"))$("inventoryPicker").classList.add("hidden")});$("pickerSearch").addEventListener("input",()=>{pickerPage=1;renderPicker()});$("pickerFilterTrigger").onclick=()=>{$("pickerFilterOptions").classList.toggle("hidden");$("pickerFilterTrigger").setAttribute("aria-expanded",!$("pickerFilterOptions").classList.contains("hidden"))};document.querySelectorAll("[data-picker-filter]").forEach(b=>b.onclick=()=>{pickerFilter=b.dataset.pickerFilter;$("pickerFilterLabel").textContent=pickerFilter;document.querySelectorAll("[data-picker-filter]").forEach(x=>x.setAttribute("aria-selected",x===b?"true":"false"));$("pickerFilterOptions").classList.add("hidden");pickerPage=1;renderPicker()});$("centralSaleSearch").addEventListener("input",renderCentralSales);$("centralSaleFilterTrigger").onclick=()=>{const menu=$("centralSaleFilterOptions"),opening=menu.classList.contains("hidden");closeSortMenus(opening?menu.id:null);menu.classList.toggle("hidden",!opening);$("centralSaleFilterTrigger").setAttribute("aria-expanded",String(opening))};document.querySelectorAll("[data-sale-filter]").forEach(b=>b.onclick=()=>{centralSaleFilter=b.dataset.saleFilter;$("centralSaleFilterLabel").textContent=centralSaleFilter;document.querySelectorAll("[data-sale-filter]").forEach(x=>x.setAttribute("aria-selected",x===b?"true":"false"));$("centralSaleFilterOptions").classList.add("hidden");$("centralSaleFilterTrigger").setAttribute("aria-expanded","false");renderCentralSales()});$("centralSaleSelectAll").onclick=()=>{const equipped=new Set(Object.values(state.equipped||{}).filter(Boolean)),search=$("centralSaleSearch").value.trim().toLowerCase();state.inventory.filter(x=>x.qty>0&&!equipped.has(x.id)&&x.name.toLowerCase().includes(search)&&(centralSaleFilter==="Todos"||(centralSaleFilter==="Síntesis"?isSynthesisItem(x):centralSaleFilter==="Lingote"?(x.cat==="Lingote"||x.name.startsWith("Lingote de ")):centralSaleFilter==="Otro"?!( ["Material","Lingote","Herramienta","Arma","Equipo","Consumible","Criatura","Órgano","Anomalía"].includes(x.cat)):x.cat===centralSaleFilter))).forEach(x=>centralSaleSelection[x.id]=x.qty);renderCentralSales()};$("centralSaleClear").onclick=()=>{centralSaleSelection={};renderCentralSales()};$("centralSaleSubmit").onclick=sellCentralSelection;
 if($("chooseExtractCreature"))$("chooseExtractCreature").onclick=()=>openPicker("extract");
 if($("extractStartBtn"))$("extractStartBtn").onclick=startExtraction;
@@ -2998,6 +3432,7 @@ document.querySelectorAll("[data-nexus-tab]").forEach(b=>b.onclick=()=>{
   document.querySelectorAll("#page-nexus .nexus-section").forEach(x=>x.classList.toggle("active",x.id==="nexus-"+b.dataset.nexusTab));
   if(b.dataset.nexusTab==="upgrade")renderUpgradeMachine();
   if(b.dataset.nexusTab==="mod2")renderExchangeModule();
+  if(b.dataset.nexusTab==="mod3")renderRefineMachine();
 });
 
 if($("upgradeInputPick"))$("upgradeInputPick").onclick=()=>{if(!upgradeSpinning)openUpgradeInputPicker()};
@@ -3013,6 +3448,23 @@ if($("upgradeSpinBtn"))$("upgradeSpinBtn").onclick=spinUpgradeRoulette;
 if($("exchangeAddBtn"))$("exchangeAddBtn").onclick=()=>openExchangePicker();
 if($("exchangeClearBtn"))$("exchangeClearBtn").onclick=()=>{if(exchangeBusy)return;exchangeBox={};renderExchangeModule()};
 if($("exchangeSubmitBtn"))$("exchangeSubmitBtn").onclick=runExchange;
+if($("refineInputPick"))$("refineInputPick").onclick=()=>{if(!refineBusy)openRefineInputPicker()};
+if($("refineTargetPick"))$("refineTargetPick").onclick=()=>{if(!refineBusy)openRefineTargetPicker()};
+if($("refineInputClear"))$("refineInputClear").onclick=()=>{if(refineBusy)return;refineInputId=null;renderRefineMachine()};
+if($("refineTargetClear"))$("refineTargetClear").onclick=()=>{if(refineBusy)return;refineTargetName=null;renderRefineMachine()};
+if($("refineDustMinus"))$("refineDustMinus").onclick=()=>{if(refineBusy)return;refineDustQty=Math.max(0,refineDustQty-1);renderRefineMachine()};
+if($("refineDustPlus"))$("refineDustPlus").onclick=()=>{if(refineBusy)return;refineDustQty=Math.min(countDust(),16,refineDustQty+1);renderRefineMachine()};
+if($("refineStartBtn"))$("refineStartBtn").onclick=startRefine;
+if($("refineClaimBtn"))$("refineClaimBtn").onclick=claimRefine;
+
+if($("openAssistantBtn"))$("openAssistantBtn").onclick=openAssistant;
+if($("openMissionsBtn"))$("openMissionsBtn").onclick=openMissions;
+if($("openAchievementsBtn"))$("openAchievementsBtn").onclick=openAchievements;
+if($("closeAssistant"))$("closeAssistant").onclick=()=>$("assistantModal").classList.add("hidden");
+if($("closeMissions"))$("closeMissions").onclick=()=>$("missionsModal").classList.add("hidden");
+if($("closeAchievements"))$("closeAchievements").onclick=()=>$("achievementsModal").classList.add("hidden");
+
+
 if($("exchangeResultModal"))$("exchangeResultModal").addEventListener("click",e=>{if(e.target===$("exchangeResultModal")&&!exchangePending){$("exchangeResultModal").classList.add("hidden")}});
 
 
