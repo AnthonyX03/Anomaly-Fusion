@@ -1736,12 +1736,11 @@ function upgradeTargetValue(){
 function upgradeChancePct(){
   const inn=upgradeInputValue(),out=upgradeTargetValue();
   if(!inn||!out)return 0;
-  // Ratio valor entrada / valor objetivo → % entre 5 y 90
+  // Valor entrada >= valor objetivo → 90% (máximo). Si es menor, escala hacia abajo.
   const ratio=inn/out;
-  let pct=Math.round(45+ratio*40); // ~45% si iguales, sube/baja con ratio
-  if(ratio>=1)pct=Math.round(55+(ratio-1)*35);
-  else pct=Math.round(55*ratio);
-  return Math.min(90,Math.max(5,pct));
+  if(ratio>=1)return 90;
+  // ratio 0→5%, ratio 1→90%
+  return Math.min(90,Math.max(5,Math.round(5+ratio*85)));
 }
 function renderUpgradeMachine(){
   const inItem=upgradeInputId?state.inventory.find(i=>i.id===upgradeInputId):null;
@@ -1767,13 +1766,20 @@ function renderUpgradeMachine(){
 
   const pct=upgradeChancePct();
   const chanceEl=$("upgradeChance"),arc=$("upgradeSuccessArc"),note=$("upgradeChanceNote"),btn=$("upgradeSpinBtn");
-  if(chanceEl)chanceEl.textContent=pct?pct+"%":"—";
+  if(chanceEl){
+    chanceEl.textContent=pct?pct+"%":"—";
+    chanceEl.classList.remove("chance-high","chance-mid","chance-low");
+    if(pct>=70)chanceEl.classList.add("chance-high");
+    else if(pct>=40)chanceEl.classList.add("chance-mid");
+    else if(pct>0)chanceEl.classList.add("chance-low");
+  }
   if(arc)arc.style.setProperty("--success-deg",(pct/100*360)+"deg");
   if(note){
-    if(!upgradeInputId||!upgradeTargetName)note.textContent="Ajusta entrada y objetivo para calcular el %.";
-    else if(pct>=70)note.textContent="Buena oferta: alta probabilidad (máx. 90%).";
-    else if(pct>=40)note.textContent="Equilibrio intermedio. Sigue habiendo riesgo.";
-    else note.textContent="Oferta baja: alto riesgo de perder la entrada.";
+    if(!upgradeInputId||!upgradeTargetName)note.textContent="Elige entrada y objetivo: el % sube si el valor que entregas iguala o supera el valor pedido (máx. 90%).";
+    else if(pct>=90)note.textContent="Oferta máxima (90%). Siempre queda un 10% de riesgo de pérdida.";
+    else if(pct>=70)note.textContent="Buena oferta. Alta probabilidad, pero no garantizada.";
+    else if(pct>=40)note.textContent="Oferta intermedia. El riesgo de perder la entrada es notable.";
+    else note.textContent="Oferta baja. Muy alto riesgo de perder lo entregado.";
   }
   if(btn)btn.disabled=upgradeSpinning||!upgradeInputId||!upgradeTargetName||pct<=0||!!activeTask||!!currentEnemy;
 }
@@ -1809,36 +1815,51 @@ function spinUpgradeRoulette(){
   const removed=removeItemById(upgradeInputId,upgradeInputQty);
   if(!removed){upgradeSpinning=false;renderUpgradeMachine();return toast("Error al consumir la entrada.",true)}
   const needle=$("upgradeNeedle");
-  if(needle){needle.classList.remove("is-spinning");void needle.offsetWidth;needle.classList.add("is-spinning")}
-  // Ángulo final: éxito = zona [0, pct%*360) desde -90deg visual
+  const roulette=$("upgradeRoulette");
+  if(needle){
+    needle.classList.remove("is-spinning");
+    needle.style.transition="none";
+    needle.style.transform="rotate(0deg)";
+    void needle.offsetWidth;
+    needle.classList.add("is-spinning");
+  }
+  if(roulette)roulette.classList.add("is-spinning");
+  // Ángulo final: éxito = zona [0, pct%*360) desde 0deg (arco desde arriba)
   const successSpan=pct/100*360;
   const win=Math.random()*100<pct;
   let finalDeg;
-  if(win)finalDeg=360*4 + Math.random()*successSpan;
-  else finalDeg=360*4 + successSpan + Math.random()*(360-successSpan);
+  // 6-8 vueltas + posición final
+  const spins=6+Math.floor(Math.random()*3);
+  if(win)finalDeg=360*spins + Math.random()*Math.max(8,successSpan-4);
+  else finalDeg=360*spins + successSpan + 4 + Math.random()*Math.max(8,360-successSpan-8);
   if(needle)needle.style.transform=`rotate(${finalDeg}deg)`;
   const resultEl=$("upgradeResult");
-  if(resultEl)resultEl.textContent="Ruleta en marcha… no se puede cancelar.";
-  sound(220,.08,"sine");
+  if(resultEl)resultEl.textContent="Ruleta en marcha… no se puede cancelar ni cambiar la apuesta.";
+  // Sonido de ruleta: ticks + tono de suspense
+  try{
+    sound(180,.06,"square");
+    const tickIv=setInterval(()=>{if(!upgradeSpinning){clearInterval(tickIv);return}sound(260+Math.random()*80,.03,"square")},180);
+    setTimeout(()=>clearInterval(tickIv),3800);
+  }catch(e){}
   setTimeout(()=>{
+    if(roulette)roulette.classList.remove("is-spinning");
     if(win){
       addItem(upgradeTargetName,upgradeTargetQty,{origin:"mejora"});
       log(`Mejora exitosa: entregaste entrada y obtuviste <b>${upgradeTargetQty}× ${escapeHtml(upgradeTargetName)}</b> (${pct}%).`);
       toast(`¡Éxito! +${upgradeTargetQty}× ${upgradeTargetName}`);
       if(resultEl)resultEl.innerHTML=`<span class="cyan">Éxito (${pct}%).</span> Has obtenido <b>${upgradeTargetQty}× ${escapeHtml(upgradeTargetName)}</b>.`;
-      sound(720,.15,"triangle");
+      sound(660,.12,"sine"); setTimeout(()=>sound(880,.16,"triangle"),90);
     }else{
       log(`Mejora fallida (${pct}%): se perdieron los objetos de entrada.`);
       toast("Fallaste. Has perdido los objetos entregados.",true);
-      if(resultEl)resultEl.innerHTML=`<span class="red">Fallo.</span> La ruleta quedó fuera del rango del ${pct}%. Entrada perdida.`;
-      sound(140,.2,"sawtooth");
+      if(resultEl)resultEl.innerHTML=`<span class="red">Fallo.</span> Fuera del rango del ${pct}%. Entrada perdida.`;
+      sound(120,.22,"sawtooth"); setTimeout(()=>sound(90,.18,"square"),120);
     }
     upgradeSpinning=false;
     upgradeInputId=null;upgradeInputQty=1;
-    // mantener objetivo para reintentos
-    if(needle){needle.classList.remove("is-spinning");needle.style.transform=`rotate(${finalDeg%360}deg)`}
+    if(needle){needle.classList.remove("is-spinning");needle.style.transition="transform .4s ease-out";needle.style.transform=`rotate(${finalDeg%360}deg)`}
     renderUpgradeMachine();render();save();
-  },3300);
+  },4200);
 }
 function removeItemById(id,qty){
   const x=state.inventory.find(i=>i.id===id);
