@@ -12,6 +12,7 @@ let recipeCategory="Todos";
 let selectedZone=null;
 let audioCtx=null,masterGain=null,lastSoundAt=0,fusionHum=null;
 let zoneHudOpen=false,activeTask=null,currentEnemy=null;
+let upgradeInputId=null,upgradeInputQty=1,upgradeTargetName=null,upgradeTargetQty=1,upgradeSpinning=false;
 let pickerMode=null,pickerSlot=null,pickerFilter="Todos",pickerPage=1;
 let centralSaleFilter="Todos",centralSaleSelection={};
 
@@ -28,7 +29,7 @@ const rarityNames = ["","COMÚN","POCO COMÚN","RARO","ÉPICO","LEGENDARIO"];
 const rarityColors = ["","#b9c4cb","#72e48b","#55baff","#c18bff","#ffc857"];
 const zones = [
  {id:"forest",name:"Bosque hundido",icon:"🌲",desc:"Vegetación densa, ruinas cubiertas de musgo y señales de movimiento entre los árboles.",risk:0,loot:["Madera","Ramas","Hojas","Seta luminosa","Resina"],enemy:0},
- {id:"mine",name:"Mina abandonada",icon:"⛏️",desc:"Galerías colapsadas con vetas metálicas. Se oyen golpes al fondo.",risk:1,loot:["Carbón","Mena de hierro","Mena de cobre","Piedra","Cristal agrietado"],enemy:0.2},
+ {id:"mine",name:"Mina abandonada",icon:"⛏️",desc:"Galerías colapsadas con vetas metálicas. Se oyen golpes al fondo.",risk:1,loot:["Carbón","Mena de hierro","Mena de cobre","Piedra"],enemy:0.2},
  {id:"scrapyard",name:"Vertedero orbital",icon:"🛰️",desc:"Chatarra tecnológica, cables y maquinaria que aún conserva energía.",risk:1,loot:["Chatarra","Cable de cobre","Batería vieja","Placa electrónica","Tornillo oxidado"],enemy:0.2},
  {id:"swamp",name:"Pantano tóxico",icon:"☣️",desc:"Lodo fluorescente, flora mutada y criaturas que no deberían existir.",risk:2,loot:["Hoja mutada","Moco tóxico","Hongo negro","Espora viva","Colmillo"],enemy:0.55},
  {id:"quarry",name:"Cantera roja",icon:"🪨",desc:"Piedra dura y minerales expuestos. El terreno es inestable.",risk:1,loot:["Piedra","Mena de hierro","Mena de cobre","Mena de oro","Geoda"],enemy:0.25},
@@ -80,7 +81,7 @@ const itemDB = {
  "Lingote de oro":{icon:"🟨",cat:"Lingote",r:3,val:35,desc:"Oro refinado y brillante."},
  "Pico de chatarra":{icon:"⛏️",cat:"Herramienta",r:1,val:18,desc:"Aumenta un 15% las probabilidades de obtener minerales.",slot:"pick",gather:15,damage:2},
  "Pico de hierro":{icon:"⛏️",cat:"Herramienta",r:2,val:40,desc:"Pico sólido. +30% hallazgos minerales.",slot:"pick",gather:30,damage:5},
- "Hacha de ramas":{icon:"🪓",cat:"Herramienta",r:1,val:18,desc:"Aumenta un 20% la recolección en bosques.",slot:"axe",gather:20,damage:2},
+ "Hacha de madera":{icon:"🪓",cat:"Herramienta",r:1,val:18,desc:"Aumenta un 20% la recolección en bosques.",slot:"axe",gather:20,damage:2},
  "Hacha de hierro":{icon:"🪓",cat:"Herramienta",r:2,val:42,desc:"Hacha resistente. +35% recolección vegetal.",slot:"axe",gather:35,damage:6},
  "Cuchillo oxidado":{icon:"🔪",cat:"Arma",r:1,val:16,desc:"Arma básica. +5 daño.",slot:"weapon",damage:5},
  "Bate claveteado":{icon:"🏏",cat:"Arma",r:2,val:35,desc:"Arma improvisada. +10 daño.",slot:"weapon",damage:10},
@@ -186,9 +187,15 @@ function addGenerated(name,data){if(!itemDB[name]){itemDB[name]=data;generatedIt
 const mineralRoots=["basalto","cobalto","titanio","níquel","aluminio","estaño","zinc","plomo","wolframio","tungsteno","litio","iridio","platino","paladio","uranio","obsidiana","azufre","cuarzo","jade","ónix","granito","hematita","manganeso","cromo","vanadio","magnesio","circonio","bismuto","antimonio","galena"];
 const mineralQualities=["común","veteada","densa"];
 mineralRoots.forEach((root,i)=>{const proper=root.charAt(0).toUpperCase()+root.slice(1);addGenerated(`Mena de ${root}`,{icon:["⛏️","🪨","💠"][i%3],cat:"Material",r:1+(i%4===0?1:0),val:5+(i%7)*3,desc:`Mineral bruto de ${root}, extraído de vetas geológicas. Se puede refinar en el horno.`});addGenerated(`Lingote de ${root}`,{icon:["🧱","🟫","🪙"][i%3],cat:"Lingote",r:2+(i%4===0?1:0),val:14+(i%8)*5,desc:`${proper} refinado a partir de mena de ${root}; útil para fabricar equipo y componentes.`});});
-const toolBases=["Pico","Hacha","Taladro","Martillo","Sierra","Llave","Palanca","Cortador","Recolector","Sonda","Linterna","Detector","Arpón","Pinzas","Rastrillo","Cincel","Extractor","Soldador","Cuchilla","Brújula"];
+const toolBases=["Pico","Hacha","Pinzas"];
 const toolMaterials=["de basalto","de cobre","de titanio","de obsidiana","de cuarzo","de cobalto","de chatarra","de cristal","de níquel","de iridio"];
-toolBases.forEach((base,i)=>toolMaterials.slice(0,6).forEach((mat,j)=>{const name=`${base} ${mat}`;const slot=/Pico|Taladro|Extractor|Sonda|Detector/.test(base)?"pick":/Hacha|Sierra|Cortador|Cuchilla/.test(base)?"axe":null;addGenerated(name,{icon:/Pico|Taladro|Extractor/.test(base)?"⛏️":/Hacha|Sierra/.test(base)?"🪓":/Linterna/.test(base)?"🔦":"🛠️",cat:"Herramienta",r:1+((i+j)%5),val:18+((i*7+j*11)%100),desc:`Herramienta de campo para extracción, reparación o exploración.`,slot,gather:8+((i+j*3)%45),damage:2+((i+j)%16)});}));
+toolBases.forEach((base,i)=>toolMaterials.slice(0,6).forEach((mat,j)=>{
+ const name=`${base} ${mat}`;
+ const slot=base==="Pico"?"pick":base==="Hacha"?"axe":base==="Pinzas"?"tongs":null;
+ const icon=base==="Pico"?"⛏️":base==="Hacha"?"🪓":"⚕";
+ const extractBonus=base==="Pinzas"?6+((i+j)%20):0;
+ addGenerated(name,{icon,cat:"Herramienta",r:1+((i+j)%4),val:18+((i*7+j*11)%80),desc:base==="Pinzas"?`Instrumento de extracción ${mat}. +${extractBonus||6}% éxito.`:`${base} ${mat}. Herramienta de campo.`,slot,gather:base==="Pinzas"?0:10+((i+j*3)%40),damage:base==="Pinzas"?0:2+((i+j)%12),extractBonus:base==="Pinzas"?extractBonus:undefined});
+}));
 const weaponBases=["Cuchillo","Espada","Lanza","Maza","Pistola","Rifle","Ballesta","Arco","Bastón","Guantelete","Daga","Hoz","Cañón","Látigo","Hacha de combate","Lanzador","Sable","Martillo de guerra","Rayo portátil","Disruptor"];
 const weaponMats=["de cobre","de hierro","de titanio","de cristal","de neón","de obsidiana","de chatarra","de cuarzo","de tungsteno","de fase"];
 weaponBases.forEach((base,i)=>weaponMats.slice(0,6).forEach((mat,j)=>{const name=`${base} ${mat}`;addGenerated(name,{icon:["⚔️","🗡️","🔫","🏹","🔨"][i%5],cat:"Arma",r:1+((i+j)%5),val:22+((i*9+j*13)%160),desc:`Arma de combate con diseño y peso adaptados al material.`,slot:"weapon",damage:5+((i*3+j*4)%42)});}));
@@ -200,7 +207,21 @@ const miscQualities=["de campo","reforzado","experimental","anómalo","compacto"
 miscBases.forEach((base,i)=>miscQualities.forEach((qual,j)=>{const name=`${base} ${qual}`;addGenerated(name,{icon:["🧰","🧪","🔋","📡","💣","🤖"][j%6],cat:j===3?"Otro":"Consumible",r:1+((i+j)%5),val:12+((i*5+j*7)%95),desc:`Objeto auxiliar con uso práctico durante expediciones y operaciones de campo.`});}));
 // Distribuye los nuevos recursos en las zonas apropiadas; todas las entradas son descubribles jugando.
 const lootFor=(id,filter,limit=14)=>{const z=zones.find(x=>x.id===id);if(z)z.loot.push(...generatedItems.filter(n=>filter(itemDB[n],n)).slice(0,limit))};
-lootFor("mine",(d,n)=>d.cat==="Material"&&/Mena de/.test(n),30);lootFor("quarry",(d,n)=>d.cat==="Material"&&/Mena de/.test(n),30);lootFor("glacier",(d,n)=>/cobalto|titanio|níquel|litio|cuarzo|circonio/i.test(n),18);lootFor("volcano",(d,n)=>/basalto|obsidiana|wolframio|tungsteno|azufre|hematita/i.test(n),18);lootFor("neoncity",(d,n)=>/neón|circuito|batería|módulo|detector|visor/i.test(n),18);lootFor("reef",(d,n)=>/cuarzo|jade|paladio|perla|alga|gel/i.test(n),16);lootFor("dunes",(d,n)=>/aluminio|níquel|zinc|plomo|chatarra|rotor/i.test(n),16);lootFor("rift",(d,n)=>/iridio|uranio|fase|anómalo|paradoja|cuántico/i.test(n),18);
+// Botín repartido: la mina ya no acapara menas; cada zona recibe pocas entradas temáticas.
+lootFor("mine",(d,n)=>d.cat==="Material"&&/Mena de (hierro|cobre|carbón|piedra)/i.test(n)||n==="Carbón"||n==="Piedra",2);
+lootFor("quarry",(d,n)=>d.cat==="Material"&&/Mena de (hierro|cobre|oro|zinc|plomo)/i.test(n),4);
+lootFor("dunes",(d,n)=>d.cat==="Material"&&/Mena de (aluminio|níquel|zinc|plomo)/i.test(n),3);
+lootFor("foundry",(d,n)=>d.cat==="Material"&&/Mena de (hierro|cobre|níquel)/i.test(n),3);
+lootFor("root",(d,n)=>d.cat==="Material"&&/Mena de/.test(n),2);
+lootFor("glacier",(d,n)=>/cobalto|titanio|níquel|litio|cuarzo|circonio/i.test(n),5);
+lootFor("volcano",(d,n)=>/basalto|obsidiana|wolframio|tungsteno|azufre|hematita/i.test(n),5);
+lootFor("neoncity",(d,n)=>/neón|circuito|batería|módulo|detector|visor/i.test(n),5);
+lootFor("reef",(d,n)=>/cuarzo|jade|paladio|perla|alga|gel/i.test(n),4);
+lootFor("dunes",(d,n)=>/aluminio|níquel|zinc|plomo|chatarra|rotor/i.test(n),4);
+lootFor("rift",(d,n)=>/iridio|uranio|fase|anómalo|paradoja|cuántico/i.test(n),5);
+lootFor("scrapyard",(d,n)=>/chatarra|cable|batería|tornillo|placa/i.test(n),3);
+lootFor("bunker",(d,n)=>/placa|batería|aleación|núcleo|tarjeta/i.test(n),3);
+
 // Botín adicional de la revisión 1.3, incluidos organismos base recuperables.
 const addZoneLoot=(id,names)=>{const z=zones.find(x=>x.id===id);if(z)names.forEach(n=>{if(itemDB[n]&&!z.loot.includes(n))z.loot.push(n)})};
 addZoneLoot("swamp",["Polen de espectro","Batería de esporas","Esporífero errante"]);addZoneLoot("mine",["Escama ferrítica","Larva de ferrita"]);addZoneLoot("glacier",["Membrana de fase","Polilla de fase"]);addZoneLoot("neoncity",["Lente de rastreo","Sabueso de neón"]);addZoneLoot("reef",["Gel de presión","Náufrago abisal"]);addZoneLoot("volcano",["Caparazón de sílice","Gólem de escoria"]);addZoneLoot("station",["Medusa de eco","Emisor de eco","Archivo de ceniza","Sello de cartógrafo"]);addZoneLoot("rift",["Ampolla de memoria"]);
@@ -223,20 +244,33 @@ zones.forEach((z,zi)=>z.loot.forEach((name,j)=>{if(!itemDB[name])addGenerated(na
  ["Aleación ligera", "🪙", 3, 24, "Mezcla metálica ligera preparada para piezas de precisión."]
 ].forEach(([name,icon,r,val,desc])=>addGenerated(name,{icon,cat:"Material",r,val,desc}));
 const recipes = [
- {id:"pick",name:"Pico de chatarra",icon:"⛏️",desc:"Herramienta inicial para las minas.",cost:{"Madera":2,"Chatarra":2},out:"Pico de chatarra"},
- {id:"axe",name:"Hacha de ramas",icon:"🪓",desc:"Mejora la recolección vegetal.",cost:{"Madera":2,"Ramas":3},out:"Hacha de ramas"},
- {id:"knife",name:"Cuchillo oxidado",icon:"🔪",desc:"No es elegante, pero corta.",cost:{"Chatarra":3,"Ramas":1},out:"Cuchillo oxidado"},
- {id:"bat",name:"Bate claveteado",icon:"🏏",desc:"Más daño para encuentros hostiles.",cost:{"Madera":3,"Tornillo oxidado":3},out:"Bate claveteado"},
- {id:"ironpick",name:"Pico de hierro",icon:"⛏️",desc:"Una herramienta de minería mejorada.",cost:{"Lingote de hierro":3,"Madera":2},out:"Pico de hierro"},
- {id:"ironaxe",name:"Hacha de hierro",icon:"🪓",desc:"Herramienta robusta para el bosque.",cost:{"Lingote de hierro":2,"Madera":2,"Ramas":1},out:"Hacha de hierro"},
- {id:"armor",name:"Armadura de chatarra",icon:"🛡️",desc:"Reduce el daño recibido.",cost:{"Chatarra":5,"Cable de cobre":2},out:"Armadura de chatarra"},
- {id:"sword",name:"Espada de cobre",icon:"⚔️",desc:"Hoja con una buena relación peso-daño.",cost:{"Lingote de cobre":3,"Madera":1},out:"Espada de cobre"}
-,
+ // === HERRAMIENTAS (solo Pico, Hacha, Pinzas) — costes con sentido ===
+ {id:"pick_wood",name:"Pico de madera",icon:"⛏️",desc:"Pico improvisado. Útil para las primeras minas.",cost:{"Madera":3,"Ramas":2},out:"Pico de madera",category:"Herramienta"},
+ {id:"pick_scrap",name:"Pico de chatarra",icon:"⛏️",desc:"Pico reforzado con metal recuperado.",cost:{"Madera":2,"Chatarra":3},out:"Pico de chatarra",category:"Herramienta"},
+ {id:"pick_iron",name:"Pico de hierro",icon:"⛏️",desc:"Pico sólido de hierro refinado.",cost:{"Lingote de hierro":3,"Madera":2},out:"Pico de hierro",category:"Herramienta"},
+ {id:"axe_wood",name:"Hacha de madera",icon:"🪓",desc:"Hacha básica de leñador. Necesita madera y ramas.",cost:{"Madera":2,"Ramas":3},out:"Hacha de madera",category:"Herramienta"},
+ {id:"axe_scrap",name:"Hacha de chatarra",icon:"🪓",desc:"Filo metálico improvisado sobre mango de madera.",cost:{"Madera":2,"Chatarra":2,"Ramas":1},out:"Hacha de chatarra",category:"Herramienta"},
+ {id:"axe_iron",name:"Hacha de hierro",icon:"🪓",desc:"Hacha resistente para bosque y estructuras.",cost:{"Lingote de hierro":2,"Madera":2,"Ramas":1},out:"Hacha de hierro",category:"Herramienta"},
  {id:"tongs1",name:"Pinzas oxidadas",icon:"⚕",desc:"Instrumento básico de extracción. +6% éxito.",cost:{"Chatarra":2,"Ramas":1},out:"Pinzas oxidadas",category:"Herramienta"},
- {id:"tongs2",name:"Pinzas de campo",icon:"⚕",desc:"Mejor agarre quirúrgico improvisado. +12% éxito.",cost:{"Chatarra":3,"Lingote de hierro":1},out:"Pinzas de campo",category:"Herramienta"},
- {id:"tongs3",name:"Pinzas de precisión",icon:"⚕",desc:"Microajuste manual. +20% éxito de extracción.",cost:{"Lingote de hierro":2,"Cristal":1},out:"Pinzas de precisión",category:"Herramienta"},
- {id:"tongs4",name:"Pinzas de fase",icon:"⚕",desc:"Estabiliza tejidos anómalos. +28% éxito.",cost:{"Lingote de titanio":1,"Cristal":2},out:"Pinzas de fase",category:"Herramienta"}
+ {id:"tongs2",name:"Pinzas de campo",icon:"⚕",desc:"Mejor agarre. +12% éxito de extracción.",cost:{"Chatarra":3,"Lingote de hierro":1},out:"Pinzas de campo",category:"Herramienta"},
+ {id:"tongs3",name:"Pinzas de precisión",icon:"⚕",desc:"Microajuste manual. +20% éxito.",cost:{"Lingote de hierro":2,"Cristal agrietado":1},out:"Pinzas de precisión",category:"Herramienta"},
+ // === ARMAS / EQUIPO básicos con sentido ===
+ {id:"knife",name:"Cuchillo oxidado",icon:"🔪",desc:"Hoja improvisada de chatarra.",cost:{"Chatarra":3,"Ramas":1},out:"Cuchillo oxidado",category:"Arma"},
+ {id:"sword_copper",name:"Espada de cobre",icon:"⚔️",desc:"Hoja de cobre con mango de madera.",cost:{"Lingote de cobre":3,"Madera":1},out:"Espada de cobre",category:"Arma"},
+ {id:"armor_scrap",name:"Armadura de chatarra",icon:"🛡️",desc:"Placas de chatarra unidas con cable.",cost:{"Chatarra":5,"Cable de cobre":2},out:"Armadura de chatarra",category:"Equipo"}
 ];
+
+// Registrar herramientas nuevas en itemDB si faltan
+[
+ ["Pico de madera",{icon:"⛏️",cat:"Herramienta",r:1,val:14,desc:"Pico improvisado de madera y ramas.",slot:"pick",gather:10,damage:1}],
+ ["Hacha de madera",{icon:"🪓",cat:"Herramienta",r:1,val:14,desc:"Hacha básica de leñador.",slot:"axe",gather:12,damage:1}],
+ ["Hacha de chatarra",{icon:"🪓",cat:"Herramienta",r:1,val:22,desc:"Hacha con filo de chatarra.",slot:"axe",gather:22,damage:3}]
+].forEach(([n,d])=>{if(!itemDB[n]){itemDB[n]=d;generatedItems.push(n)}});
+// Asegurar pinzas y picos base
+if(!itemDB["Pinzas oxidadas"]){itemDB["Pinzas oxidadas"]={icon:"⚕",cat:"Herramienta",r:1,val:16,desc:"Instrumento básico de extracción. +6% éxito.",slot:"tongs",extractBonus:6};generatedItems.push("Pinzas oxidadas")}
+if(!itemDB["Pinzas de campo"]){itemDB["Pinzas de campo"]={icon:"⚕",cat:"Herramienta",r:2,val:32,desc:"Mejor agarre. +12% éxito.",slot:"tongs",extractBonus:12};generatedItems.push("Pinzas de campo")}
+if(!itemDB["Pinzas de precisión"]){itemDB["Pinzas de precisión"]={icon:"⚕",cat:"Herramienta",r:3,val:55,desc:"Microajuste. +20% éxito.",slot:"tongs",extractBonus:20};generatedItems.push("Pinzas de precisión")}
+
 
 
 // Recetas de materiales base y componentes procesados.
@@ -382,7 +416,7 @@ materialRecipeFamilies.forEach((family,fi)=>family.items.forEach(([out,icon,a,b,
  {id:"lore_memory_vial",name:"Memoria de expedición sellada",icon:"🧪",desc:"La Ampolla de memoria se encapsula en un soporte energético. La grabación queda protegida para su análisis sin alterar el objeto original.",cost:{"Ampolla de memoria":1,"Núcleo energético":1},out:"Memoria de expedición sellada",category:"Material"}
 ].forEach(r=>{addGenerated(r.out,{icon:r.icon,cat:"Material",r:r.id==="lore_ash_map"?2:r.id==="lore_cartographer_seal"?3:4,val:r.id==="lore_ash_map"?27:r.id==="lore_cartographer_seal"?48:72,desc:r.desc});recipes.push(r)});
 
-// Ampliación industrial: objetivo de 250 recetas de materiales en total.
+// REWORK: recetas de materiales limitadas (máx. 40 de ampliación industrial).
 // Cada receta convierte una mena/lingote en un derivado plausible de la misma familia mineral.
 const materialForms = [
  {label:"Lámina técnica",icon:"🔲",desc:"Lámina mineral laminada para carcasas, refuerzos y ensamblajes.",cost:(root)=>({[`Lingote de ${root}`]:1,"Chatarra":1})},
@@ -392,7 +426,7 @@ const materialForms = [
  {label:"Núcleo mineral",icon:"💠",desc:"Núcleo compacto que conserva las propiedades del mineral de origen.",cost:(root)=>({[`Lingote de ${root}`]:1,"Batería vieja":1})},
  {label:"Bloque sinterizado",icon:"🧱",desc:"Bloque de mineral consolidado mediante calor para uso estructural.",cost:(root)=>({[`Mena de ${root}`]:2,"Carbón":1})}
 ];
-let materialRecipeTarget=250;
+let materialRecipeTarget=8;
 let materialRecipesNow=recipes.filter(r=>r.category==="Material").length;
 for(const root of mineralRoots){
  const proper=root.charAt(0).toUpperCase()+root.slice(1);
@@ -411,22 +445,11 @@ for(const root of mineralRoots){
 
 // Recetas generadas: categorías separadas y costes con materiales de acceso común.
 recipes.forEach(r=>{if(!r.category)r.category=(itemDB[r.out]||{}).cat||"Otro"});
-const craftableGenerated=generatedItems.filter(n=>["Herramienta","Arma","Equipo","Consumible"].includes(itemDB[n].cat));
-function generatedRecipeCost(name,cat){
- const n=name.toLocaleLowerCase("es");
- // Match the ingredients to the item's actual material/functional identity first.
- if(/madera|rama|corteza|tabla|fibra|cuerda|mango|arco/.test(n))return {"Madera":2,"Ramas":1};
- if(/hierro|acero|metal|placa|blindaje|armadura|escudo|casco|peto|malla/.test(n))return {"Lingote de hierro":1,"Chatarra":2};
- if(/cobre|cable|bobina|circuito|electr|sensor|chip|módulo|batería|conector/.test(n))return {"Cable de cobre":1,"Placa electrónica":1};
- if(/cristal|prisma|lente|ópt|cuarzo|geoda|fotón/.test(n))return {"Cristal agrietado":2,"Cable de cobre":1};
- if(/hongo|espora|tox|veneno|antídoto|biológ|gel|moco|enzim|resina|hoja|vegetal/.test(n))return {"Hojas":1,"Resina":1,"Carbón":1};
- if(/plasma|energ|fase|anomal|cuánt|fractal|dimensional|vacío|paradoja|neón/.test(n))return {"Núcleo energético":1,"Cable de cobre":1};
- if(cat==="Herramienta")return {"Madera":1,"Chatarra":2};
- if(cat==="Arma")return {"Lingote de hierro":1,"Chatarra":2};
- if(cat==="Equipo")return {"Lingote de hierro":1,"Cable de cobre":1};
- return {"Hojas":1,"Carbón":1};
-}
-craftableGenerated.forEach((name,i)=>{const d=itemDB[name];recipes.push({id:"gen_"+i,name,icon:d.icon,desc:d.desc,cost:generatedRecipeCost(name,d.cat),out:name,category:d.cat});});
+// REWORK: no se generan recetas masivas de herramientas/armas/equipo/consumibles.
+// Solo las recetas definidas a mano (Pico, Hacha, Pinzas + básicos) y materiales de procesado.
+const craftableGenerated=[];
+function generatedRecipeCost(name,cat){return {"Madera":1,"Chatarra":1};}
+
 
 // REWORK 3.0: cada receta usa materiales de la MISMA rareza/nivel que el objeto final.
 // Primero busca afinidad semántica; solo amplía la familia si no hay suficientes ingredientes.
@@ -442,21 +465,37 @@ function recipeTheme(name,desc="",cat=""){
 const recipeOutputs=new Set(recipes.map(r=>r.out));
 const recipeMaterialPool=Object.keys(itemDB).filter(n=>["Material","Lingote"].includes(itemDB[n].cat));
 function rebuildRecipeCosts(){
+ // Solo rellena costes vacíos de recetas auto-generadas. Las recetas manuales (herramientas, armas, materiales básicos) conservan sus costes con sentido.
  for(const r of recipes){
+  if(r.cost && Object.keys(r.cost).length)continue;
   const out=itemDB[r.out]||{};const tier=Math.max(1,Number(out.r)||1);const theme=recipeTheme(r.out,out.desc,r.category||out.cat);
   let pool=recipeMaterialPool.filter(n=>n!==r.out&&!recipeOutputs.has(n)&&(Number(itemDB[n].r)||1)===tier&&recipeTheme(n,itemDB[n].desc,itemDB[n].cat)===theme);
   if(pool.length<2)pool=recipeMaterialPool.filter(n=>n!==r.out&&!recipeOutputs.has(n)&&(Number(itemDB[n].r)||1)===tier);
   if(!pool.length)pool=recipeMaterialPool.filter(n=>n!==r.out&&(Number(itemDB[n].r)||1)===tier);
   if(!pool.length){r.cost={};continue}
   const hash=Array.from(r.id+"|"+r.out).reduce((a,c)=>(a*31+c.charCodeAt(0))>>>0,7);
-  // Recetas con más nivel exigen más componentes y más unidades por componente.
-  const kinds=Math.min(pool.length,tier>=5?4:tier>=3?3:2), chosen=[];
+  const kinds=Math.min(pool.length,tier>=5?3:tier>=3?2:2), chosen=[];
   for(let i=0;i<kinds;i++)chosen.push(pool[(hash+i*7+i*i*3)%pool.length]);
-  const cost={};chosen.forEach((n,i)=>{const quantity=Math.min(4,1+((hash>>>(i*3))&1)+(tier>=3?1:0)+(tier>=5?1:0));cost[n]=(cost[n]||0)+quantity});
-  for(const n of Object.keys(cost))cost[n]=Math.min(4,cost[n]);r.cost=cost;
+  const cost={};chosen.forEach((n,i)=>{const quantity=Math.min(3,1+((hash>>>(i*3))&1)+(tier>=4?1:0));cost[n]=(cost[n]||0)+quantity});
+  for(const n of Object.keys(cost))cost[n]=Math.min(3,cost[n]);r.cost=cost;
  }
 }
 rebuildRecipeCosts();
+
+// REWORK mesa: recortar recetas auto sin sentido. Conservar herramientas (Pico/Hacha/Pinzas),
+// armas/equipo básicos y un número limitado de materiales procesados.
+(function pruneRecipes(){
+  const keepIds=new Set(recipes.filter(r=>r.category==="Herramienta"||r.category==="Arma"||r.category==="Equipo"||r.category==="Consumible"||(r.id&&String(r.id).startsWith("lore_"))||(r.id&&String(r.id).startsWith("mat_")&&!String(r.id).startsWith("mat_extra_")&&!String(r.id).startsWith("mat_bulk_"))).map(r=>r.id));
+  // Mantener también un máximo de 12 mat_extra_ / mat_bulk_ para no vaciar materiales
+  let extra=0;
+  const kept=[];
+  for(const r of recipes){
+    if(keepIds.has(r.id)){kept.push(r);continue}
+    if((String(r.id).startsWith("mat_extra_")||String(r.id).startsWith("mat_bulk_"))&&extra<12){kept.push(r);extra++;continue}
+    if(r.category==="Material"&&r.cost&&Object.keys(r.cost).length&&extra<12&&!String(r.id).startsWith("mat_extra_")&&!String(r.id).startsWith("mat_bulk_")){kept.push(r);extra++;continue}
+  }
+  recipes.length=0;recipes.push(...kept);
+})();
 
 const supplyPacks = [
  {id:"field",name:"Caja de campo",icon:"📦",price:35,desc:"Materiales variados y una pequeña posibilidad de equipo raro.",color:"common"},
@@ -1489,6 +1528,159 @@ if(x.defense)skillLines.push(`Defensa +${x.defense}`);
 if(x.passive&&(x.passive.value||x.passive.type))skillLines.push(String(x.passive.value||x.passive.type));
 const skillHtml=skillLines.length?`<div class="small-note" style="margin-top:7px;color:var(--cyan)">✦ ${skillLines.map(escapeHtml).join(" / ")}</div>`:"";
 const synthesisHtml=isSynthesisItem(x)?`<div class="small-note" style="margin-top:5px;color:var(--cyan)">◇ Rasgo: Síntesis de convergencia</div>`:"";return `<div class="item-card rarity-${r}"><div class="item-top"><div class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</div><div style="min-width:0"><h4 title="${escapeHtml(inventoryDisplayName(x))}">${escapeHtml(inventoryDisplayName(x))} ${x.qty>1?`<span class="muted">×${x.qty}</span>`:""}</h4><div class="rarity r${r}">NIVEL ${r} · ${rarityNames[r]}</div></div></div><div class="desc">${escapeHtml(x.desc||info(x.name).desc||"Objeto sin descripción.")}</div>${skillHtml}${synthesisHtml}<div class="item-bottom"><span class="muted" style="font-size:.68rem">${escapeHtml(x.cat||info(x.name).cat)} · Valor base (100%): ${Number(x.val||info(x.name).val)} cr.</span>${opts.sell?`<span class="muted" style="font-size:.62rem">Envío de suministro</span>`:""}</div>${opts.equip?`<button class="tiny" style="width:100%;margin-top:8px" data-equip-id="${x.id}">Equipar</button>`:""}</div>`}
+
+// === NEXO · MÁQUINA DE MEJORA ===
+function isBaseRegistryItem(name){
+  const d=info(name);
+  if(!d||!d.cat)return false;
+  if(isSynthesisItem({name,...d}))return false;
+  // Solo objetos del registro base (vistos o en itemDB estándar)
+  const seen=state.seen||[];
+  const disc=state.discovered||{};
+  return seen.includes(name)||!!disc[name]||!!itemDB[name];
+}
+function upgradeInputValue(){
+  if(!upgradeInputId)return 0;
+  const x=state.inventory.find(i=>i.id===upgradeInputId);
+  if(!x)return 0;
+  const base=Math.max(1,Number(x.val)||Number(info(x.name).val)||1);
+  return base*Math.max(1,upgradeInputQty);
+}
+function upgradeTargetValue(){
+  if(!upgradeTargetName)return 0;
+  const base=Math.max(1,Number(info(upgradeTargetName).val)||1);
+  return base*Math.max(1,upgradeTargetQty);
+}
+function upgradeChancePct(){
+  const inn=upgradeInputValue(),out=upgradeTargetValue();
+  if(!inn||!out)return 0;
+  // Ratio valor entrada / valor objetivo → % entre 5 y 90
+  const ratio=inn/out;
+  let pct=Math.round(45+ratio*40); // ~45% si iguales, sube/baja con ratio
+  if(ratio>=1)pct=Math.round(55+(ratio-1)*35);
+  else pct=Math.round(55*ratio);
+  return Math.min(90,Math.max(5,pct));
+}
+function renderUpgradeMachine(){
+  const inItem=upgradeInputId?state.inventory.find(i=>i.id===upgradeInputId):null;
+  if(upgradeInputId&&!inItem){upgradeInputId=null;upgradeInputQty=1}
+  if(inItem)upgradeInputQty=Math.min(Math.max(1,upgradeInputQty),inItem.qty);
+  const pick=$("upgradeInputPick"),infoEl=$("upgradeInputInfo"),inQty=$("upgradeInQty"),inVal=$("upgradeInValue");
+  if(pick){
+    if(inItem){pick.innerHTML=`<span class="item-icon">${itemIconMarkup(inItem.name,inItem.icon||info(inItem.name).icon)}</span> ${escapeHtml(inventoryDisplayName(inItem))} · ×${inItem.qty}`;}
+    else pick.textContent="＋ Elegir objeto de entrada";
+  }
+  if(infoEl)infoEl.textContent=inItem?`N${inItem.r||1} · ${inItem.cat||info(inItem.name).cat} · Base ${Math.max(1,Number(inItem.val)||Number(info(inItem.name).val)||1)} cr./u`:"Ningún objeto seleccionado.";
+  if(inQty)inQty.textContent="×"+upgradeInputQty;
+  if(inVal)inVal.innerHTML=formatCredits(upgradeInputValue(),14);
+
+  const tInfo=$("upgradeTargetInfo"),tQty=$("upgradeOutQty"),tVal=$("upgradeOutValue"),tPick=$("upgradeTargetPick");
+  if(tPick){
+    if(upgradeTargetName){tPick.innerHTML=`<span class="item-icon">${itemIconMarkup(upgradeTargetName,info(upgradeTargetName).icon)}</span> ${escapeHtml(upgradeTargetName)}`;}
+    else tPick.textContent="＋ Elegir del Registro Base";
+  }
+  if(tInfo)tInfo.textContent=upgradeTargetName?`N${info(upgradeTargetName).r||1} · ${info(upgradeTargetName).cat||"?"} · Base ${Math.max(1,Number(info(upgradeTargetName).val)||1)} cr./u`:"Ningún objetivo seleccionado.";
+  if(tQty)tQty.textContent="×"+upgradeTargetQty;
+  if(tVal)tVal.innerHTML=formatCredits(upgradeTargetValue(),14);
+
+  const pct=upgradeChancePct();
+  const chanceEl=$("upgradeChance"),arc=$("upgradeSuccessArc"),note=$("upgradeChanceNote"),btn=$("upgradeSpinBtn");
+  if(chanceEl)chanceEl.textContent=pct?pct+"%":"—";
+  if(arc)arc.style.setProperty("--success-deg",(pct/100*360)+"deg");
+  if(note){
+    if(!upgradeInputId||!upgradeTargetName)note.textContent="Ajusta entrada y objetivo para calcular el %.";
+    else if(pct>=70)note.textContent="Buena oferta: alta probabilidad (máx. 90%).";
+    else if(pct>=40)note.textContent="Equilibrio intermedio. Sigue habiendo riesgo.";
+    else note.textContent="Oferta baja: alto riesgo de perder la entrada.";
+  }
+  if(btn)btn.disabled=upgradeSpinning||!upgradeInputId||!upgradeTargetName||pct<=0||!!activeTask||!!currentEnemy;
+}
+function openUpgradeInputPicker(){
+  if(upgradeSpinning)return;
+  pickerMode="upgradeInput";pickerSlot=null;pickerFilter="Todos";pickerPage=1;
+  $("inventoryPicker").classList.remove("hidden");renderPicker();
+}
+function openUpgradeTargetPicker(){
+  if(upgradeSpinning)return;
+  // Lista de registro base (no síntesis)
+  const names=[...new Set([...(state.seen||[]),...Object.keys(state.discovered||{}),...Object.keys(itemDB)])]
+    .filter(n=>{const d=info(n);return d&&d.cat&&!["Criatura"].includes(d.cat)===false?true:true})
+    .filter(n=>!isSynthesisItem({name:n,...info(n)}))
+    .filter(n=>["Material","Lingote","Herramienta","Arma","Equipo","Consumible","Otro","Anomalía"].includes(info(n).cat||""));
+  // Reuse picker in a special mode
+  pickerMode="upgradeTarget";pickerSlot=null;pickerFilter="Todos";pickerPage=1;
+  $("inventoryPicker").classList.remove("hidden");
+  // Custom render for target: from registry not inventory
+  const host=$("pickerGrid");
+  if(!host)return;
+  const search=($("pickerSearch")?.value||"").trim().toLowerCase();
+  let list=names.filter(n=>n.toLowerCase().includes(search));
+  if(pickerFilter&&pickerFilter!=="Todos")list=list.filter(n=>(info(n).cat||"")===(pickerFilter==="Otros"?"Otro":pickerFilter));
+  list.sort((a,b)=>(info(a).r||1)-(info(b).r||1)||a.localeCompare(b,"es"));
+  const pageSize=12;
+  const pages=Math.max(1,Math.ceil(list.length/pageSize));
+  pickerPage=Math.min(Math.max(1,pickerPage),pages);
+  const shown=list.slice((pickerPage-1)*pageSize,pickerPage*pageSize);
+  host.innerHTML=shown.length?shown.map(n=>`<button class="picker-item" data-upgrade-target="${escapeHtml(n)}"><span class="item-icon">${itemIconMarkup(n,info(n).icon)}</span><span style="min-width:0"><b title="${escapeHtml(n)}">${escapeHtml(n)}</b><small>N${info(n).r||1} · ${escapeHtml(info(n).cat||"?")}</small></span></button>`).join(""):'<div class="empty" style="grid-column:1/-1">No hay objetos base en el registro.</div>';
+  if($("pickerPageInfo"))$("pickerPageInfo").textContent=`Página ${pickerPage} / ${pages}`;
+  if($("pickerPrev"))$("pickerPrev").disabled=pickerPage<=1;
+  if($("pickerNext"))$("pickerNext").disabled=pickerPage>=pages;
+  host.querySelectorAll("[data-upgrade-target]").forEach(b=>b.onclick=()=>{
+    upgradeTargetName=b.dataset.upgradeTarget;upgradeTargetQty=1;
+    $("inventoryPicker").classList.add("hidden");renderUpgradeMachine();
+  });
+}
+function spinUpgradeRoulette(){
+  if(upgradeSpinning||!upgradeInputId||!upgradeTargetName)return;
+  const item=state.inventory.find(i=>i.id===upgradeInputId);
+  if(!item||item.qty<upgradeInputQty)return toast("No tienes suficientes unidades de entrada.",true);
+  if(isSynthesisItem(item))return toast("No se admiten objetos de síntesis.",true);
+  const pct=upgradeChancePct();
+  if(pct<=0)return;
+  upgradeSpinning=true;renderUpgradeMachine();
+  // Consumir entrada YA (no se puede retirar)
+  const removed=removeItemById(upgradeInputId,upgradeInputQty);
+  if(!removed){upgradeSpinning=false;renderUpgradeMachine();return toast("Error al consumir la entrada.",true)}
+  const needle=$("upgradeNeedle");
+  if(needle){needle.classList.remove("is-spinning");void needle.offsetWidth;needle.classList.add("is-spinning")}
+  // Ángulo final: éxito = zona [0, pct%*360) desde -90deg visual
+  const successSpan=pct/100*360;
+  const win=Math.random()*100<pct;
+  let finalDeg;
+  if(win)finalDeg=360*4 + Math.random()*successSpan;
+  else finalDeg=360*4 + successSpan + Math.random()*(360-successSpan);
+  if(needle)needle.style.transform=`rotate(${finalDeg}deg)`;
+  const resultEl=$("upgradeResult");
+  if(resultEl)resultEl.textContent="Ruleta en marcha… no se puede cancelar.";
+  sound(220,.08,"sine");
+  setTimeout(()=>{
+    if(win){
+      addItem(upgradeTargetName,upgradeTargetQty,{origin:"mejora"});
+      log(`Mejora exitosa: entregaste entrada y obtuviste <b>${upgradeTargetQty}× ${escapeHtml(upgradeTargetName)}</b> (${pct}%).`);
+      toast(`¡Éxito! +${upgradeTargetQty}× ${upgradeTargetName}`);
+      if(resultEl)resultEl.innerHTML=`<span class="cyan">Éxito (${pct}%).</span> Has obtenido <b>${upgradeTargetQty}× ${escapeHtml(upgradeTargetName)}</b>.`;
+      sound(720,.15,"triangle");
+    }else{
+      log(`Mejora fallida (${pct}%): se perdieron los objetos de entrada.`);
+      toast("Fallaste. Has perdido los objetos entregados.",true);
+      if(resultEl)resultEl.innerHTML=`<span class="red">Fallo.</span> La ruleta quedó fuera del rango del ${pct}%. Entrada perdida.`;
+      sound(140,.2,"sawtooth");
+    }
+    upgradeSpinning=false;
+    upgradeInputId=null;upgradeInputQty=1;
+    // mantener objetivo para reintentos
+    if(needle){needle.classList.remove("is-spinning");needle.style.transform=`rotate(${finalDeg%360}deg)`}
+    renderUpgradeMachine();render();save();
+  },3300);
+}
+function removeItemById(id,qty){
+  const x=state.inventory.find(i=>i.id===id);
+  if(!x||x.qty<qty)return false;
+  x.qty-=qty;
+  if(x.qty<=0)state.inventory=state.inventory.filter(i=>i.id!==id);
+  return true;
+}
+
 function nav(page){
  // Combate activo: solo se permite volver a Exploración para no quedar atrapado fuera del HUD de combate
  if(currentEnemy){
@@ -1499,7 +1691,7 @@ function nav(page){
   if(page==="supplies"){toast("Hay un combate en curso. Vuelve a Exploración para resolverlo.",true);return}
   // page === explore → permitir y reabrir el combate
  }
- const requestedSupplies=page==="supplies";if(requestedSupplies)page="central";document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id==="page-"+page));document.querySelectorAll("[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===page));if(typeof closeMobileNavPanels==="function")closeMobileNavPanels();if(requestedSupplies){document.querySelectorAll("[data-central-tab]").forEach(b=>b.classList.toggle("active",b.dataset.centralTab==="supplies"));document.querySelectorAll("#page-central .central-section").forEach(x=>x.classList.toggle("active",x.id==="central-supplies"))}if(page==="clinic"){renderExtractTable();renderSpawnTable()}if(page==="market"){try{ensureMarketDay();renderMarketBuy(false);renderMarketBuy(true);renderMarketSell(false);renderMarketSell(true)}catch(err){console.error(err)}}
+ const requestedSupplies=page==="supplies";if(requestedSupplies)page="central";document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id==="page-"+page));document.querySelectorAll("[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===page));if(typeof closeMobileNavPanels==="function")closeMobileNavPanels();if(requestedSupplies){document.querySelectorAll("[data-central-tab]").forEach(b=>b.classList.toggle("active",b.dataset.centralTab==="supplies"));document.querySelectorAll("#page-central .central-section").forEach(x=>x.classList.toggle("active",x.id==="central-supplies"))}if(page==="clinic"){renderExtractTable();renderSpawnTable()}if(page==="nexus"){renderUpgradeMachine()}if(page==="market"){try{ensureMarketDay();renderMarketBuy(false);renderMarketBuy(true);renderMarketSell(false);renderMarketSell(true)}catch(err){console.error(err)}}
  // Si hay combate en curso, forzar HUD de zona + panel de combate visibles en Exploración
  if(currentEnemy&&page==="explore"){
   zoneHudOpen=true;
@@ -1674,7 +1866,10 @@ function openPicker(mode,slot=null){pickerMode=mode;pickerSlot=slot;pickerFilter
 function renderPicker(){let list=state.inventory.filter(x=>x.qty>0&&x.name.toLowerCase().includes($("pickerSearch").value.toLowerCase()));if(pickerMode==="fusion"&&pickerFilter!=="Todos")list=list.filter(x=>pickerFilter==="Síntesis"?isSynthesisItem(x):pickerFilter==="Lingote"?(x.cat==="Lingote"||x.name.startsWith("Lingote de ")):pickerFilter==="Otro"?!( ["Material","Lingote","Herramienta","Arma","Equipo","Consumible","Criatura","Órgano","Anomalía"].includes(x.cat)):x.cat===pickerFilter);if(pickerMode==="extract")list=list.filter(x=>x.cat==="Criatura"&&!isRoboticCreature(x));
 if(pickerMode==="spawn")list=list.filter(x=>x.cat==="Órgano"&&!Object.values(spawnSelected||{}).includes(x.id));
 if(pickerMode==="spawnAnomaly")list=list.filter(x=>x.cat==="Anomalía");
-if(pickerMode==="equip")list=list.filter(x=>pickerSlot==="anomaly"?x.cat==="Anomalía":pickerSlot==="companion"?x.cat==="Criatura":info(x.name).slot===pickerSlot||x.slot===pickerSlot);const pickerPageSize=6;const pages=Math.max(1,Math.ceil(list.length/pickerPageSize));pickerPage=Math.min(Math.max(1,pickerPage),pages);const shown=list.slice((pickerPage-1)*pickerPageSize,pickerPage*pickerPageSize);$("pickerGrid").innerHTML=shown.length?shown.map(x=>`<button class="picker-item" data-pick-id="${x.id}"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><span style="min-width:0"><b title="${escapeHtml(x.name)}">${escapeHtml(inventoryDisplayName(x))}</b><small>N${x.r} · ${escapeHtml(x.cat)} · ×${x.qty}</small></span></button>`).join(""):'<div class="empty" style="grid-column:1/-1">No hay objetos disponibles en esta categoría.</div>';$ ("pickerPageInfo").textContent=`Página ${pickerPage} / ${pages}`;$("pickerPrev").disabled=pickerPage<=1;$("pickerNext").disabled=pickerPage>=pages;document.querySelectorAll("[data-pick-id]").forEach(b=>b.onclick=()=>{const x=state.inventory.find(i=>i.id===b.dataset.pickId);if(!x)return;if(pickerMode==="fusion"){state.fusionSlots=state.fusionSlots||{A:null,B:null};state.fusionSlots[pickerSlot]=x.id;renderFusionSelects()}else if(pickerMode==="extract"){extractCreatureId=x.id;extractSelected={};extractOrgansPage=1;renderExtractTable()}else if(pickerMode==="spawn"){spawnSelected[pickerSlot]=x.id;renderSpawnTable()}else if(pickerMode==="spawnAnomaly"){spawnAnomalyId=x.id;renderSpawnTable()}else if(pickerMode==="equip"){if(pickerSlot==="companion"&&!x.abilities?.length&&!x.ability){x.abilities=rollCompanionAbilities(x.r||1);x.ability=x.abilities[0];x.desc=`Compañero de campo. Habilidades procedurales: ${x.abilities.map(a=>a.name+" ("+a.desc+")").join(" · ")}.`}state.equipped[pickerSlot]=x.id;log(`Equipo actualizado: ${x.name}.`);renderEquipment();renderStats();renderBonus()}$("inventoryPicker").classList.add("hidden");save();sound(500)})}
+if(pickerMode==="equip")list=list.filter(x=>pickerSlot==="anomaly"?x.cat==="Anomalía":pickerSlot==="companion"?x.cat==="Criatura":info(x.name).slot===pickerSlot||x.slot===pickerSlot);const pickerPageSize=6;const pages=Math.max(1,Math.ceil(list.length/pickerPageSize));pickerPage=Math.min(Math.max(1,pickerPage),pages);const shown=list.slice((pickerPage-1)*pickerPageSize,pickerPage*pickerPageSize);$("pickerGrid").innerHTML=shown.length?shown.map(x=>`<button class="picker-item" data-pick-id="${x.id}"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><span style="min-width:0"><b title="${escapeHtml(x.name)}">${escapeHtml(inventoryDisplayName(x))}</b><small>N${x.r} · ${escapeHtml(x.cat)} · ×${x.qty}</small></span></button>`).join(""):'<div class="empty" style="grid-column:1/-1">No hay objetos disponibles en esta categoría.</div>';$ ("pickerPageInfo").textContent=`Página ${pickerPage} / ${pages}`;$("pickerPrev").disabled=pickerPage<=1;$("pickerNext").disabled=pickerPage>=pages;document.querySelectorAll("[data-pick-id]").forEach(b=>b.onclick=()=>{const x=state.inventory.find(i=>i.id===b.dataset.pickId);if(!x)return;if(pickerMode==="fusion"){state.fusionSlots=state.fusionSlots||{A:null,B:null};state.fusionSlots[pickerSlot]=x.id;renderFusionSelects()}else if(pickerMode==="extract"){extractCreatureId=x.id;extractSelected={};extractOrgansPage=1;renderExtractTable()}else if(pickerMode==="spawn"){spawnSelected[pickerSlot]=x.id;renderSpawnTable()}else if(pickerMode==="spawnAnomaly"){spawnAnomalyId=x.id;renderSpawnTable()}else if(pickerMode==="upgradeInput"){
+  if(isSynthesisItem(x)){toast("Solo objetos base (sin síntesis).",true);return}
+  upgradeInputId=x.id;upgradeInputQty=1;$("inventoryPicker").classList.add("hidden");renderUpgradeMachine();save();return;
+ }else if(pickerMode==="equip"){if(pickerSlot==="companion"&&!x.abilities?.length&&!x.ability){x.abilities=rollCompanionAbilities(x.r||1);x.ability=x.abilities[0];x.desc=`Compañero de campo. Habilidades procedurales: ${x.abilities.map(a=>a.name+" ("+a.desc+")").join(" · ")}.`}state.equipped[pickerSlot]=x.id;log(`Equipo actualizado: ${x.name}.`);renderEquipment();renderStats();renderBonus()}$("inventoryPicker").classList.add("hidden");save();sound(500)})}
 function fusionOutcome(a,b){
  const da={...info(a.name),...a},db={...info(b.name),...b},text=(a.name+" "+b.name+" "+da.cat+" "+db.cat).toLowerCase();
  const creature=da.cat==="Criatura"||db.cat==="Criatura"||/zombie|mutante|ghoul|híbrido|infectado|merodeador|aberración|cosechador|dron biológico/.test(text);
@@ -1919,7 +2114,7 @@ function makeProceduralLoot(packId){
  itemDB[out.name]=out;return out;
 }
 function renderSupplies(){const cards=supplyPacks.map(p=>`<div class="supply-card"><div class="zone-art" style="height:95px">${itemIconMarkup(p.name,p.icon)}</div><h4>${p.name}</h4><div class="gold credits-price" style="font-weight:900">${formatCredits(p.price,16)}</div><p>${p.desc}</p><button class="primary" data-pack="${p.id}" ${state.credits>=p.price&&!state.pendingSupply&&!activeTask?"":"disabled"}>Solicitar suministro</button></div>`).join('');if($('suppliesGridCentral'))$('suppliesGridCentral').innerHTML=cards;document.querySelectorAll('[data-pack]').forEach(b=>b.onclick=()=>buyPack(b.dataset.pack))}
-function buyPack(id){const p=supplyPacks.find(p=>p.id===id);if(activeTask||state.pendingSupply)return toast("Termina o reclama el suministro pendiente antes de pedir otro.",true);if(state.credits<p.price)return toast("Créditos insuficientes.",true);state.credits-=p.price;let pool;if(id==="field")pool=["Madera","Chatarra","Carbón","Mena de hierro","Mena de cobre","Cuchillo oxidado","Hacha de ramas","Batería vieja"];else if(id==="black")pool=["Pico de hierro","Hacha de hierro","Espada de cobre","Armadura de chatarra","Placa electrónica","Mena de oro","Zombie de bolsillo","Aleación extraña","Cañón de bolsillo"];else pool=["Espada de rayos","Pico de cristal","Hacha solar","Escudo de vacío","Núcleo energético","Gólem de carbón","Humano enlatado","Zombie jardinero","Traje de esporas","Tostadora mutante"];let n=id==="field"?2:id==="black"?3:4;let found=[];for(let i=0;i<n;i++){if(Math.random()<(id==="field"?.22:id==="black"?.38:.58)){found.push(makeProceduralLoot(id));continue;}let name=pool[Math.floor(Math.random()*pool.length)];if(id==="anomaly"&&Math.random()<.28){const heads=["Cuchilla","Núcleo","Martillo","Guante","Orbe","Pico","Motor","Escudo"];const tails=["de neón","paradójico","cuántico","del vacío","parasitario","solar","inestable","ancestral"];name=heads[Math.floor(Math.random()*heads.length)]+" "+tails[Math.floor(Math.random()*tails.length)]+" "+uid().slice(0,2).toUpperCase();const rr=3+Math.floor(Math.random()*3);const anomaly={name,icon:["🧬","⚡","🛡️","🔮","🪓"][Math.floor(Math.random()*5)],cat:"Anomalía",r:rr,val:rr*24,desc:`Hallazgo anómalo de la cápsula. Firma ${uid().toUpperCase()}.`,passive:[{type:"Daño",value:`+${rr*2} daño pasivo`},{type:"Defensa",value:`+${rr*2} defensa pasiva`},{type:"Suerte",value:`+${rr*3}% de hallazgos`},{type:"Créditos",value:`+${rr*2}% de créditos`},{type:"Recolección",value:`+${rr*4}% de recolección`},{type:"Captura",value:`+${rr*2}% de captura`}][Math.floor(Math.random()*6)],unique:true,procedural:true};itemDB[name]=anomaly;found.push(anomaly);}else found.push({name,...info(name)});}state.pendingSupply={pack:p.name,items:found,stage:"animating",startedAt:Date.now()};log(`Solicitud enviada: <b>${p.name}</b>. La Central está materializando una carga de procedencia incierta.`);render();save();sound(250,.12,"sine");setTimeout(()=>sound(390,.1,"triangle"),500);setTimeout(()=>{if(!state.pendingSupply)return;state.pendingSupply.stage="ready";renderSupplyDelivery();renderSupplies();save();sound(740,.16,"triangle");},3500)}
+function buyPack(id){const p=supplyPacks.find(p=>p.id===id);if(activeTask||state.pendingSupply)return toast("Termina o reclama el suministro pendiente antes de pedir otro.",true);if(state.credits<p.price)return toast("Créditos insuficientes.",true);state.credits-=p.price;let pool;if(id==="field")pool=["Madera","Chatarra","Carbón","Mena de hierro","Mena de cobre","Cuchillo oxidado","Hacha de madera","Batería vieja"];else if(id==="black")pool=["Pico de hierro","Hacha de hierro","Espada de cobre","Armadura de chatarra","Placa electrónica","Mena de oro","Zombie de bolsillo","Aleación extraña","Cañón de bolsillo"];else pool=["Espada de rayos","Pico de cristal","Hacha solar","Escudo de vacío","Núcleo energético","Gólem de carbón","Humano enlatado","Zombie jardinero","Traje de esporas","Tostadora mutante"];let n=id==="field"?2:id==="black"?3:4;let found=[];for(let i=0;i<n;i++){if(Math.random()<(id==="field"?.22:id==="black"?.38:.58)){found.push(makeProceduralLoot(id));continue;}let name=pool[Math.floor(Math.random()*pool.length)];if(id==="anomaly"&&Math.random()<.28){const heads=["Cuchilla","Núcleo","Martillo","Guante","Orbe","Pico","Motor","Escudo"];const tails=["de neón","paradójico","cuántico","del vacío","parasitario","solar","inestable","ancestral"];name=heads[Math.floor(Math.random()*heads.length)]+" "+tails[Math.floor(Math.random()*tails.length)]+" "+uid().slice(0,2).toUpperCase();const rr=3+Math.floor(Math.random()*3);const anomaly={name,icon:["🧬","⚡","🛡️","🔮","🪓"][Math.floor(Math.random()*5)],cat:"Anomalía",r:rr,val:rr*24,desc:`Hallazgo anómalo de la cápsula. Firma ${uid().toUpperCase()}.`,passive:[{type:"Daño",value:`+${rr*2} daño pasivo`},{type:"Defensa",value:`+${rr*2} defensa pasiva`},{type:"Suerte",value:`+${rr*3}% de hallazgos`},{type:"Créditos",value:`+${rr*2}% de créditos`},{type:"Recolección",value:`+${rr*4}% de recolección`},{type:"Captura",value:`+${rr*2}% de captura`}][Math.floor(Math.random()*6)],unique:true,procedural:true};itemDB[name]=anomaly;found.push(anomaly);}else found.push({name,...info(name)});}state.pendingSupply={pack:p.name,items:found,stage:"animating",startedAt:Date.now()};log(`Solicitud enviada: <b>${p.name}</b>. La Central está materializando una carga de procedencia incierta.`);render();save();sound(250,.12,"sine");setTimeout(()=>sound(390,.1,"triangle"),500);setTimeout(()=>{if(!state.pendingSupply)return;state.pendingSupply.stage="ready";renderSupplyDelivery();renderSupplies();save();sound(740,.16,"triangle");},3500)}
 function renderSupplyDelivery(){const pending=state.pendingSupply,modal=$("supplyHud");if(!modal)return;modal.classList.toggle("hidden",!pending);if(!pending)return;const animating=pending.stage==="animating";$("supplyHudStatus").textContent=animating?"TRANSMISIÓN EN CURSO":"CARGA VERIFICADA";$("supplyHudScan").classList.toggle("hidden",!animating);$("supplyHudManifest").classList.toggle("hidden",animating);if(animating){$("supplyHudTitle").textContent="MATERIALIZANDO SUMINISTRO";$("supplyHudScanLabel").textContent="VERIFICANDO FIRMA · CARGA EN TRÁNSITO";$("supplyHudScanText").textContent=`La Central está preparando ${pending.items.length} objetos. Mantén abierto el canal hasta completar la transmisión.`;const meter=$("supplyHudMeter");meter.style.transition="none";meter.style.width="0%";requestAnimationFrame(()=>requestAnimationFrame(()=>{meter.style.transition="width 3.4s linear";meter.style.width="100%"}));}else{$("supplyHudTitle").textContent="SUMINISTRO MATERIALIZADO";$("supplyHudManifestText").textContent=`Paquete: ${pending.pack}. Se han recibido ${pending.items.length} objetos. Revísalos y pulsa Reclamar para añadirlos al inventario.`;$("supplyHudItems").innerHTML=pending.items.map((x,i)=>`<div class="supply-hud-reward" style="animation-delay:${Math.min(i*55,350)}ms"><span class="supply-hud-reward-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><span class="supply-hud-reward-info"><b>${escapeHtml(x.name)}</b><small>N${x.r||info(x.name).r} · ${escapeHtml(x.cat||info(x.name).cat)}</small></span></div>`).join("");$("claimSupply").disabled=false;}}
 function claimSupply(){const pending=state.pendingSupply;if(!pending||pending.stage!=='ready')return;pending.items.forEach(x=>addItem(x.name,1,{origin:"suministro",icon:x.icon,cat:x.cat,r:x.r,val:x.val,desc:x.desc,damage:x.damage,defense:x.defense,gather:x.gather,slot:x.slot,unique:x.unique,passive:x.passive,procedural:x.procedural,ability:x.ability,abilities:x.abilities,affix:x.affix,companion:x.companion}));const names=pending.items.map(x=>x.name);state.pendingSupply=null;log(`Suministro reclamado: <b>${names.join(', ')}</b>.`);toast(`Añadido al inventario: <b>${names.join(', ')}</b>`);render();save()}
 
@@ -2221,7 +2416,22 @@ document.querySelectorAll("[data-black-filter]").forEach(b=>b.onclick=()=>{black
 if($("blackSaleSelectAll"))$("blackSaleSelectAll").onclick=()=>{const equipped=new Set(Object.values(state.equipped||{}).filter(Boolean));const search=($("blackSaleSearch")?.value||"").trim().toLowerCase();state.inventory.filter(x=>x.qty>0&&!equipped.has(x.id)&&isIllegalItem(x)&&x.name.toLowerCase().includes(search)&&(blackSaleFilter==="Todos"||(blackSaleFilter==="Órgano"?x.cat==="Órgano":blackSaleFilter==="Síntesis"?isSynthesisItem(x):blackSaleFilter==="Otro"?x.cat!=="Órgano"&&!isSynthesisItem(x):true))).forEach(x=>blackSaleSelection[x.id]=x.qty);renderBlackMarket()};
 if($("blackSaleClear"))$("blackSaleClear").onclick=()=>{blackSaleSelection={};renderBlackMarket()};
 if($("blackSaleSubmit"))$("blackSaleSubmit").onclick=sellBlackSelection;
-$("pickerPrev").onclick=()=>{pickerPage--;renderPicker()};$("pickerNext").onclick=()=>{pickerPage++;renderPicker()};$("zonesPrev").onclick=()=>{zonePage--;renderZoneCards()};$("zonesNext").onclick=()=>{zonePage++;renderZoneCards()};$("recipesPrev").onclick=()=>{recipePage--;renderRecipes()};$("recipesNext").onclick=()=>{recipePage++;renderRecipes()};$("smeltPrev").onclick=()=>{smeltPage--;renderSmelt()};$("smeltNext").onclick=()=>{smeltPage++;renderSmelt()};document.querySelectorAll("[data-central-tab]").forEach(b=>b.onclick=()=>{document.querySelectorAll("[data-central-tab]").forEach(x=>x.classList.toggle("active",x===b));document.querySelectorAll("#page-central .central-section").forEach(x=>x.classList.toggle("active",x.id==="central-"+b.dataset.centralTab))});
+$("pickerPrev").onclick=()=>{pickerPage--;renderPicker()};$("pickerNext").onclick=()=>{pickerPage++;renderPicker()};
+// Nexo / Máquina de Mejora
+document.querySelectorAll("[data-nexus-tab]").forEach(b=>b.onclick=()=>{
+  if(b.disabled)return;
+  document.querySelectorAll("[data-nexus-tab]").forEach(x=>x.classList.toggle("active",x===b));
+  document.querySelectorAll("#page-nexus .nexus-section").forEach(x=>x.classList.toggle("active",x.id==="nexus-"+b.dataset.nexusTab));
+});
+if($("upgradeInputPick"))$("upgradeInputPick").onclick=()=>{if(!upgradeSpinning)openUpgradeInputPicker()};
+if($("upgradeTargetPick"))$("upgradeTargetPick").onclick=()=>{if(!upgradeSpinning)openUpgradeTargetPicker()};
+if($("upgradeInMinus"))$("upgradeInMinus").onclick=()=>{if(upgradeSpinning)return;upgradeInputQty=Math.max(1,upgradeInputQty-1);renderUpgradeMachine()};
+if($("upgradeInPlus"))$("upgradeInPlus").onclick=()=>{if(upgradeSpinning)return;const it=state.inventory.find(i=>i.id===upgradeInputId);upgradeInputQty=Math.min(it?it.qty:1,upgradeInputQty+1);renderUpgradeMachine()};
+if($("upgradeOutMinus"))$("upgradeOutMinus").onclick=()=>{if(upgradeSpinning)return;upgradeTargetQty=Math.max(1,upgradeTargetQty-1);renderUpgradeMachine()};
+if($("upgradeOutPlus"))$("upgradeOutPlus").onclick=()=>{if(upgradeSpinning)return;upgradeTargetQty=Math.min(99,upgradeTargetQty+1);renderUpgradeMachine()};
+if($("upgradeSpinBtn"))$("upgradeSpinBtn").onclick=spinUpgradeRoulette;
+
+$("zonesPrev").onclick=()=>{zonePage--;renderZoneCards()};$("zonesNext").onclick=()=>{zonePage++;renderZoneCards()};$("recipesPrev").onclick=()=>{recipePage--;renderRecipes()};$("recipesNext").onclick=()=>{recipePage++;renderRecipes()};$("smeltPrev").onclick=()=>{smeltPage--;renderSmelt()};$("smeltNext").onclick=()=>{smeltPage++;renderSmelt()};document.querySelectorAll("[data-central-tab]").forEach(b=>b.onclick=()=>{document.querySelectorAll("[data-central-tab]").forEach(x=>x.classList.toggle("active",x===b));document.querySelectorAll("#page-central .central-section").forEach(x=>x.classList.toggle("active",x.id==="central-"+b.dataset.centralTab))});
 document.querySelectorAll("[data-clinic-tab]").forEach(b=>b.onclick=()=>{document.querySelectorAll("[data-clinic-tab]").forEach(x=>x.classList.toggle("active",x===b));document.querySelectorAll("#page-clinic .clinic-section").forEach(x=>x.classList.toggle("active",x.id==="clinic-"+b.dataset.clinicTab));if(b.dataset.clinicTab==="extract")renderExtractTable();if(b.dataset.clinicTab==="spawn")renderSpawnTable();});$("inventorySearch").addEventListener("input",()=>{inventoryPage=1;renderInventory()});$("inventoryGrid").addEventListener("click",e=>{const tile=e.target.closest("[data-inventory-detail]");if(tile)openInventoryItem(tile.dataset.inventoryDetail)});$("inventoryGrid").addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){const tile=e.target.closest("[data-inventory-detail]");if(tile){e.preventDefault();openInventoryItem(tile.dataset.inventoryDetail)}}});$("prevPage").onclick=()=>{inventoryPage--;renderInventory()};$("nextPage").onclick=()=>{inventoryPage++;renderInventory()};document.querySelectorAll("[data-filter]").forEach(b=>b.onclick=()=>{inventoryFilter=b.dataset.filter;inventoryPage=1;document.querySelectorAll("[data-filter]").forEach(x=>x.classList.toggle("active",x===b));renderInventory()});
 
 $("closeInventoryDetail").onclick=()=>$("inventoryDetailModal").classList.add("hidden");$("inventoryDetailModal").addEventListener("click",e=>{if(e.target===$("inventoryDetailModal"))$("inventoryDetailModal").classList.add("hidden")});$("registrySearch").addEventListener("input",()=>{registryPage=1;renderRegistry()});document.querySelectorAll("[data-registry-filter]").forEach(b=>b.onclick=()=>{registryFilter=b.dataset.registryFilter;registryPage=1;document.querySelectorAll("[data-registry-filter]").forEach(x=>x.classList.toggle("active",x===b));renderRegistry()});document.querySelectorAll("[data-registry-mode]").forEach(b=>b.onclick=()=>{registryMode=b.dataset.registryMode;registryFilter="Todos";registryPage=1;document.querySelectorAll("[data-registry-filter]").forEach(x=>x.classList.toggle("active",x.dataset.registryFilter==="Todos"));renderRegistry()});$("registryPrev").onclick=()=>{registryPage--;renderRegistry()};$("registryNext").onclick=()=>{registryPage++;renderRegistry()};$("closeRegistry").onclick=()=>$("registryModal").classList.add("hidden");$("registryModal").addEventListener("click",e=>{if(e.target===$("registryModal"))$("registryModal").classList.add("hidden")});document.querySelectorAll("[data-recipe-category]").forEach(b=>b.onclick=()=>{recipeCategory=b.dataset.recipeCategory;recipePage=1;document.querySelectorAll("[data-recipe-category]").forEach(x=>x.classList.toggle("active",x===b));renderRecipes()});

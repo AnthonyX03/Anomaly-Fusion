@@ -687,6 +687,20 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   visibility:hidden;
   pointer-events:none;
 }
+
+#page-nexus .nexus-section{display:none}
+#page-nexus .nexus-section.active{display:block}
+.upgrade-layout{display:grid;grid-template-columns:1fr minmax(200px,1.1fr) 1fr;gap:16px;margin-top:14px;align-items:start}
+@media(max-width:900px){.upgrade-layout{grid-template-columns:1fr}}
+.upgrade-slot{width:100%;min-height:72px;justify-content:center}
+.upgrade-roulette{position:relative;width:180px;height:180px;margin:12px auto;border-radius:50%;border:3px solid #2a3d48;background:conic-gradient(#1a2830 0deg 360deg);box-shadow:inset 0 0 24px #0008}
+.upgrade-roulette-track{position:absolute;inset:8px;border-radius:50%;overflow:hidden}
+.upgrade-roulette-success{position:absolute;inset:0;border-radius:50%;background:conic-gradient(from -90deg,#53f2d1 0deg, #53f2d1 var(--success-deg,0deg), transparent var(--success-deg,0deg));opacity:.85}
+.upgrade-roulette-needle{position:absolute;left:50%;top:50%;width:4px;height:42%;margin-left:-2px;margin-top:-42%;background:linear-gradient(#ffe08a,#f5c542);border-radius:2px;transform-origin:50% 100%;transform:rotate(0deg);box-shadow:0 0 8px #f5c54288;z-index:2;transition:none}
+.upgrade-roulette-needle.is-spinning{transition:transform 3.2s cubic-bezier(.12,.7,.08,1)}
+.upgrade-chance{position:absolute;inset:0;display:grid;place-items:center;font-size:1.6rem;font-weight:900;color:var(--cyan);text-shadow:0 0 12px #53f2d155;pointer-events:none;z-index:3}
+#nexusTabs button:disabled{opacity:.4;cursor:not-allowed}
+
 </style>
 </head>
 <body>
@@ -702,6 +716,7 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
  <button class="nav" data-page="explore"><span class="ico">⌖</span> Exploración</button>
  <button class="nav" data-page="central"><span class="ico">▦</span> La Central</button>
  <button class="nav" data-page="clinic"><span class="ico">⚕</span> Clínica</button>
+ <button class="nav" data-page="nexus"><span class="ico">◎</span> Nexo</button>
  <div class="nav-label">GESTIÓN DE OBJETOS</div>
  <button class="nav" data-page="inventory"><span class="ico">▤</span> Inventario</button>
  <button class="nav" data-page="market"><span class="ico">⚖</span> Mercado</button>
@@ -950,6 +965,63 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
  <div class="section-title"><h3>▰ OBJETOS EQUIPADOS</h3></div><div class="grid four" id="equippedCards"></div>
 </section>
 <div class="footer-note">ANOMALY FUSION // NOTHING IS EVER JUST ONE THING</div>
+
+<section class="page" id="page-nexus">
+ <div class="page-head"><div><div class="eyebrow">SISTEMA 09 / CONVERSIÓN</div><h2>Nexo</h2><p>Hub de módulos avanzados. La Máquina de Mejora permite intercambiar objetos base del registro mediante una ruleta de riesgo.</p></div><span class="tag">4 MÓDULOS</span></div>
+ <div class="inventory-controls" style="margin-bottom:14px" id="nexusTabs">
+  <button class="active" data-nexus-tab="upgrade">◎ Máquina de Mejora</button>
+  <button data-nexus-tab="mod2" disabled title="Próximamente">▦ Módulo B</button>
+  <button data-nexus-tab="mod3" disabled title="Próximamente">⚡ Módulo C</button>
+  <button data-nexus-tab="mod4" disabled title="Próximamente">🔮 Módulo D</button>
+ </div>
+ <div class="nexus-section active" id="nexus-upgrade">
+  <div class="panel">
+   <h3>◎ MÁQUINA DE MEJORA</h3>
+   <p class="small-note">Entrega objetos base (no síntesis) y solicita otro objeto del Registro Base. El porcentaje nunca llega al 100%: siempre hay riesgo de pérdida. Una vez lanzada la ruleta no se puede cancelar.</p>
+   <div class="upgrade-layout">
+    <div class="upgrade-col">
+     <div class="eyebrow">ENTRADA · LO QUE ENTREGAS</div>
+     <button type="button" class="equip-slot upgrade-slot" id="upgradeInputPick">＋ Elegir objeto de entrada</button>
+     <div id="upgradeInputInfo" class="small-note" style="margin-top:8px">Ningún objeto seleccionado.</div>
+     <div class="qty-stepper" style="margin-top:10px" id="upgradeInputStepper">
+      <button type="button" class="qty-btn" id="upgradeInMinus" aria-label="Menos">‹</button>
+      <span class="qty-val" id="upgradeInQty">×1</span>
+      <button type="button" class="qty-btn" id="upgradeInPlus" aria-label="Más">›</button>
+     </div>
+     <div class="statline" style="margin-top:12px"><span>Valor de entrada</span><b class="gold" id="upgradeInValue">0</b></div>
+    </div>
+    <div class="upgrade-col upgrade-roulette-col">
+     <div class="eyebrow">RULETA · PROBABILIDAD</div>
+     <div class="upgrade-roulette" id="upgradeRoulette">
+      <div class="upgrade-roulette-track">
+       <div class="upgrade-roulette-success" id="upgradeSuccessArc"></div>
+       <div class="upgrade-roulette-needle" id="upgradeNeedle"></div>
+      </div>
+      <div class="upgrade-chance" id="upgradeChance">0%</div>
+     </div>
+     <p class="small-note" id="upgradeChanceNote" style="text-align:center;margin-top:8px">Ajusta entrada y objetivo para calcular el %.</p>
+     <button class="primary" id="upgradeSpinBtn" style="width:100%;margin-top:12px" disabled>◎ Lanzar ruleta</button>
+    </div>
+    <div class="upgrade-col">
+     <div class="eyebrow">OBJETIVO · LO QUE QUIERES</div>
+     <button type="button" class="equip-slot upgrade-slot" id="upgradeTargetPick">＋ Elegir del Registro Base</button>
+     <div id="upgradeTargetInfo" class="small-note" style="margin-top:8px">Ningún objetivo seleccionado.</div>
+     <div class="qty-stepper" style="margin-top:10px" id="upgradeTargetStepper">
+      <button type="button" class="qty-btn" id="upgradeOutMinus" aria-label="Menos">‹</button>
+      <span class="qty-val" id="upgradeOutQty">×1</span>
+      <button type="button" class="qty-btn" id="upgradeOutPlus" aria-label="Más">›</button>
+     </div>
+     <div class="statline" style="margin-top:12px"><span>Valor objetivo</span><b class="gold" id="upgradeOutValue">0</b></div>
+    </div>
+   </div>
+   <p class="small-note" id="upgradeResult" style="margin-top:14px"></p>
+  </div>
+ </div>
+ <div class="nexus-section" id="nexus-mod2"><div class="panel"><div class="empty">Módulo B — Próximamente.</div></div></div>
+ <div class="nexus-section" id="nexus-mod3"><div class="panel"><div class="empty">Módulo C — Próximamente.</div></div></div>
+ <div class="nexus-section" id="nexus-mod4"><div class="panel"><div class="empty">Módulo D — Próximamente.</div></div></div>
+</section>
+
 </main></div>
 <nav class="mobile-nav">
  <div class="mobile-nav-groups">
@@ -962,6 +1034,7 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   <button data-page="explore"><span class="ico">⌖</span>Exploración</button>
   <button data-page="central"><span class="ico">▦</span>La Central</button>
   <button data-page="clinic"><span class="ico">⚕</span>Clínica</button>
+  <button data-page="nexus"><span class="ico">◎</span>Nexo</button>
  </div>
  <div class="mobile-nav-panel hidden" id="mobilePanelManage">
   <button data-page="inventory"><span class="ico">▤</span>Inventario</button>
