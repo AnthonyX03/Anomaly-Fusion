@@ -13,6 +13,7 @@ let selectedZone=null;
 let audioCtx=null,masterGain=null,lastSoundAt=0,fusionHum=null;
 let zoneHudOpen=false,activeTask=null,currentEnemy=null;
 let upgradeInputId=null,upgradeInputQty=1,upgradeTargetName=null,upgradeTargetQty=1,upgradeSpinning=false;
+let exchangeBox={},exchangeBusy=false,exchangePending=null;
 let pickerMode=null,pickerSlot=null,pickerFilter="Todos",pickerPage=1;
 let centralSaleFilter="Todos",centralSaleSelection={};
 
@@ -812,7 +813,7 @@ const baseOrganNames=[];
   if(seen.has(name))return;
   seen.add(name);baseOrganNames.push(name);
   const r=1+(i%5);
-  addGenerated(name,{icon:"🫀",cat:"Órgano",r,val:28+r*12+(i%9)*3,desc:"Órgano anómalo de procedencia incierta. Rasgo ilegal.",trait:"Ilegal",affix:"Ilegal",illegal:true});
+  addGenerated(name,{icon:"🫀",cat:"Órgano",r,val:28+r*12+(i%9)*3,desc:"Órgano anómalo de procedencia incierta. Rasgo ilegal.",trait:"Ilegal",affix:"Ilegal",illegal:true,marketOrgan:i<18});
   n++;
  });
 })();
@@ -936,6 +937,32 @@ const MARKET_RATES=[50,75,100,150,200];
 
 
 
+
+// === MERCADO: armas balísticas (solo mercado negro) + contrabando ===
+[
+ ["Pistola oxidada",{icon:"🔫",cat:"Arma",r:1,val:28,desc:"Pistola de chatarra. Munición improvisada. Ilegal en zona civil.",slot:"weapon",damage:8,ballistic:true,illegal:true,trait:"Ilegal",affix:"Ilegal"}],
+ ["Pistola de hierro",{icon:"🔫",cat:"Arma",r:2,val:55,desc:"Pistola mecanizada de lingote de hierro. Balística ilegal.",slot:"weapon",damage:14,ballistic:true,illegal:true,trait:"Ilegal",affix:"Ilegal"}],
+ ["Revólver de cobre",{icon:"🔫",cat:"Arma",r:2,val:60,desc:"Revólver de cañón corto de cobre. Contrabando balístico.",slot:"weapon",damage:15,ballistic:true,illegal:true,trait:"Ilegal",affix:"Ilegal"}],
+ ["Subfusil de chatarra",{icon:"🔫",cat:"Arma",r:3,val:95,desc:"SMG improvisado con piezas de vertedero. Ilegal.",slot:"weapon",damage:22,ballistic:true,illegal:true,trait:"Ilegal",affix:"Ilegal"}],
+ ["Escopeta de hierro",{icon:"🔫",cat:"Arma",r:3,val:105,desc:"Escopeta de cañón recortado. Alto daño a corta distancia.",slot:"weapon",damage:26,ballistic:true,illegal:true,trait:"Ilegal",affix:"Ilegal"}],
+ ["Rifle de titanio",{icon:"🔫",cat:"Arma",r:4,val:150,desc:"Rifle de precisión de lingote de titanio. Uso militar ilegal.",slot:"weapon",damage:34,ballistic:true,illegal:true,trait:"Ilegal",affix:"Ilegal"}],
+ ["Fusil de asalto de cobalto",{icon:"🔫",cat:"Arma",r:4,val:160,desc:"Fusil de asalto reforzado con cobalto. Contrabando pesado.",slot:"weapon",damage:36,ballistic:true,illegal:true,trait:"Ilegal",affix:"Ilegal"}],
+ ["Francotirador de tungsteno",{icon:"🔫",cat:"Arma",r:5,val:220,desc:"Rifle de francotirador de tungsteno. Arma de restricción máxima.",slot:"weapon",damage:48,ballistic:true,illegal:true,trait:"Ilegal",affix:"Ilegal"}],
+ ["Ametralladora de iridio",{icon:"🔫",cat:"Arma",r:5,val:250,desc:"Ametralladora pesada de iridio. Contrabando de guerra.",slot:"weapon",damage:52,ballistic:true,illegal:true,trait:"Ilegal",affix:"Ilegal"}],
+ ["Lanzagranadas de chatarra",{icon:"💣",cat:"Arma",r:4,val:170,desc:"Lanzagranadas improvisado. Extremadamente ilegal.",slot:"weapon",damage:40,ballistic:true,illegal:true,trait:"Ilegal",affix:"Ilegal"}],
+ // Contrabando (Otros ilegales)
+ ["Fichero robado",{icon:"📁",cat:"Otro",r:1,val:22,desc:"Documentación clasificada extraída de un terminal. Contrabando de datos.",illegal:true,trait:"Ilegal",affix:"Ilegal",contraband:true}],
+ ["Chip de acceso negro",{icon:"💾",cat:"Otro",r:2,val:40,desc:"Chip que abre puertas de zonas restringidas. Ilegal.",illegal:true,trait:"Ilegal",affix:"Ilegal",contraband:true}],
+ ["Estupefaciente de espora",{icon:"💊",cat:"Otro",r:2,val:45,desc:"Dosis compacta de espora procesada. Contrabando químico.",illegal:true,trait:"Ilegal",affix:"Ilegal",contraband:true}],
+ ["Contrato de silenciador",{icon:"📜",cat:"Otro",r:3,val:70,desc:"Documento que autoriza un trabajo oscuro. Mercado negro.",illegal:true,trait:"Ilegal",affix:"Ilegal",contraband:true}],
+ ["Célula de contrabando",{icon:"🔋",cat:"Otro",r:3,val:75,desc:"Batería militar robada de un convoy. Ilegal.",illegal:true,trait:"Ilegal",affix:"Ilegal",contraband:true}],
+ ["Implante de memoria pirata",{icon:"🧠",cat:"Otro",r:4,val:110,desc:"Implante neural con datos robados. Contrabando tecnológico.",illegal:true,trait:"Ilegal",affix:"Ilegal",contraband:true}],
+ ["Llave de bóveda negra",{icon:"🗝️",cat:"Otro",r:4,val:120,desc:"Llave física de una bóveda de la red clandestina.",illegal:true,trait:"Ilegal",affix:"Ilegal",contraband:true}],
+ ["Núcleo de arma prohibida",{icon:"⚛️",cat:"Otro",r:5,val:180,desc:"Núcleo energético para armamento restringido. Máxima ilegalidad.",illegal:true,trait:"Ilegal",affix:"Ilegal",contraband:true}],
+ ["Manifiesto del Colapso",{icon:"📕",cat:"Otro",r:5,val:200,desc:"Texto prohibido sobre el día del Colapso. Censurado por la Central.",illegal:true,trait:"Ilegal",affix:"Ilegal",contraband:true}],
+ ["Valija diplomática falsa",{icon:"💼",cat:"Otro",r:3,val:80,desc:"Maletín con sellos falsificados para pasar controles.",illegal:true,trait:"Ilegal",affix:"Ilegal",contraband:true}]
+].forEach(([name,data])=>{if(!itemDB[name])itemDB[name]={name,...data};else Object.assign(itemDB[name],data);});
+
 function marketDayKey(){
  const d=new Date();
  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
@@ -948,22 +975,35 @@ function seededRand(seed){
 function isBallisticWeapon(name,data){
  const n=String(name||"");
  const d=data||info(n)||{};
+ if(d.ballistic)return true;
  if(d.cat!=="Arma"&&!/arma/i.test(String(d.cat||"")))return false;
- return /rifle|ak[\s-]|pistola|bala|bal[ií]st|fusil|escopeta|smg|rev[oó]lver|lanzagranadas|francotirador|ametralladora|subfusil/i.test(n);
+ return /rifle|pistola|bala|bal[ií]st|fusil|escopeta|smg|rev[oó]lver|lanzagranadas|francotirador|ametralladora|subfusil/i.test(n);
+}
+function isMarketRecipeItem(name){
+ try{return typeof recipes!=="undefined"&&recipes.some(r=>r.out===name);}catch(_){return false;}
 }
 function isLegalMarketItem(name,data){
  const d=data||info(name)||{};
  if(!d||!d.cat)return false;
  if(d.illegal||d.trait==="Ilegal"||d.cat==="Órgano"||d.cat==="Criatura"||d.cat==="Anomalía")return false;
- if(isBallisticWeapon(name,d))return false;
- return ["Material","Lingote","Herramienta","Arma","Equipo","Consumible"].includes(d.cat);
+ if(isBallisticWeapon(name,d)||d.ballistic)return false;
+ // Solo catálogo sensato: recetas de la mesa + materiales/lingotes base + consumibles de campo
+ const cat=d.cat;
+ if(["Material","Lingote"].includes(cat))return true;
+ if(cat==="Consumible"&&!d.procedural)return true;
+ if(["Herramienta","Arma","Equipo"].includes(cat))return isMarketRecipeItem(name)||!!d.marketLegal;
+ return false;
 }
 function isBlackMarketItem(name,data){
  const d=data||info(name)||{};
  if(!d||!d.cat)return false;
- if(d.illegal||d.trait==="Ilegal"||d.cat==="Órgano")return true;
- if(d.cat==="Criatura")return true;
+ // Sin criaturas en el mercado
+ if(d.cat==="Criatura")return false;
+ // Órganos: solo selección propia (sin raíz de criatura) para el catálogo; el diario puede usar marketOrgan
+ if(d.cat==="Órgano")return !!(d.marketOrgan||(!d.organRoot&&d.illegal));
+ if(d.contraband||d.ballistic)return true;
  if(isBallisticWeapon(name,d))return true;
+ if(d.illegal||d.trait==="Ilegal")return d.cat!=="Criatura";
  return false;
 }
 function marketBuyPageSize(){
@@ -975,7 +1015,7 @@ function marketBuyPageSize(){
 function ensureMarketDay(){
  state.market=state.market||{};
  const key=marketDayKey();
- if(state.market.day===key&&state.market.sellRate&&state.market.dailyLegal&&state.market.dailyBlack&&state.market.dailyLegal.length===12&&state.market.dailyBlack.length===12)return;
+ if(state.market.day===key&&state.market.sellRate&&state.market.dailyLegal&&state.market.dailyBlack&&state.market.dailyLegal.length===12&&state.market.dailyBlack.length===12&&state.market.v===2)return;
  const seed=Array.from(key).reduce((h,ch)=>((h<<5)-h)+ch.charCodeAt(0)|0,0)>>>0;
  const rnd=seededRand(seed||1);
  const rate=MARKET_RATES[Math.floor(rnd()*MARKET_RATES.length)];
@@ -999,7 +1039,8 @@ function ensureMarketDay(){
   sellRate:rate,
   blackSellRate:blackRate,
   dailyLegal:pickDaily(legalPool,12),
-  dailyBlack:pickDaily(blackPool.length?blackPool:legalPool,12)
+  dailyBlack:pickDaily(blackPool.length?blackPool:legalPool,12),
+  v:2
  };
 }
 function marketRequiredLevel(item){
@@ -1050,9 +1091,9 @@ function renderMarketBuy(isBlack){
    if(catFilter==="Todos")return true;
    if(isBlack){
     if(catFilter==="Órgano")return data.cat==="Órgano";
-    if(catFilter==="Criatura")return data.cat==="Criatura";
-    if(catFilter==="Arma")return data.cat==="Arma"||isBallisticWeapon(x.name,data);
-    if(catFilter==="Otro")return data.cat!=="Órgano"&&data.cat!=="Criatura"&&!isBallisticWeapon(x.name,data);
+    if(catFilter==="Arma")return isBallisticWeapon(x.name,data)||data.ballistic;
+    if(catFilter==="Otro")return !!(data.contraband||(data.illegal&&data.cat==="Otro"));
+    return data.cat!=="Criatura";
    }else{
     return data.cat===catFilter;
    }
@@ -1067,11 +1108,11 @@ function renderMarketBuy(isBlack){
    if(!d||!d.val)return false;
    if(isBlack){
     if(!isBlackMarketItem(n,d))return false;
-    if(catFilter==="Órgano")return d.cat==="Órgano";
-    if(catFilter==="Criatura")return d.cat==="Criatura";
-    if(catFilter==="Arma")return d.cat==="Arma"||isBallisticWeapon(n,d);
-    if(catFilter==="Otro")return d.cat!=="Órgano"&&d.cat!=="Criatura"&&!isBallisticWeapon(n,d);
-    return true;
+    if(catFilter==="Órgano")return d.cat==="Órgano"&&(d.marketOrgan||!d.organRoot);
+    if(catFilter==="Arma")return isBallisticWeapon(n,d)||d.ballistic;
+    if(catFilter==="Otro")return !!(d.contraband||(d.illegal&&d.cat==="Otro"));
+    // Todos: sin criaturas
+    return d.cat!=="Criatura";
    }
    if(!isLegalMarketItem(n,d))return false;
    if(catFilter!=="Todos"&&d.cat!==catFilter)return false;
@@ -1081,8 +1122,11 @@ function renderMarketBuy(isBlack){
    const data=itemDB[n];
    const need=marketRequiredLevel(data);
    return {name:n,data,stock:null,daily:false,price:marketBuyPrice(data,false),needLevel:need,unlocked:state.level>=need};
-  }).sort((a,b)=>a.name.localeCompare(b.name,"es"));
+  }).sort((a,b)=>(Number(a.data.r)||1)-(Number(b.data.r)||1)||a.name.localeCompare(b.name,"es"));
  }
+ // Diario también ordenado por nivel
+ if(daily)rows.sort((a,b)=>(Number(a.data.r)||1)-(Number(b.data.r)||1)||a.name.localeCompare(b.name,"es"));
+ 
  const pageSize=marketBuyPageSize();
  const page=isBlack?marketBlackBuyPage:marketBuyPage;
  const pages=Math.max(1,Math.ceil(rows.length/pageSize));
@@ -1500,7 +1544,14 @@ function addItem(name,qty=1,opts={}){
   resolved.ability=resolved.abilities[0];resolved.procedural=true;
  }
  applyIllegalPolicy(resolved);
-  let existing=state.inventory.find(x=>x.name===name&&d.cat==="Material"&&!resolved.unique&&!isSynthesisItem(resolved)&&!isSynthesisItem(x)&&x.origin===(resolved.origin||"general")&&x.cat===(cat||d.cat)&&Number(x.val||d.val||5)===Number(resolved.val||d.val||5));
+  // Objetos base (Material/Lingote/Consumible no-síntesis): apilan por nombre + nivel, sin importar origen
+  const baseStack=["Material","Lingote","Consumible"].includes(cat||d.cat)&&!resolved.unique&&!isSynthesisItem(resolved)&&!resolved.procedural;
+  let existing=null;
+  if(baseStack){
+    existing=state.inventory.find(x=>x.name===name&&!isSynthesisItem(x)&&!x.unique&&!x.procedural&&(x.cat||d.cat)===(cat||d.cat)&&Math.max(1,Number(x.r)||1)===r);
+  }else if((cat||d.cat)==="Material"){
+    existing=state.inventory.find(x=>x.name===name&&d.cat==="Material"&&!resolved.unique&&!isSynthesisItem(resolved)&&!isSynthesisItem(x)&&Number(x.val||d.val||5)===Number(resolved.val||d.val||5));
+  }
  if(existing)existing.qty+=qty;
  else state.inventory.push({...resolved,id:uid(),name,qty,cat:cat||d.cat,r:resolved.r||d.r||1,val:resolved.val||d.val||5,desc:resolved.desc||d.desc||"",icon:resolved.icon||d.icon||"❔",slot});
  state.discovered=state.discovered||{};state.discovered[name]={...d,...resolved,name,cat:cat||d.cat,r:resolved.r||d.r||1,val:resolved.val||d.val||5,desc:resolved.desc||d.desc||"",icon:resolved.icon||d.icon||"❔"};
@@ -1871,6 +1922,139 @@ function spinUpgradeRoulette(){
     renderUpgradeMachine();render();save();
   },4300);
 }
+
+function exchangeBoxCount(){return Object.values(exchangeBox).reduce((a,n)=>a+Number(n||0),0)}
+function exchangeBoxValue(){
+  let v=0;
+  for(const [id,qty] of Object.entries(exchangeBox)){
+    const x=state.inventory.find(i=>i.id===id);
+    if(!x||!qty)continue;
+    v+=(Math.max(1,Number(x.val)||Number(info(x.name).val)||1))*Number(qty);
+  }
+  return v;
+}
+function renderExchangeModule(){
+  const list=$("exchangeBoxList"),valEl=$("exchangeBoxValue"),cntEl=$("exchangeBoxCount"),btn=$("exchangeSubmitBtn"),note=$("exchangeNote");
+  const total=exchangeBoxCount();
+  if(cntEl)cntEl.textContent=total+"/10";
+  if(valEl)valEl.innerHTML=formatCredits(exchangeBoxValue(),14);
+  if(list){
+    const rows=Object.entries(exchangeBox).map(([id,qty])=>{
+      const x=state.inventory.find(i=>i.id===id);
+      if(!x||qty<=0)return "";
+      return `<div class="exchange-row"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><div style="min-width:0;flex:1"><b>${escapeHtml(inventoryDisplayName(x))}</b><small>N${x.r||1} · ${escapeHtml(x.cat||"?")} · ×${qty}</small></div><button type="button" class="tiny" data-ex-remove="${id}">Quitar</button></div>`;
+    }).filter(Boolean);
+    list.innerHTML=rows.length?rows.join(""):'<div class="empty">La caja está vacía. Añade 1–10 objetos base.</div>';
+    list.querySelectorAll("[data-ex-remove]").forEach(b=>b.onclick=()=>{delete exchangeBox[b.dataset.exRemove];renderExchangeModule()});
+  }
+  if(btn)btn.disabled=exchangeBusy||total<1||total>10||!!activeTask||!!currentEnemy;
+  if(note)note.textContent=total?`Valor de la caja: ${exchangeBoxValue()} cr. Al cerrar recibirás un lote de objetos base del registro (~50% / 100% / 150% del valor).`:"Mínimo 1 objeto, máximo 10. Solo base (no síntesis).";
+}
+function openExchangePicker(){
+  if(exchangeBusy)return;
+  if(exchangeBoxCount()>=10)return toast("La caja ya tiene 10 unidades.",true);
+  pickerMode="exchangeInput";pickerSlot=null;pickerFilter="Todos";pickerPage=1;
+  if($("pickerSearch"))$("pickerSearch").value="";
+  if($("pickerTitle"))$("pickerTitle").textContent="▤ CAJA DE INTERCAMBIO";
+  if($("pickerDescription"))$("pickerDescription").textContent="Elige objetos base para la caja (máx. 10 unidades en total).";
+  if($("pickerFilterMenu"))$("pickerFilterMenu").classList.add("hidden");
+  $("inventoryPicker").classList.remove("hidden");
+  renderPicker();
+}
+function runExchange(){
+  if(exchangeBusy||exchangeBoxCount()<1)return;
+  const inputVal=exchangeBoxValue();
+  if(inputVal<=0)return toast("La caja no tiene valor.",true);
+  // Consumir objetos de la caja
+  const consumed=[];
+  for(const [id,qty] of Object.entries(exchangeBox)){
+    const x=state.inventory.find(i=>i.id===id);
+    if(!x||x.qty<qty){toast("Faltan objetos en el inventario.",true);return}
+    consumed.push({name:x.name,qty,val:Math.max(1,Number(x.val)||Number(info(x.name).val)||1)});
+  }
+  for(const [id,qty] of Object.entries(exchangeBox)){
+    if(!removeItemById(id,qty)){toast("Error al consumir la caja.",true);return}
+  }
+  exchangeBox={};
+  exchangeBusy=true;
+  renderExchangeModule();
+  // Resultado: 50% / 100% / 150% del valor
+  const roll=Math.random();
+  const mult=roll<0.33?0.5:roll<0.66?1:1.5;
+  let targetVal=Math.max(1,Math.round(inputVal*mult));
+  const pool=[...new Set([...(state.seen||[]),...Object.keys(state.discovered||{})])]
+    .filter(n=>{
+      const d=info(n);
+      if(!d||!d.cat)return false;
+      if(isSynthesisItem({name:n,...d}))return false;
+      if(["Criatura","Órgano","Anomalía"].includes(d.cat))return false;
+      if(d.illegal||d.trait==="Ilegal")return false;
+      return ["Material","Lingote","Consumible","Herramienta","Arma","Equipo","Otro"].includes(d.cat);
+    });
+  if(!pool.length){
+    exchangeBusy=false;
+    toast("No hay objetos base descubiertos en el registro.",true);
+    renderExchangeModule();
+    return;
+  }
+  // Rellenar caja de salida hasta targetVal
+  const outItems={};
+  let filled=0;
+  let guard=0;
+  while(filled<targetVal&&guard++<200){
+    const name=pool[Math.floor(Math.random()*pool.length)];
+    const unit=Math.max(1,Number(info(name).val)||1);
+    if(filled+unit>targetVal*1.15&&filled>0)break;
+    outItems[name]=(outItems[name]||0)+1;
+    filled+=unit;
+    if(filled>=targetVal)break;
+  }
+  if(!Object.keys(outItems).length){
+    const name=pool[0];
+    outItems[name]=1;
+    filled=Math.max(1,Number(info(name).val)||1);
+  }
+  exchangePending={inputVal,outVal:filled,mult,items:outItems};
+  // Animación HUD
+  const modal=$("exchangeResultModal");
+  if(modal){
+    modal.classList.remove("hidden");
+    const body=$("exchangeResultBody");
+    if(body){
+      body.innerHTML=`<div class="exchange-anim">▣ Empaquetando intercambio…</div>`;
+    }
+    setTimeout(()=>{
+      if(!exchangePending)return;
+      const p=exchangePending;
+      const lines=Object.entries(p.items).map(([n,q])=>`<div class="exchange-row"><span class="item-icon">${itemIconMarkup(n,info(n).icon)}</span><div><b>${escapeHtml(n)}</b><small>×${q} · ${Math.max(1,Number(info(n).val)||1)} cr./u</small></div></div>`).join("");
+      const outcome=p.mult>1?'<span class="cyan">Ganancia (+50%)</span>':p.mult<1?'<span class="red">Pérdida (−50%)</span>':'<span class="gold">Neutro</span>';
+      if(body)body.innerHTML=`
+        <div class="statline"><span>Valor entregado</span><b class="gold">${p.inputVal} cr.</b></div>
+        <div class="statline"><span>Valor recibido</span><b class="gold">${p.outVal} cr.</b></div>
+        <div class="statline"><span>Resultado</span><b>${outcome}</b></div>
+        <div class="section-title" style="margin-top:12px"><h3>CONTENIDO DE LA CAJA</h3></div>
+        <div class="exchange-result-list">${lines}</div>
+        <button class="primary" id="exchangeClaimBtn" style="width:100%;margin-top:14px">⇢ Reclamar objetos</button>`;
+      const claim=$("exchangeClaimBtn");
+      if(claim)claim.onclick=claimExchangeResult;
+      sound(520,.1,"triangle");
+    },1600);
+  }
+  sound(200,.08,"sine");
+}
+function claimExchangeResult(){
+  if(!exchangePending)return;
+  const p=exchangePending;
+  Object.entries(p.items).forEach(([n,q])=>addItem(n,q,{origin:"intercambio"}));
+  log(`Intercambio: entregaste ${p.inputVal} cr. y recibiste ${p.outVal} cr. en objetos base.`);
+  toast(`Intercambio reclamado · ${p.outVal} cr. en objetos`);
+  exchangePending=null;
+  exchangeBusy=false;
+  if($("exchangeResultModal"))$("exchangeResultModal").classList.add("hidden");
+  renderExchangeModule();render();save();
+  sound(700,.12,"triangle");
+}
+
 function removeItemById(id,qty){
   const x=state.inventory.find(i=>i.id===id);
   if(!x||x.qty<qty)return false;
@@ -1889,7 +2073,7 @@ function nav(page){
   if(page==="supplies"){toast("Hay un combate en curso. Vuelve a Exploración para resolverlo.",true);return}
   // page === explore → permitir y reabrir el combate
  }
- const requestedSupplies=page==="supplies";if(requestedSupplies)page="central";document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id==="page-"+page));document.querySelectorAll("[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===page));if(typeof closeMobileNavPanels==="function")closeMobileNavPanels();if(requestedSupplies){document.querySelectorAll("[data-central-tab]").forEach(b=>b.classList.toggle("active",b.dataset.centralTab==="supplies"));document.querySelectorAll("#page-central .central-section").forEach(x=>x.classList.toggle("active",x.id==="central-supplies"))}if(page==="clinic"){renderExtractTable();renderSpawnTable()}if(page==="nexus"){renderUpgradeMachine()}if(page==="market"){try{ensureMarketDay();renderMarketBuy(false);renderMarketBuy(true);renderMarketSell(false);renderMarketSell(true)}catch(err){console.error(err)}}
+ const requestedSupplies=page==="supplies";if(requestedSupplies)page="central";document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id==="page-"+page));document.querySelectorAll("[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===page));if(typeof closeMobileNavPanels==="function")closeMobileNavPanels();if(requestedSupplies){document.querySelectorAll("[data-central-tab]").forEach(b=>b.classList.toggle("active",b.dataset.centralTab==="supplies"));document.querySelectorAll("#page-central .central-section").forEach(x=>x.classList.toggle("active",x.id==="central-supplies"))}if(page==="clinic"){renderExtractTable();renderSpawnTable()}if(page==="nexus"){renderUpgradeMachine();renderExchangeModule()}if(page==="market"){try{ensureMarketDay();renderMarketBuy(false);renderMarketBuy(true);renderMarketSell(false);renderMarketSell(true)}catch(err){console.error(err)}}
  // Si hay combate en curso, forzar HUD de zona + panel de combate visibles en Exploración
  if(currentEnemy&&page==="explore"){
   zoneHudOpen=true;
@@ -2104,6 +2288,29 @@ function renderPicker(){
     const x=state.inventory.find(i=>i.id===b.dataset.pickId);if(!x)return;
     if(isSynthesisItem(x)){toast("Solo objetos base (sin síntesis).",true);return}
     upgradeInputId=x.id;upgradeInputQty=1;$("inventoryPicker").classList.add("hidden");renderUpgradeMachine();save();sound(500);
+  });
+  return;
+ }
+ if(pickerMode==="exchangeInput"){
+  let list=state.inventory.filter(x=>x.qty>0&&!isSynthesisItem(x)&&!x.unique&&["Material","Lingote","Consumible","Herramienta","Arma","Equipo","Otro"].includes(x.cat||info(x.name).cat)&&x.name.toLowerCase().includes(search));
+  const pageSize=12;
+  const pages=Math.max(1,Math.ceil(list.length/pageSize));
+  pickerPage=Math.min(Math.max(1,pickerPage),pages);
+  const shown=list.slice((pickerPage-1)*pageSize,pickerPage*pageSize);
+  $("pickerGrid").innerHTML=shown.length?shown.map(x=>`<button type="button" class="picker-item" data-pick-id="${x.id}"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><span style="min-width:0"><b title="${escapeHtml(x.name)}">${escapeHtml(inventoryDisplayName(x))}</b><small>N${x.r||1} · ×${x.qty}</small></span></button>`).join(""):'<div class="empty" style="grid-column:1/-1">No hay objetos base disponibles.</div>';
+  if($("pickerPageInfo"))$("pickerPageInfo").textContent=`Página ${pickerPage} / ${pages}`;
+  if($("pickerPrev")){$("pickerPrev").disabled=pickerPage<=1;$("pickerPrev").onclick=()=>{pickerPage=Math.max(1,pickerPage-1);renderPicker()};}
+  if($("pickerNext")){$("pickerNext").disabled=pickerPage>=pages;$("pickerNext").onclick=()=>{pickerPage++;renderPicker()};}
+  $("pickerGrid").querySelectorAll("[data-pick-id]").forEach(b=>b.onclick=()=>{
+    const x=state.inventory.find(i=>i.id===b.dataset.pickId);if(!x)return;
+    if(isSynthesisItem(x)){toast("Solo objetos base.",true);return}
+    const used=exchangeBoxCount();
+    const already=Number(exchangeBox[x.id]||0);
+    if(used>=10){toast("Máximo 10 unidades en la caja.",true);return}
+    const add=Math.min(1,x.qty-already,10-used);
+    if(add<=0){toast("No puedes añadir más de este objeto.",true);return}
+    exchangeBox[x.id]=(already||0)+add;
+    $("inventoryPicker").classList.add("hidden");renderExchangeModule();sound(500);
   });
   return;
  }
@@ -2675,7 +2882,10 @@ document.querySelectorAll("[data-nexus-tab]").forEach(b=>b.onclick=()=>{
   if(b.disabled)return;
   document.querySelectorAll("[data-nexus-tab]").forEach(x=>x.classList.toggle("active",x===b));
   document.querySelectorAll("#page-nexus .nexus-section").forEach(x=>x.classList.toggle("active",x.id==="nexus-"+b.dataset.nexusTab));
+  if(b.dataset.nexusTab==="upgrade")renderUpgradeMachine();
+  if(b.dataset.nexusTab==="mod2")renderExchangeModule();
 });
+
 if($("upgradeInputPick"))$("upgradeInputPick").onclick=()=>{if(!upgradeSpinning)openUpgradeInputPicker()};
 if($("upgradeTargetPick"))$("upgradeTargetPick").onclick=()=>{if(!upgradeSpinning)openUpgradeTargetPicker()};
 if($("upgradeInMinus"))$("upgradeInMinus").onclick=()=>{if(upgradeSpinning)return;upgradeInputQty=Math.max(1,upgradeInputQty-1);renderUpgradeMachine()};
@@ -2683,6 +2893,11 @@ if($("upgradeInPlus"))$("upgradeInPlus").onclick=()=>{if(upgradeSpinning)return;
 if($("upgradeOutMinus"))$("upgradeOutMinus").onclick=()=>{if(upgradeSpinning)return;upgradeTargetQty=Math.max(1,upgradeTargetQty-1);renderUpgradeMachine()};
 if($("upgradeOutPlus"))$("upgradeOutPlus").onclick=()=>{if(upgradeSpinning)return;upgradeTargetQty=Math.min(99,upgradeTargetQty+1);renderUpgradeMachine()};
 if($("upgradeSpinBtn"))$("upgradeSpinBtn").onclick=spinUpgradeRoulette;
+if($("exchangeAddBtn"))$("exchangeAddBtn").onclick=()=>openExchangePicker();
+if($("exchangeClearBtn"))$("exchangeClearBtn").onclick=()=>{if(exchangeBusy)return;exchangeBox={};renderExchangeModule()};
+if($("exchangeSubmitBtn"))$("exchangeSubmitBtn").onclick=runExchange;
+if($("exchangeResultModal"))$("exchangeResultModal").addEventListener("click",e=>{if(e.target===$("exchangeResultModal")&&!exchangePending){$("exchangeResultModal").classList.add("hidden")}});
+
 
 $("zonesPrev").onclick=()=>{zonePage--;renderZoneCards()};$("zonesNext").onclick=()=>{zonePage++;renderZoneCards()};$("recipesPrev").onclick=()=>{recipePage--;renderRecipes()};$("recipesNext").onclick=()=>{recipePage++;renderRecipes()};$("smeltPrev").onclick=()=>{smeltPage--;renderSmelt()};$("smeltNext").onclick=()=>{smeltPage++;renderSmelt()};document.querySelectorAll("[data-central-tab]").forEach(b=>b.onclick=()=>{document.querySelectorAll("[data-central-tab]").forEach(x=>x.classList.toggle("active",x===b));document.querySelectorAll("#page-central .central-section").forEach(x=>x.classList.toggle("active",x.id==="central-"+b.dataset.centralTab))});
 document.querySelectorAll("[data-clinic-tab]").forEach(b=>b.onclick=()=>{document.querySelectorAll("[data-clinic-tab]").forEach(x=>x.classList.toggle("active",x===b));document.querySelectorAll("#page-clinic .clinic-section").forEach(x=>x.classList.toggle("active",x.id==="clinic-"+b.dataset.clinicTab));if(b.dataset.clinicTab==="extract")renderExtractTable();if(b.dataset.clinicTab==="spawn")renderSpawnTable();});$("inventorySearch").addEventListener("input",()=>{inventoryPage=1;renderInventory()});$("inventoryGrid").addEventListener("click",e=>{const tile=e.target.closest("[data-inventory-detail]");if(tile)openInventoryItem(tile.dataset.inventoryDetail)});$("inventoryGrid").addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){const tile=e.target.closest("[data-inventory-detail]");if(tile){e.preventDefault();openInventoryItem(tile.dataset.inventoryDetail)}}});$("prevPage").onclick=()=>{inventoryPage--;renderInventory()};$("nextPage").onclick=()=>{inventoryPage++;renderInventory()};document.querySelectorAll("[data-filter]").forEach(b=>b.onclick=()=>{inventoryFilter=b.dataset.filter;inventoryPage=1;document.querySelectorAll("[data-filter]").forEach(x=>x.classList.toggle("active",x===b));renderInventory()});

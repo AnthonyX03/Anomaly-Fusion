@@ -693,13 +693,30 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 .upgrade-layout{display:grid;grid-template-columns:1fr minmax(200px,1.1fr) 1fr;gap:16px;margin-top:14px;align-items:start}
 @media(max-width:900px){.upgrade-layout{grid-template-columns:1fr}}
 .upgrade-slot{width:100%;min-height:72px;justify-content:center}
-.upgrade-roulette{position:relative;width:180px;height:180px;margin:12px auto;border-radius:50%;border:3px solid #2a3d48;background:conic-gradient(#1a2830 0deg 360deg);box-shadow:inset 0 0 24px #0008,0 0 0 1px #53f2d122;transition:box-shadow .3s}
-.upgrade-roulette.is-spinning{box-shadow:inset 0 0 28px #000a,0 0 22px #53f2d144,0 0 40px #f5c54233;animation:upgradePulse 0.45s ease-in-out infinite}
-@keyframes upgradePulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.12)}}
-.upgrade-roulette-track{position:absolute;inset:8px;border-radius:50%;overflow:hidden}
-.upgrade-roulette-success{position:absolute;inset:0;border-radius:50%;background:conic-gradient(from -90deg,#53f2d1 0deg, #53f2d1 var(--success-deg,0deg), transparent var(--success-deg,0deg));opacity:.9;transition:--success-deg .35s ease}
-.upgrade-roulette-needle{position:absolute;left:50%;top:50%;width:5px;height:46%;margin-left:-2.5px;margin-top:-46%;background:linear-gradient(#fff8d6,#f5c542 35%,#c49212);border-radius:3px 3px 1px 1px;transform-origin:50% 100%;transform:rotate(0deg);box-shadow:0 0 12px #f5c542cc,0 0 3px #000;z-index:2;will-change:transform;transition:none}
-.upgrade-roulette-needle.is-spinning{/* transition se aplica por JS inline para fiabilidad en móvil */}
+.upgrade-roulette{position:relative;width:180px;height:180px;margin:12px auto;border-radius:50%;background:#0c1218;border:3px solid #ffe14a;box-shadow:0 0 0 1px #c9a012,0 0 18px #f5c54255,inset 0 0 20px #000a;transition:box-shadow .3s}
+.upgrade-roulette.is-spinning{box-shadow:0 0 0 1px #ffe14a,0 0 28px #f5c54288,inset 0 0 24px #000c;animation:upgradePulse 0.4s ease-in-out infinite}
+@keyframes upgradePulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.15)}}
+.upgrade-roulette-track{position:absolute;inset:0;border-radius:50%;overflow:hidden;pointer-events:none}
+/* Anillo exterior: el arco de éxito se reduce en sentido antihorario desde las 12h */
+.upgrade-roulette-success{position:absolute;inset:0;border-radius:50%;background:
+  conic-gradient(from -90deg,
+    #2a3d48 0deg,
+    #2a3d48 calc(360deg - var(--success-deg,0deg)),
+    #ffe14a calc(360deg - var(--success-deg,0deg)),
+    #ffe14a 360deg
+  );
+  -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 14px),#000 calc(100% - 13px));
+  mask:radial-gradient(farthest-side,transparent calc(100% - 14px),#000 calc(100% - 13px));
+  opacity:1}
+.upgrade-roulette-inner{position:absolute;inset:16px;border-radius:50%;background:#0c1218;box-shadow:inset 0 0 16px #0008;z-index:1;pointer-events:none}
+.upgrade-roulette-needle{position:absolute;left:50%;top:50%;width:5px;height:48%;margin-left:-2.5px;margin-top:-48%;background:linear-gradient(#fff8d6,#f5c542 35%,#c49212);border-radius:3px 3px 1px 1px;transform-origin:50% 100%;transform:rotate(0deg);box-shadow:0 0 12px #f5c542cc,0 0 3px #000;z-index:2;will-change:transform;transition:none}
+.upgrade-roulette-needle.is-spinning{}
+.exchange-box-list{display:flex;flex-direction:column;gap:8px;max-height:280px;overflow:auto;margin-top:10px}
+.exchange-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:#0c1117}
+.exchange-row small{display:block;color:var(--muted);margin-top:2px}
+.exchange-result-list{display:flex;flex-direction:column;gap:8px;max-height:240px;overflow:auto;margin-top:8px}
+.exchange-anim{text-align:center;padding:28px 12px;color:var(--cyan);font-weight:700;letter-spacing:.08em;animation:fade .8s ease infinite alternate}
+#exchangeResultModal .modal{max-width:420px}
 .upgrade-chance{position:absolute;inset:0;display:grid;place-items:center;font-size:1.75rem;font-weight:900;color:#8a9aa5;text-shadow:none;pointer-events:none;z-index:3;transition:color .2s,text-shadow .2s}
 .upgrade-chance.chance-high{color:#00ff9c;text-shadow:0 0 18px #00ff9caa,0 0 6px #00ff9c,0 0 2px #003}
 .upgrade-chance.chance-mid{color:#ff9500;text-shadow:0 0 18px #ff9500aa,0 0 6px #ff9500,0 0 2px #530}
@@ -867,7 +884,7 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
  <div class="market-section" id="market-buyBlack">
   <div class="panel black-market-panel">
    <h3>☠ MERCADO NEGRO · COMPRA</h3>
-   <p class="small-note">Contrabando: órganos, armas balísticas, engendros e híbridos anómalos son <b>Ilegales</b>. Las criaturas normales no lo son. Mismas reglas de nivel en catálogo; el diario negro no exige nivel.</p>
+   <p class="small-note">Contrabando ilegal: <b>órganos sueltos</b> (selección del mercado), <b>armas balísticas</b> y <b>productos de contrabando</b>. Las criaturas ya no se venden. Catálogo ordenado por nivel (N1→N5). El diario negro no exige nivel de Operador.</p>
    <div class="inventory-controls" style="margin-top:10px">
     <button class="active" data-market-bbuy-mode="catalog">Catálogo negro</button>
     <button data-market-bbuy-mode="daily">Diario negro (12)</button>
@@ -875,7 +892,6 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
    <div class="inventory-controls" id="marketBlackBuyFilters" style="margin-top:10px">
     <button class="active" data-market-bbuy-filter="Todos">Todos</button>
     <button data-market-bbuy-filter="Órgano">Órganos</button>
-    <button data-market-bbuy-filter="Criatura">Criaturas</button>
     <button data-market-bbuy-filter="Arma">Armas balísticas</button>
     <button data-market-bbuy-filter="Otro">Otros ilegales</button>
    </div>
@@ -975,7 +991,7 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
  <div class="page-head"><div><div class="eyebrow">SISTEMA 09 / CONVERSIÓN</div><h2>Nexo</h2><p>Hub de módulos avanzados. La Máquina de Mejora permite intercambiar objetos base del registro mediante una ruleta de riesgo.</p></div><span class="tag">4 MÓDULOS</span></div>
  <div class="inventory-controls" style="margin-bottom:14px" id="nexusTabs">
   <button class="active" data-nexus-tab="upgrade">◎ Máquina de Mejora</button>
-  <button data-nexus-tab="mod2" disabled title="Próximamente">▦ Módulo B</button>
+  <button data-nexus-tab="mod2">▦ Intercambio</button>
   <button data-nexus-tab="mod3" disabled title="Próximamente">⚡ Módulo C</button>
   <button data-nexus-tab="mod4" disabled title="Próximamente">🔮 Módulo D</button>
  </div>
@@ -1000,8 +1016,9 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
      <div class="upgrade-roulette" id="upgradeRoulette">
       <div class="upgrade-roulette-track">
        <div class="upgrade-roulette-success" id="upgradeSuccessArc"></div>
-       <div class="upgrade-roulette-needle" id="upgradeNeedle"></div>
       </div>
+      <div class="upgrade-roulette-inner"></div>
+      <div class="upgrade-roulette-needle" id="upgradeNeedle"></div>
       <div class="upgrade-chance" id="upgradeChance">0%</div>
      </div>
      <p class="small-note" id="upgradeChanceNote" style="text-align:center;margin-top:8px">Ajusta entrada y objetivo para calcular el %.</p>
@@ -1022,7 +1039,21 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
    <p class="small-note" id="upgradeResult" style="margin-top:14px"></p>
   </div>
  </div>
- <div class="nexus-section" id="nexus-mod2"><div class="panel"><div class="empty">Módulo B — Próximamente.</div></div></div>
+ <div class="nexus-section" id="nexus-mod2">
+  <div class="panel">
+   <h3>▦ INTERCAMBIO</h3>
+   <p class="small-note">Introduce entre <b>1 y 10</b> objetos base (iguales o distintos) en la caja. Al cerrarla recibes un lote aleatorio del <b>Registro Base</b> cuyo valor ronda el 50%, el 100% o el 150% de lo entregado. Animación y reclamación obligatoria.</p>
+   <div class="statline"><span>Unidades en caja</span><b id="exchangeBoxCount">0/10</b></div>
+   <div class="statline"><span>Valor de la caja</span><b class="gold" id="exchangeBoxValue">0</b></div>
+   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+    <button type="button" class="primary" id="exchangeAddBtn">＋ Añadir objeto</button>
+    <button type="button" class="tiny" id="exchangeClearBtn">Vaciar caja</button>
+   </div>
+   <div class="exchange-box-list" id="exchangeBoxList"></div>
+   <button class="primary" id="exchangeSubmitBtn" style="width:100%;margin-top:14px" disabled>▣ Cerrar caja e intercambiar</button>
+   <p class="small-note" id="exchangeNote" style="margin-top:10px">Mínimo 1 objeto, máximo 10. Solo base (no síntesis).</p>
+  </div>
+ </div>
  <div class="nexus-section" id="nexus-mod3"><div class="panel"><div class="empty">Módulo C — Próximamente.</div></div></div>
  <div class="nexus-section" id="nexus-mod4"><div class="panel"><div class="empty">Módulo D — Próximamente.</div></div></div>
 </section>
