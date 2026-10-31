@@ -199,7 +199,6 @@ mineralRoots.forEach((root,i)=>{
   if(itemDB[mena])itemDB[mena].r=Math.max(1,r-1);
   if(itemDB[ling])itemDB[ling].r=r;
 });
-addGenerated(`Lingote de ${root}`,{icon:["🧱","🟫","🪙"][i%3],cat:"Lingote",r:2+(i%4===0?1:0),val:14+(i%8)*5,desc:`${proper} refinado a partir de mena de ${root}; útil para fabricar equipo y componentes.`});});
 const toolBases=["Pico","Hacha","Pinzas"];
 const toolMaterials=["de basalto","de cobre","de titanio","de obsidiana","de cuarzo","de cobalto","de chatarra","de cristal","de níquel","de iridio"];
 toolBases.forEach((base,i)=>toolMaterials.slice(0,6).forEach((mat,j)=>{
@@ -510,13 +509,6 @@ const recipes = [
  ["Placa dorsal de obsidiana",{icon:"🛡️",cat:"Equipo",r:4,val:100,desc:"Placa de lingote de obsidiana.",slot:"armor",defense:18}]
 ].forEach(([name,data])=>{if(!itemDB[name])itemDB[name]=data;else Object.assign(itemDB[name],data)});
 
-let materialRecipeCounter=0;
-materialRecipeFamilies.forEach((family,fi)=>family.items.forEach(([out,icon,a,b,desc],j)=>{
- const rarity=Math.min(5,1+Math.floor(fi/3)+(j%2));
- addGenerated(out,{icon,cat:"Material",r:rarity,val:7+fi*4+j*2,desc});
- recipes.push({id:`mat_extra_${materialRecipeCounter++}`,name:out,icon,desc,cost:(a===b?{[a]:3}:{[a]:2,[b]:1}),out,category:"Material"});
- const rec=recipes[recipes.length-1]; if(rec.cost[b]===undefined)delete rec.cost[b];
-}));
 
 // Recetas de archivo: procesan hallazgos narrativos recuperados en zonas avanzadas.
 [
@@ -2798,3 +2790,4 @@ function init(){
  }
 }
 init();
+})();
