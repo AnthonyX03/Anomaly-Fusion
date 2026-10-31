@@ -1004,6 +1004,29 @@ function isContrabandItem(x){
   const d=typeof x==="object"&&x?{...info(x.name),...x}:info(x);
   return !!(d&&(d.contraband||d.cat==="Contrabando"));
 }
+function isItemEquipped(id){
+  return Object.values(state.equipped||{}).includes(id);
+}
+function equippedSlotOf(id){
+  const e=Object.entries(state.equipped||{}).find(([,v])=>v===id);
+  return e?e[0]:null;
+}
+function pickerPageSize(){
+  try{
+    const mobile=window.matchMedia("(max-width:900px)").matches||document.body.classList.contains("layout-mobile");
+    return mobile?6:9;
+  }catch(_){return 9}
+}
+function isOtroOnlyItem(x){
+  const n=typeof x==="string"?x:(x&&x.name)||"";
+  const d=typeof x==="object"&&x?{...info(n),...x}:info(n);
+  // Categoría Otro (no contrabando): origen fijo, no entra en mejora/intercambio/suministros
+  if(!d)return false;
+  if(d.cat==="Contrabando"||d.contraband)return false;
+  if(n==="Polvo de refinadora"||d.refineDust)return true;
+  return d.cat==="Otro";
+}
+
 function isBlackMarketItem(name,data){
  const d=data||info(name)||{};
  if(!d||!d.cat)return false;
@@ -2026,7 +2049,7 @@ function runExchange(){
       if(isSynthesisItem({name:n,...d}))return false;
       if(["Criatura","Órgano","Anomalía"].includes(d.cat))return false;
       if(d.illegal||d.trait==="Ilegal")return false;
-      return ["Material","Lingote","Consumible","Herramienta","Arma","Equipo","Otro"].includes(d.cat);
+      return ["Material","Lingote","Consumible","Herramienta","Arma","Equipo"].includes(d.cat);
     });
   if(!pool.length){
     // Fallback: materiales básicos del catálogo
@@ -2706,7 +2729,8 @@ function renderPicker(){
      if(!d||!d.cat)return false;
      if(isSynthesisItem({name:n,...d})||isRefineDust(n))return false;
      if(["Criatura"].includes(d.cat))return false;
-     if(!["Material","Lingote","Herramienta","Arma","Equipo","Consumible","Otro","Anomalía","Contrabando","Órgano"].includes(d.cat))return false;
+     if(!["Material","Lingote","Herramienta","Arma","Equipo","Consumible","Anomalía","Contrabando","Órgano"].includes(d.cat))return false;
+     if(isOtroOnlyItem(n))return false;
      // Objetivo de mejora: solo base descubierta o catálogo conocido no síntesis
      if(!(state.seen||[]).includes(n)&&!((state.discovered||{})[n]))return false;
      if(pickerFilter&&pickerFilter!=="Todos"){
@@ -2734,7 +2758,7 @@ function renderPicker(){
  // --- Máquina de Mejora: entrada desde inventario (solo base) ---
  if(pickerMode==="upgradeInput"){
   let list=state.inventory.filter(x=>{
-    if(x.qty<=0||isSynthesisItem(x)||isItemEquipped(x.id)||isRefineDust(x))return false;
+    if(x.qty<=0||isSynthesisItem(x)||isItemEquipped(x.id)||isRefineDust(x)||isOtroOnlyItem(x))return false;
     if(["Criatura"].includes(x.cat||info(x.name).cat))return false;
     if(pickerFilter&&pickerFilter!=="Todos"){
       if(pickerFilter==="Síntesis")return false;
@@ -2760,7 +2784,7 @@ function renderPicker(){
 
  if(pickerMode==="refineInput"){
   let list=state.inventory.filter(x=>{
-    if(x.qty<=0||isSynthesisItem(x)||isItemEquipped(x.id)||isRefineDust(x))return false;
+    if(x.qty<=0||isSynthesisItem(x)||isItemEquipped(x.id)||isRefineDust(x)||isOtroOnlyItem(x))return false;
     if(pickerFilter&&pickerFilter!=="Todos"){
       if(pickerFilter==="Síntesis")return false;
       if((x.cat||info(x.name).cat)!==pickerFilter)return false;
@@ -2813,8 +2837,8 @@ function renderPicker(){
  }
  if(pickerMode==="exchangeInput"){
   let list=state.inventory.filter(x=>{
-    if(x.qty<=0||isSynthesisItem(x)||x.unique||isItemEquipped(x.id)||isRefineDust(x))return false;
-    if(!["Material","Lingote","Consumible","Herramienta","Arma","Equipo","Otro","Contrabando"].includes(x.cat||info(x.name).cat))return false;
+    if(x.qty<=0||isSynthesisItem(x)||x.unique||isItemEquipped(x.id)||isRefineDust(x)||isOtroOnlyItem(x))return false;
+    if(!["Material","Lingote","Consumible","Herramienta","Arma","Equipo","Contrabando"].includes(x.cat||info(x.name).cat))return false;
     if(pickerFilter&&pickerFilter!=="Todos"){
       if(pickerFilter==="Síntesis")return false;
       if((x.cat||info(x.name).cat)!==pickerFilter)return false;
