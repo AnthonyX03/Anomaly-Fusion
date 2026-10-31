@@ -2171,68 +2171,57 @@ function renderRefineMachine(){
     else pick.textContent="＋ Elegir objeto";
   }
   if(infoEl)infoEl.textContent=inItem?`N${inItem.r||1} · ${inItem.cat||"?"} · ${Math.max(1,Number(inItem.val)||Number(info(inItem.name).val)||1)} cr.`:"Ningún objeto.";
-  if(clr)clr.classList.toggle("hidden",!inItem||refineBusy);
-  const tPick=$("refineTargetPick"),tInfo=$("refineTargetInfo"),tClr=$("refineTargetClear");
-  if(tPick){
-    if(refineTargetName)tPick.innerHTML=`<span class="item-icon">${itemIconMarkup(refineTargetName,info(refineTargetName).icon)}</span> ${escapeHtml(refineTargetName)}`;
-    else tPick.textContent="＋ Elegir del Registro";
-  }
-  if(tInfo)tInfo.textContent=refineTargetName?`N${info(refineTargetName).r||1} · ${info(refineTargetName).cat||"?"} · ${Math.max(1,Number(info(refineTargetName).val)||1)} cr.`:"Ningún objetivo.";
-  if(tClr)tClr.classList.toggle("hidden",!refineTargetName||refineBusy);
+  if(clr)clr.classList.toggle("hidden",!inItem||refineBusy||!!refinePending);
   const dustInv=countDust();
-  refineDustQty=Math.min(refineDustQty,dustInv,16); // max +80% -> 100%
+  refineDustQty=Math.min(refineDustQty,dustInv,16);
   if($("refineDustInv"))$("refineDustInv").textContent=String(dustInv);
   if($("refineDustUse"))$("refineDustUse").textContent=String(refineDustQty);
   if($("refineDustQty"))$("refineDustQty").textContent="×"+refineDustQty;
   const pct=refineChancePct();
   if($("refineChanceLabel"))$("refineChanceLabel").textContent=pct+"%";
   const btn=$("refineStartBtn");
-  if(btn){
-    btn.disabled=refineBusy||!inItem||!refineTargetName||!!activeTask||!!currentEnemy||!!refinePending;
-    const inVal=inItem?Math.max(1,Number(inItem.val)||Number(info(inItem.name).val)||1):0;
-    const outVal=refineTargetName?Math.max(1,Number(info(refineTargetName).val)||1):0;
-    if(inItem&&refineTargetName&&outVal<=inVal)btn.disabled=true;
+  if(btn)btn.disabled=refineBusy||!inItem||!!activeTask||!!currentEnemy||!!refinePending;
+  const out=$("refineOutputSlot"),tInfo=$("refineTargetInfo"),claim=$("refineClaimBtn");
+  if(refinePending){
+    const p=refinePending;
+    if(out)out.innerHTML=`<span class="item-icon">${itemIconMarkup(p.name,info(p.name).icon)}</span> ${escapeHtml(p.name)}${p.qty>1?" ×"+p.qty:""}`;
+    if(tInfo)tInfo.textContent=p.ok?`Éxito · ${Math.max(1,Number(info(p.name).val)||1)} cr.`:`Fallo · Polvo de refinadora`;
+    if(claim)claim.classList.remove("hidden");
+  }else{
+    if(out)out.textContent="— Esperando resultado —";
+    if(tInfo)tInfo.textContent="Aquí aparecerá el resultado al terminar el proceso.";
+    if(claim)claim.classList.add("hidden");
   }
-  if($("refineClaimBtn"))$("refineClaimBtn").classList.toggle("hidden",!refinePending||refineBusy);
   if($("refineStatus")&&!refineBusy&&!refinePending)$("refineStatus").textContent="En espera";
 }
 function openRefineInputPicker(){
-  if(refineBusy)return;
+  if(refineBusy||refinePending)return;
   pickerMode="refineInput";pickerSlot=null;pickerFilter="Todos";pickerPage=1;
   if($("pickerSearch"))$("pickerSearch").value="";
   if($("pickerTitle"))$("pickerTitle").textContent="▤ REFINADORA · ENTRADA";
-  if($("pickerDescription"))$("pickerDescription").textContent="Objeto a refinar (no equipado, no síntesis).";
+  if($("pickerDescription"))$("pickerDescription").textContent="Objeto a refinar (no equipado, no síntesis, no polvo).";
   if($("pickerFilterMenu"))$("pickerFilterMenu").classList.remove("hidden");
+  if($("pickerFilterLabel"))$("pickerFilterLabel").textContent=pickerFilter;
   $("inventoryPicker").classList.remove("hidden");renderPicker();
 }
-function openRefineTargetPicker(){
-  if(refineBusy)return;
-  pickerMode="refineTarget";pickerSlot=null;pickerFilter="Todos";pickerPage=1;
-  if($("pickerSearch"))$("pickerSearch").value="";
-  if($("pickerTitle"))$("pickerTitle").textContent="▤ REFINADORA · OBJETIVO";
-  if($("pickerDescription"))$("pickerDescription").textContent="Solo objetos del Registro Base con valor superior a la entrada.";
-  if($("pickerFilterMenu"))$("pickerFilterMenu").classList.remove("hidden");
-  $("inventoryPicker").classList.remove("hidden");renderPicker();
-}
+function openRefineTargetPicker(){/* salida automática — sin selector */}
 function startRefine(){
   if(refineBusy||refinePending)return;
   const item=state.inventory.find(i=>i.id===refineInputId);
-  if(!item||!refineTargetName)return;
+  if(!item)return;
   if(isItemEquipped(item.id))return toast("Desequipa el objeto primero.",true);
-  if(isSynthesisItem(item))return toast("No se admiten síntesis.",true);
+  if(isSynthesisItem(item)||isRefineDust(item))return toast("Objeto no válido para refinar.",true);
   const inVal=Math.max(1,Number(item.val)||Number(info(item.name).val)||1);
-  const outVal=Math.max(1,Number(info(refineTargetName).val)||1);
-  if(outVal<=inVal)return toast("El objetivo debe tener mayor valor que la entrada.",true);
   const dustNeed=refineDustQty;
   if(dustNeed>countDust())return toast("No tienes suficiente Polvo de refinadora.",true);
   const pct=refineChancePct();
-  // Consumir entrada y polvo
   if(!removeItemById(item.id,1))return toast("Error al consumir la entrada.",true);
   if(dustNeed>0)take("Polvo de refinadora",dustNeed);
   refineBusy=true;refineInputId=null;
   if($("refineBarFill"))$("refineBarFill").style.width="0%";
   if($("refineStatus"))$("refineStatus").textContent="Refinando…";
   if($("refineArrow"))$("refineArrow").textContent="⟶";
+  if($("refineOutputSlot"))$("refineOutputSlot").textContent="…";
   renderRefineMachine();
   sound(300,.08,"sine");
   const t0=Date.now();const dur=5000;
@@ -2243,10 +2232,29 @@ function startRefine(){
     if(p<1){requestAnimationFrame(tick);return}
     const win=Math.random()*100<pct;
     if(win){
-      state.achievements=state.achievements||{};state.achievements.refine_success=true;
-      refinePending={ok:true,name:refineTargetName,qty:1};
-      if($("refineStatus"))$("refineStatus").textContent="Éxito · listo para reclamar";
-      if($("refineResult"))$("refineResult").innerHTML=`<span class="cyan">Éxito (${pct}%).</span> Reclama <b>${escapeHtml(refineTargetName)}</b>.`;
+      // Objeto aleatorio del registro base con valor > entrada
+      const pool=[...new Set([...(state.seen||[]),...Object.keys(state.discovered||{}),...Object.keys(itemDB||{})])]
+        .filter(n=>{
+          const d=info(n);
+          if(!d||!d.cat)return false;
+          if(isSynthesisItem({name:n,...d})||isRefineDust(n))return false;
+          if(["Criatura"].includes(d.cat))return false;
+          return Math.max(1,Number(d.val)||1)>inVal;
+        });
+      let name=pool.length?pool[Math.floor(Math.random()*pool.length)]:null;
+      if(!name){
+        // fallback: cualquier base de mayor valor en itemDB
+        const fb=Object.keys(itemDB).filter(n=>{const d=itemDB[n];return d&&Math.max(1,Number(d.val)||1)>inVal&&d.cat!=="Criatura"&&!d.illegal});
+        name=fb.length?fb[Math.floor(Math.random()*fb.length)]:"Polvo de refinadora";
+      }
+      if(name==="Polvo de refinadora"){
+        refinePending={ok:false,name:"Polvo de refinadora",qty:1};
+      }else{
+        state.achievements=state.achievements||{};state.achievements.refine_success=true;
+        refinePending={ok:true,name,qty:1};
+      }
+      if($("refineStatus"))$("refineStatus").textContent=refinePending.ok?"Éxito · listo":"Sin candidatos · polvo";
+      if($("refineResult"))$("refineResult").innerHTML=refinePending.ok?`<span class="cyan">Éxito (${pct}%).</span> Reclama el resultado.`:`<span class="red">Sin objeto superior.</span> Polvo listo.`;
       sound(720,.15,"triangle");
     }else{
       refinePending={ok:false,name:"Polvo de refinadora",qty:1};
@@ -2274,13 +2282,15 @@ function claimRefine(){
 }
 
 
+
+
 // === CENTRO: ASISTENTE · MISIONES · LOGROS ===
 const ASSISTANT_TOPICS=[
  {id:"mision",label:"Misión principal"},
  {id:"explorar",label:"Exploración"},
  {id:"central",label:"La Central"},
  {id:"fusion",label:"Fusión"},
- {id:"nexus",label:"Nexo"},
+ {id:"nexus",label:"Centro"},
  {id:"mercado",label:"Mercado"},
  {id:"clinica",label:"Clínica"},
  {id:"equipo",label:"Equipo e inventario"},
@@ -2291,7 +2301,7 @@ const ASSISTANT_TEXT={
  explorar:"En Exploración eliges una zona desbloqueada según tu nivel de Operador. Gastas tiempo de expedición y obtienes botín del listado de esa zona. A veces hay combate: si ganas conservas el botín; si caes, lo pierdes. Sube de nivel para abrir zonas más peligrosas y rentables.",
  central:"La Central concentra la Mesa de creación (recetas con nivel), el Horno (lingotes), Solicitar suministros y el Envío de suministro. Fabrica solo lo que tengas desbloqueado. Los suministros dan un empujón diario de recursos básicos.",
  fusion:"La Máquina de fusión combina dos objetos propios. Puede crear materiales nuevos, equipos o, en el caso clave, anomalías. Es experimental: el resultado depende de lo que combines. Crear tu primera anomalía es un logro del operador.",
- nexus:"El Nexo tiene tres módulos activos: Máquina de Mejora (ruleta de riesgo entre objetos base), Intercambio (caja 1–10 unidades por un lote del registro) y Refinadora (subir de valor con riesgo y Polvo de refinadora). Usa solo objetos base descubiertos.",
+ nexus:"El Centro de máquinas tiene tres módulos activos: Máquina de Mejora (ruleta de riesgo entre objetos base), Intercambio (caja 1–10 unidades por un lote del registro) y Refinadora (subir de valor con riesgo y Polvo de refinadora). Usa solo objetos base descubiertos.",
  mercado:"El Mercado legal vende materiales, lingotes y recetas sensatas por nivel. El Mercado negro trafica órganos sueltos, armas balísticas y contrabando. El diario rota stock; el catálogo exige nivel de Operador.",
  clinica:"En la Clínica extraes órganos de criaturas orgánicas (riesgo de fallo) y puedes sintetizar engendros. Todo lo orgánico lleva rasgo ilegal y se mueve en el mercado negro.",
  equipo:"El inventario muestra todo lo que posees. Las armas, herramientas y equipos equipados quedan marcados y no puedes gastarlos hasta desequiparlos. Mira el origen de los materiales: si salen de una zona, verás su nombre.",
@@ -2690,13 +2700,15 @@ function renderPicker(){
  const search=(($("pickerSearch")&&$("pickerSearch").value)||"").trim().toLowerCase();
  // --- Máquina de Mejora: objetivo desde Registro Base ---
  if(pickerMode==="upgradeTarget"){
-  const names=[...new Set([...(state.seen||[]),...Object.keys(state.discovered||{})])]
+  const names=[...new Set([...(state.seen||[]),...Object.keys(state.discovered||{}),...Object.keys(itemDB||{})])]
    .filter(n=>{
      const d=info(n);
      if(!d||!d.cat)return false;
      if(isSynthesisItem({name:n,...d})||isRefineDust(n))return false;
-     if(["Criatura","Órgano"].includes(d.cat))return false;
-     if(!["Material","Lingote","Herramienta","Arma","Equipo","Consumible","Otro","Anomalía"].includes(d.cat))return false;
+     if(["Criatura"].includes(d.cat))return false;
+     if(!["Material","Lingote","Herramienta","Arma","Equipo","Consumible","Otro","Anomalía","Contrabando","Órgano"].includes(d.cat))return false;
+     // Objetivo de mejora: solo base descubierta o catálogo conocido no síntesis
+     if(!(state.seen||[]).includes(n)&&!((state.discovered||{})[n]))return false;
      if(pickerFilter&&pickerFilter!=="Todos"){
        if(pickerFilter==="Síntesis")return false;
        if(d.cat!==pickerFilter)return false;
@@ -2723,6 +2735,7 @@ function renderPicker(){
  if(pickerMode==="upgradeInput"){
   let list=state.inventory.filter(x=>{
     if(x.qty<=0||isSynthesisItem(x)||isItemEquipped(x.id)||isRefineDust(x))return false;
+    if(["Criatura"].includes(x.cat||info(x.name).cat))return false;
     if(pickerFilter&&pickerFilter!=="Todos"){
       if(pickerFilter==="Síntesis")return false;
       if((x.cat||info(x.name).cat)!==pickerFilter)return false;
@@ -2801,7 +2814,7 @@ function renderPicker(){
  if(pickerMode==="exchangeInput"){
   let list=state.inventory.filter(x=>{
     if(x.qty<=0||isSynthesisItem(x)||x.unique||isItemEquipped(x.id)||isRefineDust(x))return false;
-    if(!["Material","Lingote","Consumible","Herramienta","Arma","Equipo","Otro"].includes(x.cat||info(x.name).cat))return false;
+    if(!["Material","Lingote","Consumible","Herramienta","Arma","Equipo","Otro","Contrabando"].includes(x.cat||info(x.name).cat))return false;
     if(pickerFilter&&pickerFilter!=="Todos"){
       if(pickerFilter==="Síntesis")return false;
       if((x.cat||info(x.name).cat)!==pickerFilter)return false;
@@ -3449,9 +3462,7 @@ if($("exchangeAddBtn"))$("exchangeAddBtn").onclick=()=>openExchangePicker();
 if($("exchangeClearBtn"))$("exchangeClearBtn").onclick=()=>{if(exchangeBusy)return;exchangeBox={};renderExchangeModule()};
 if($("exchangeSubmitBtn"))$("exchangeSubmitBtn").onclick=runExchange;
 if($("refineInputPick"))$("refineInputPick").onclick=()=>{if(!refineBusy)openRefineInputPicker()};
-if($("refineTargetPick"))$("refineTargetPick").onclick=()=>{if(!refineBusy)openRefineTargetPicker()};
 if($("refineInputClear"))$("refineInputClear").onclick=()=>{if(refineBusy)return;refineInputId=null;renderRefineMachine()};
-if($("refineTargetClear"))$("refineTargetClear").onclick=()=>{if(refineBusy)return;refineTargetName=null;renderRefineMachine()};
 if($("refineDustMinus"))$("refineDustMinus").onclick=()=>{if(refineBusy)return;refineDustQty=Math.max(0,refineDustQty-1);renderRefineMachine()};
 if($("refineDustPlus"))$("refineDustPlus").onclick=()=>{if(refineBusy)return;refineDustQty=Math.min(countDust(),16,refineDustQty+1);renderRefineMachine()};
 if($("refineStartBtn"))$("refineStartBtn").onclick=startRefine;
