@@ -244,163 +244,218 @@ zones.forEach((z,zi)=>z.loot.forEach((name,j)=>{if(!itemDB[name])addGenerated(na
  ["Aleación ligera", "🪙", 3, 24, "Mezcla metálica ligera preparada para piezas de precisión."]
 ].forEach(([name,icon,r,val,desc])=>addGenerated(name,{icon,cat:"Material",r,val,desc}));
 const recipes = [
- // === HERRAMIENTAS (solo Pico, Hacha, Pinzas) — costes con sentido ===
- {id:"pick_wood",name:"Pico de madera",icon:"⛏️",desc:"Pico improvisado. Útil para las primeras minas.",cost:{"Madera":3,"Ramas":2},out:"Pico de madera",category:"Herramienta"},
- {id:"pick_scrap",name:"Pico de chatarra",icon:"⛏️",desc:"Pico reforzado con metal recuperado.",cost:{"Madera":2,"Chatarra":3},out:"Pico de chatarra",category:"Herramienta"},
- {id:"pick_iron",name:"Pico de hierro",icon:"⛏️",desc:"Pico sólido de hierro refinado.",cost:{"Lingote de hierro":3,"Madera":2},out:"Pico de hierro",category:"Herramienta"},
- {id:"axe_wood",name:"Hacha de madera",icon:"🪓",desc:"Hacha básica de leñador. Necesita madera y ramas.",cost:{"Madera":2,"Ramas":3},out:"Hacha de madera",category:"Herramienta"},
- {id:"axe_scrap",name:"Hacha de chatarra",icon:"🪓",desc:"Filo metálico improvisado sobre mango de madera.",cost:{"Madera":2,"Chatarra":2,"Ramas":1},out:"Hacha de chatarra",category:"Herramienta"},
- {id:"axe_iron",name:"Hacha de hierro",icon:"🪓",desc:"Hacha resistente para bosque y estructuras.",cost:{"Lingote de hierro":2,"Madera":2,"Ramas":1},out:"Hacha de hierro",category:"Herramienta"},
- {id:"tongs1",name:"Pinzas oxidadas",icon:"⚕",desc:"Instrumento básico de extracción. +6% éxito.",cost:{"Chatarra":2,"Ramas":1},out:"Pinzas oxidadas",category:"Herramienta"},
- {id:"tongs2",name:"Pinzas de campo",icon:"⚕",desc:"Mejor agarre. +12% éxito de extracción.",cost:{"Chatarra":3,"Lingote de hierro":1},out:"Pinzas de campo",category:"Herramienta"},
- {id:"tongs3",name:"Pinzas de precisión",icon:"⚕",desc:"Microajuste manual. +20% éxito.",cost:{"Lingote de hierro":2,"Cristal agrietado":1},out:"Pinzas de precisión",category:"Herramienta"},
- // === ARMAS / EQUIPO básicos con sentido ===
- {id:"knife",name:"Cuchillo oxidado",icon:"🔪",desc:"Hoja improvisada de chatarra.",cost:{"Chatarra":3,"Ramas":1},out:"Cuchillo oxidado",category:"Arma"},
- {id:"sword_copper",name:"Espada de cobre",icon:"⚔️",desc:"Hoja de cobre con mango de madera.",cost:{"Lingote de cobre":3,"Madera":1},out:"Espada de cobre",category:"Arma"},
- {id:"armor_scrap",name:"Armadura de chatarra",icon:"🛡️",desc:"Placas de chatarra unidas con cable.",cost:{"Chatarra":5,"Cable de cobre":2},out:"Armadura de chatarra",category:"Equipo"}
+ // === HERRAMIENTAS ===
+ {id:"pick_wood",name:"Pico de madera",icon:"⛏️",desc:"Pico improvisado de madera y ramas.",cost:{"Madera":3,"Ramas":2},out:"Pico de madera",category:"Herramienta"},
+ {id:"pick_scrap",name:"Pico de chatarra",icon:"⛏️",desc:"Cabeza de chatarra y mango de madera.",cost:{"Madera":2,"Chatarra":3},out:"Pico de chatarra",category:"Herramienta"},
+ {id:"pick_stone",name:"Pico de piedra",icon:"⛏️",desc:"Punta de piedra ligada con resina.",cost:{"Piedra":4,"Madera":2,"Resina":1},out:"Pico de piedra",category:"Herramienta"},
+ {id:"pick_iron",name:"Pico de hierro",icon:"⛏️",desc:"Pico de lingote de hierro con mango de madera.",cost:{"Lingote de hierro":3,"Madera":2},out:"Pico de hierro",category:"Herramienta"},
+ {id:"pick_copper",name:"Pico de cobre",icon:"⛏️",desc:"Pico de lingote de cobre, más ligero.",cost:{"Lingote de cobre":3,"Madera":2,"Ramas":1},out:"Pico de cobre",category:"Herramienta"},
+ {id:"pick_titanium",name:"Pico de titanio",icon:"⛏️",desc:"Pico de lingote de titanio para menas duras.",cost:{"Lingote de titanio":3,"Madera":2},out:"Pico de titanio",category:"Herramienta"},
+ {id:"pick_cobalt",name:"Pico de cobalto",icon:"⛏️",desc:"Pico de lingote de cobalto, resistente al frío.",cost:{"Lingote de cobalto":3,"Cristal de hielo azul":1,"Madera":1},out:"Pico de cobalto",category:"Herramienta"},
+ {id:"pick_obsidian",name:"Pico de obsidiana",icon:"⛏️",desc:"Filo volcánico de lingote de obsidiana.",cost:{"Lingote de obsidiana":3,"Roca volcánica":1,"Madera":1},out:"Pico de obsidiana",category:"Herramienta"},
+ {id:"pick_tungsten",name:"Pico de tungsteno",icon:"⛏️",desc:"Pico de lingote de tungsteno, máxima dureza.",cost:{"Lingote de tungsteno":3,"Carbón":2,"Madera":1},out:"Pico de tungsteno",category:"Herramienta"},
+ {id:"pick_nickel",name:"Pico de níquel",icon:"⛏️",desc:"Pico de lingote de níquel para vetas corrosivas.",cost:{"Lingote de níquel":3,"Chatarra":1,"Madera":1},out:"Pico de níquel",category:"Herramienta"},
+ {id:"pick_quartz",name:"Pico de cuarzo",icon:"⛏️",desc:"Punta de cuarzo sobre mango reforzado.",cost:{"Cristal agrietado":3,"Madera":2,"Resina":1},out:"Pico de cuarzo",category:"Herramienta"},
+ {id:"axe_wood",name:"Hacha de madera",icon:"🪓",desc:"Hacha de leñador: madera y ramas.",cost:{"Madera":2,"Ramas":3},out:"Hacha de madera",category:"Herramienta"},
+ {id:"axe_scrap",name:"Hacha de chatarra",icon:"🪓",desc:"Filo de chatarra sobre mango de madera.",cost:{"Madera":2,"Chatarra":2,"Ramas":1},out:"Hacha de chatarra",category:"Herramienta"},
+ {id:"axe_iron",name:"Hacha de hierro",icon:"🪓",desc:"Hacha de lingote de hierro y madera.",cost:{"Lingote de hierro":2,"Madera":2,"Ramas":1},out:"Hacha de hierro",category:"Herramienta"},
+ {id:"axe_copper",name:"Hacha de cobre",icon:"🪓",desc:"Hacha de lingote de cobre para tala ligera.",cost:{"Lingote de cobre":2,"Madera":2},out:"Hacha de cobre",category:"Herramienta"},
+ {id:"axe_titanium",name:"Hacha de titanio",icon:"🪓",desc:"Hacha de lingote de titanio, resistente y ligera.",cost:{"Lingote de titanio":2,"Madera":2,"Ramas":1},out:"Hacha de titanio",category:"Herramienta"},
+ {id:"axe_obsidian",name:"Hacha de obsidiana",icon:"🪓",desc:"Hacha de lingote de obsidiana para corte extremo.",cost:{"Lingote de obsidiana":2,"Madera":1,"Resina":1},out:"Hacha de obsidiana",category:"Herramienta"},
+ {id:"axe_cobalt",name:"Hacha de cobalto",icon:"🪓",desc:"Hacha de lingote de cobalto templada en frío.",cost:{"Lingote de cobalto":2,"Cristal de hielo azul":1,"Madera":1},out:"Hacha de cobalto",category:"Herramienta"},
+ {id:"axe_tungsten",name:"Hacha de tungsteno",icon:"🪓",desc:"Hacha de lingote de tungsteno, corte industrial.",cost:{"Lingote de tungsteno":2,"Carbón":1,"Madera":2},out:"Hacha de tungsteno",category:"Herramienta"},
+ {id:"tongs1",name:"Pinzas oxidadas",icon:"⚕",desc:"Pinzas de chatarra. +6% éxito de extracción.",cost:{"Chatarra":2,"Ramas":1},out:"Pinzas oxidadas",category:"Herramienta"},
+ {id:"tongs_iron",name:"Pinzas de hierro",icon:"⚕",desc:"Pinzas de lingote de hierro. +12% éxito.",cost:{"Lingote de hierro":2,"Chatarra":1},out:"Pinzas de hierro",category:"Herramienta"},
+ {id:"tongs_copper",name:"Pinzas de cobre",icon:"⚕",desc:"Pinzas de lingote de cobre. +16% éxito.",cost:{"Lingote de cobre":2,"Cable de cobre":1},out:"Pinzas de cobre",category:"Herramienta"},
+ {id:"tongs_titanium",name:"Pinzas de titanio",icon:"⚕",desc:"Pinzas de lingote de titanio. +20% éxito.",cost:{"Lingote de titanio":2,"Cristal agrietado":1},out:"Pinzas de titanio",category:"Herramienta"},
+ {id:"tongs_cobalt",name:"Pinzas de cobalto",icon:"⚕",desc:"Pinzas de lingote de cobalto. +22% éxito.",cost:{"Lingote de cobalto":2,"Cristal de hielo azul":1},out:"Pinzas de cobalto",category:"Herramienta"},
+ {id:"tongs_precision",name:"Pinzas de precisión",icon:"⚕",desc:"Pinzas de titanio y cristal pulido. +25% éxito.",cost:{"Lingote de titanio":2,"Cristal pulido":1,"Cable de cobre":1},out:"Pinzas de precisión",category:"Herramienta"},
+ // === ARMAS ===
+ {id:"knife_scrap",name:"Cuchillo oxidado",icon:"🔪",desc:"Hoja improvisada de chatarra y ramas.",cost:{"Chatarra":3,"Ramas":1},out:"Cuchillo oxidado",category:"Arma"},
+ {id:"knife_iron",name:"Cuchillo de hierro",icon:"🔪",desc:"Hoja de lingote de hierro con mango de madera.",cost:{"Lingote de hierro":2,"Madera":1},out:"Cuchillo de hierro",category:"Arma"},
+ {id:"knife_copper",name:"Cuchillo de cobre",icon:"🔪",desc:"Hoja de lingote de cobre.",cost:{"Lingote de cobre":2,"Madera":1},out:"Cuchillo de cobre",category:"Arma"},
+ {id:"knife_obsidian",name:"Cuchillo de obsidiana",icon:"🔪",desc:"Hoja de lingote de obsidiana.",cost:{"Lingote de obsidiana":2,"Resina":1},out:"Cuchillo de obsidiana",category:"Arma"},
+ {id:"bat_scrap",name:"Bate claveteado",icon:"🏏",desc:"Madera con tornillos oxidados clavados.",cost:{"Madera":3,"Tornillo oxidado":3},out:"Bate claveteado",category:"Arma"},
+ {id:"bat_iron",name:"Bate de hierro",icon:"🏏",desc:"Mango de madera con cabezal de lingote de hierro.",cost:{"Lingote de hierro":2,"Madera":2,"Tornillo oxidado":1},out:"Bate de hierro",category:"Arma"},
+ {id:"sword_copper",name:"Espada de cobre",icon:"⚔️",desc:"Hoja de lingote de cobre y mango de madera.",cost:{"Lingote de cobre":3,"Madera":1},out:"Espada de cobre",category:"Arma"},
+ {id:"sword_iron",name:"Espada de hierro",icon:"⚔️",desc:"Hoja de lingote de hierro forjada.",cost:{"Lingote de hierro":3,"Madera":1,"Carbón":1},out:"Espada de hierro",category:"Arma"},
+ {id:"sword_titanium",name:"Espada de titanio",icon:"⚔️",desc:"Hoja de lingote de titanio, ligera y cortante.",cost:{"Lingote de titanio":3,"Madera":1},out:"Espada de titanio",category:"Arma"},
+ {id:"sword_obsidian",name:"Espada de obsidiana",icon:"⚔️",desc:"Filo de lingote de obsidiana volcánica.",cost:{"Lingote de obsidiana":3,"Resina":1,"Madera":1},out:"Espada de obsidiana",category:"Arma"},
+ {id:"sword_cobalt",name:"Espada de cobalto",icon:"⚔️",desc:"Hoja de lingote de cobalto templada.",cost:{"Lingote de cobalto":3,"Cristal de hielo azul":1,"Madera":1},out:"Espada de cobalto",category:"Arma"},
+ {id:"sword_tungsten",name:"Espada de tungsteno",icon:"⚔️",desc:"Hoja de lingote de tungsteno, pesada y letal.",cost:{"Lingote de tungsteno":3,"Carbón":2,"Madera":1},out:"Espada de tungsteno",category:"Arma"},
+ {id:"spear_wood",name:"Lanza de madera",icon:"🗡️",desc:"Asta de madera y punta de piedra.",cost:{"Madera":3,"Piedra":2,"Ramas":1},out:"Lanza de madera",category:"Arma"},
+ {id:"spear_iron",name:"Lanza de hierro",icon:"🗡️",desc:"Punta de lingote de hierro en asta de madera.",cost:{"Lingote de hierro":2,"Madera":3},out:"Lanza de hierro",category:"Arma"},
+ {id:"spear_titanium",name:"Lanza de titanio",icon:"🗡️",desc:"Punta de lingote de titanio.",cost:{"Lingote de titanio":2,"Madera":3},out:"Lanza de titanio",category:"Arma"},
+ {id:"mace_iron",name:"Maza de hierro",icon:"🔨",desc:"Cabeza de lingote de hierro sobre mango de madera.",cost:{"Lingote de hierro":3,"Madera":2,"Chatarra":1},out:"Maza de hierro",category:"Arma"},
+ {id:"mace_tungsten",name:"Maza de tungsteno",icon:"🔨",desc:"Cabeza de lingote de tungsteno, impacto brutal.",cost:{"Lingote de tungsteno":3,"Madera":2,"Carbón":1},out:"Maza de tungsteno",category:"Arma"},
+ {id:"mace_obsidian",name:"Maza de obsidiana",icon:"🔨",desc:"Cabeza de lingote de obsidiana.",cost:{"Lingote de obsidiana":3,"Madera":2,"Resina":1},out:"Maza de obsidiana",category:"Arma"},
+ {id:"dagger_cobalt",name:"Daga de cobalto",icon:"🗡️",desc:"Hoja corta de lingote de cobalto.",cost:{"Lingote de cobalto":2,"Madera":1,"Cristal de hielo azul":1},out:"Daga de cobalto",category:"Arma"},
+ {id:"dagger_nickel",name:"Daga de níquel",icon:"🗡️",desc:"Hoja de lingote de níquel.",cost:{"Lingote de níquel":2,"Madera":1},out:"Daga de níquel",category:"Arma"},
+ {id:"bow_wood",name:"Arco de ramas",icon:"🏹",desc:"Arco de ramas y fibra vegetal.",cost:{"Ramas":4,"Fibra vegetal":2},out:"Arco de ramas",category:"Arma"},
+ {id:"bow_iron",name:"Arco reforzado",icon:"🏹",desc:"Arco de madera reforzado con lingote de hierro.",cost:{"Madera":3,"Lingote de hierro":1,"Fibra vegetal":2},out:"Arco reforzado",category:"Arma"},
+ {id:"crossbow_scrap",name:"Ballesta de chatarra",icon:"🏹",desc:"Mecanismo de chatarra y cable de cobre.",cost:{"Chatarra":4,"Cable de cobre":2,"Madera":2},out:"Ballesta de chatarra",category:"Arma"},
+ {id:"crossbow_iron",name:"Ballesta de hierro",icon:"🏹",desc:"Ballesta de lingote de hierro y cable.",cost:{"Lingote de hierro":3,"Cable de cobre":2,"Madera":2},out:"Ballesta de hierro",category:"Arma"},
+ {id:"whip_scrap",name:"Látigo de cable",icon:"〰️",desc:"Cable de cobre trenzado con agarre de chatarra.",cost:{"Cable de cobre":4,"Chatarra":1,"Resina":1},out:"Látigo de cable",category:"Arma"},
+ {id:"hammer_iron",name:"Martillo de guerra",icon:"🔨",desc:"Martillo de lingote de hierro y madera.",cost:{"Lingote de hierro":4,"Madera":2,"Carbón":1},out:"Martillo de guerra",category:"Arma"},
+ // === EQUIPO: solo trajes / armaduras completas (1 slot armor) ===
+ {id:"suit_scrap",name:"Traje de chatarra",icon:"🛡️",desc:"Armadura completa improvisada de chatarra y cable.",cost:{"Chatarra":6,"Cable de cobre":2,"Tornillo oxidado":2},out:"Traje de chatarra",category:"Equipo"},
+ {id:"suit_wood",name:"Traje de madera",icon:"🧥",desc:"Protección de tablas y fibra vegetal.",cost:{"Madera":5,"Fibra vegetal":3,"Resina":2},out:"Traje de madera",category:"Equipo"},
+ {id:"suit_iron",name:"Armadura de hierro",icon:"🛡️",desc:"Armadura completa de lingote de hierro.",cost:{"Lingote de hierro":5,"Chatarra":2,"Cable de cobre":1},out:"Armadura de hierro",category:"Equipo"},
+ {id:"suit_copper",name:"Armadura de cobre",icon:"🛡️",desc:"Armadura completa de lingote de cobre.",cost:{"Lingote de cobre":5,"Cable de cobre":2,"Madera":1},out:"Armadura de cobre",category:"Equipo"},
+ {id:"suit_titanium",name:"Armadura de titanio",icon:"🛡️",desc:"Armadura completa de lingote de titanio, ligera.",cost:{"Lingote de titanio":5,"Cable de cobre":2},out:"Armadura de titanio",category:"Equipo"},
+ {id:"suit_cobalt",name:"Armadura de cobalto",icon:"🛡️",desc:"Armadura completa de lingote de cobalto, aislante térmico.",cost:{"Lingote de cobalto":5,"Cristal de hielo azul":2,"Cable de cobre":1},out:"Armadura de cobalto",category:"Equipo"},
+ {id:"suit_obsidian",name:"Armadura de obsidiana",icon:"🛡️",desc:"Armadura completa de lingote de obsidiana.",cost:{"Lingote de obsidiana":5,"Roca volcánica":2,"Resina":1},out:"Armadura de obsidiana",category:"Equipo"},
+ {id:"suit_tungsten",name:"Armadura de tungsteno",icon:"🛡️",desc:"Armadura completa de lingote de tungsteno, máxima defensa.",cost:{"Lingote de tungsteno":5,"Carbón":2,"Cable de cobre":1},out:"Armadura de tungsteno",category:"Equipo"},
+ {id:"suit_nickel",name:"Armadura de níquel",icon:"🛡️",desc:"Armadura completa de lingote de níquel, anticorrosión.",cost:{"Lingote de níquel":5,"Chatarra":2,"Resina":1},out:"Armadura de níquel",category:"Equipo"},
+ {id:"suit_spore",name:"Traje de esporas",icon:"🧥",desc:"Traje completo con hojas mutadas y resina.",cost:{"Hoja mutada":4,"Resina":3,"Fibra vegetal":3},out:"Traje de esporas",category:"Equipo"},
+ {id:"suit_filter",name:"Traje filtrante",icon:"🧥",desc:"Traje completo con filtros de carbón y fibra.",cost:{"Fibra vegetal":4,"Carbón":3,"Compuesto aislante":2},out:"Traje filtrante",category:"Equipo"},
+ {id:"suit_quartz",name:"Armadura de cuarzo",icon:"🛡️",desc:"Armadura con placas de cristal y lingote de hierro.",cost:{"Cristal agrietado":4,"Lingote de hierro":3,"Resina":2},out:"Armadura de cuarzo",category:"Equipo"},
+ {id:"suit_alloy",name:"Armadura de aleación",icon:"🛡️",desc:"Armadura de placa de aleación y lingote de hierro.",cost:{"Placa de aleación":3,"Lingote de hierro":2,"Cable de cobre":2},out:"Armadura de aleación",category:"Equipo"},
+ {id:"suit_neon",name:"Traje de neón",icon:"🧥",desc:"Traje con batería de neón y cable de fibra óptica.",cost:{"Batería de neón":2,"Cable de fibra óptica":2,"Lingote de cobre":2},out:"Traje de neón",category:"Equipo"},
+ {id:"suit_abyssal",name:"Traje abisal",icon:"🧥",desc:"Traje sellado con concha blindada y gel bioluminiscente.",cost:{"Concha blindada":2,"Gel bioluminiscente":2,"Fibra vegetal":2,"Resina":2},out:"Traje abisal",category:"Equipo"},
+ // === MATERIALES BÁSICOS ===
+ {id:"mat_fiber",name:"Fibra vegetal",icon:"🧵",desc:"Fibras de hojas y ramas para cordajes.",cost:{"Hojas":3,"Ramas":1},out:"Fibra vegetal",category:"Material"},
+ {id:"mat_rope",name:"Cuerda de fibra",icon:"➰",desc:"Fibras trenzadas en cordaje.",cost:{"Fibra vegetal":3},out:"Cuerda de fibra",category:"Material"},
+ {id:"mat_board",name:"Tabla reforzada",icon:"🪵",desc:"Madera reforzada con chatarra.",cost:{"Madera":3,"Chatarra":1},out:"Tabla reforzada",category:"Material"},
+ {id:"mat_brick",name:"Ladrillo de piedra",icon:"🧱",desc:"Piedra compactada en bloque.",cost:{"Piedra":4},out:"Ladrillo de piedra",category:"Material"},
+ {id:"mat_glass",name:"Cristal pulido",icon:"💎",desc:"Pule cristal agrietado con piedra.",cost:{"Cristal agrietado":2,"Piedra":1},out:"Cristal pulido",category:"Material"},
+ {id:"mat_insulator",name:"Compuesto aislante",icon:"🧪",desc:"Resina y fibra para aislar calor.",cost:{"Resina":2,"Fibra vegetal":2},out:"Compuesto aislante",category:"Material"},
+ {id:"mat_cable",name:"Cable trenzado",icon:"〰️",desc:"Cable de cobre reforzado con fibra.",cost:{"Cable de cobre":2,"Fibra vegetal":1},out:"Cable trenzado",category:"Material"},
+ {id:"mat_plate",name:"Placa de aleación",icon:"⚙️",desc:"Chatarra prensada con lingote de hierro.",cost:{"Chatarra":3,"Lingote de hierro":1},out:"Placa de aleación",category:"Material"},
+ {id:"mat_coal_dust",name:"Polvo de carbón",icon:"⚫",desc:"Carbón molido para mezclas.",cost:{"Carbón":2},out:"Polvo de carbón",category:"Material"},
+ {id:"mat_battery_core",name:"Núcleo de batería",icon:"🔋",desc:"Celdas recuperadas de batería vieja.",cost:{"Batería vieja":1,"Cable de cobre":2},out:"Núcleo de batería",category:"Material"}
 ];
 
-// Registrar herramientas nuevas en itemDB si faltan
+// Fichas de catálogo para recetas de mesa (trajes completos, no piezas sueltas)
+[
+ ["Pico de madera",{icon:"⛏️",cat:"Herramienta",r:1,val:14,slot:"pick",gather:10,damage:1}],
+ ["Pico de chatarra",{icon:"⛏️",cat:"Herramienta",r:1,val:18,slot:"pick",gather:15,damage:2}],
+ ["Pico de piedra",{icon:"⛏️",cat:"Herramienta",r:1,val:16,slot:"pick",gather:12,damage:2}],
+ ["Pico de hierro",{icon:"⛏️",cat:"Herramienta",r:2,val:40,slot:"pick",gather:30,damage:5}],
+ ["Pico de cobre",{icon:"⛏️",cat:"Herramienta",r:2,val:36,slot:"pick",gather:28,damage:4}],
+ ["Pico de titanio",{icon:"⛏️",cat:"Herramienta",r:3,val:70,slot:"pick",gather:42,damage:8}],
+ ["Pico de cobalto",{icon:"⛏️",cat:"Herramienta",r:3,val:68,slot:"pick",gather:40,damage:7}],
+ ["Pico de obsidiana",{icon:"⛏️",cat:"Herramienta",r:4,val:110,slot:"pick",gather:55,damage:12}],
+ ["Pico de tungsteno",{icon:"⛏️",cat:"Herramienta",r:4,val:120,slot:"pick",gather:58,damage:13}],
+ ["Pico de níquel",{icon:"⛏️",cat:"Herramienta",r:3,val:65,slot:"pick",gather:38,damage:7}],
+ ["Pico de cuarzo",{icon:"⛏️",cat:"Herramienta",r:2,val:34,slot:"pick",gather:26,damage:4}],
+ ["Hacha de madera",{icon:"🪓",cat:"Herramienta",r:1,val:14,slot:"axe",gather:12,damage:1}],
+ ["Hacha de chatarra",{icon:"🪓",cat:"Herramienta",r:1,val:22,slot:"axe",gather:22,damage:3}],
+ ["Hacha de hierro",{icon:"🪓",cat:"Herramienta",r:2,val:42,slot:"axe",gather:35,damage:6}],
+ ["Hacha de cobre",{icon:"🪓",cat:"Herramienta",r:2,val:38,slot:"axe",gather:32,damage:5}],
+ ["Hacha de titanio",{icon:"🪓",cat:"Herramienta",r:3,val:75,slot:"axe",gather:45,damage:9}],
+ ["Hacha de obsidiana",{icon:"🪓",cat:"Herramienta",r:4,val:115,slot:"axe",gather:58,damage:14}],
+ ["Hacha de cobalto",{icon:"🪓",cat:"Herramienta",r:3,val:72,slot:"axe",gather:44,damage:8}],
+ ["Hacha de tungsteno",{icon:"🪓",cat:"Herramienta",r:4,val:118,slot:"axe",gather:56,damage:13}],
+ ["Pinzas oxidadas",{icon:"⚕",cat:"Herramienta",r:1,val:16,slot:"tongs",extractBonus:6}],
+ ["Pinzas de hierro",{icon:"⚕",cat:"Herramienta",r:2,val:32,slot:"tongs",extractBonus:12}],
+ ["Pinzas de cobre",{icon:"⚕",cat:"Herramienta",r:2,val:34,slot:"tongs",extractBonus:16}],
+ ["Pinzas de titanio",{icon:"⚕",cat:"Herramienta",r:3,val:55,slot:"tongs",extractBonus:20}],
+ ["Pinzas de cobalto",{icon:"⚕",cat:"Herramienta",r:3,val:58,slot:"tongs",extractBonus:22}],
+ ["Pinzas de precisión",{icon:"⚕",cat:"Herramienta",r:4,val:80,slot:"tongs",extractBonus:25}],
+ ["Cuchillo oxidado",{icon:"🔪",cat:"Arma",r:1,val:12,slot:"weapon",damage:4}],
+ ["Cuchillo de hierro",{icon:"🔪",cat:"Arma",r:2,val:28,slot:"weapon",damage:8}],
+ ["Cuchillo de cobre",{icon:"🔪",cat:"Arma",r:2,val:26,slot:"weapon",damage:7}],
+ ["Cuchillo de obsidiana",{icon:"🔪",cat:"Arma",r:3,val:55,slot:"weapon",damage:15}],
+ ["Bate claveteado",{icon:"🏏",cat:"Arma",r:1,val:15,slot:"weapon",damage:5}],
+ ["Bate de hierro",{icon:"🏏",cat:"Arma",r:2,val:32,slot:"weapon",damage:10}],
+ ["Espada de cobre",{icon:"⚔️",cat:"Arma",r:2,val:35,slot:"weapon",damage:10}],
+ ["Espada de hierro",{icon:"⚔️",cat:"Arma",r:2,val:45,slot:"weapon",damage:14}],
+ ["Espada de titanio",{icon:"⚔️",cat:"Arma",r:3,val:80,slot:"weapon",damage:20}],
+ ["Espada de obsidiana",{icon:"⚔️",cat:"Arma",r:4,val:120,slot:"weapon",damage:28}],
+ ["Espada de cobalto",{icon:"⚔️",cat:"Arma",r:3,val:78,slot:"weapon",damage:19}],
+ ["Espada de tungsteno",{icon:"⚔️",cat:"Arma",r:4,val:130,slot:"weapon",damage:32}],
+ ["Lanza de madera",{icon:"🗡️",cat:"Arma",r:1,val:14,slot:"weapon",damage:6}],
+ ["Lanza de hierro",{icon:"🗡️",cat:"Arma",r:2,val:38,slot:"weapon",damage:12}],
+ ["Lanza de titanio",{icon:"🗡️",cat:"Arma",r:3,val:70,slot:"weapon",damage:18}],
+ ["Maza de hierro",{icon:"🔨",cat:"Arma",r:2,val:42,slot:"weapon",damage:15}],
+ ["Maza de tungsteno",{icon:"🔨",cat:"Arma",r:4,val:125,slot:"weapon",damage:30}],
+ ["Maza de obsidiana",{icon:"🔨",cat:"Arma",r:4,val:118,slot:"weapon",damage:27}],
+ ["Daga de cobalto",{icon:"🗡️",cat:"Arma",r:3,val:65,slot:"weapon",damage:16}],
+ ["Daga de níquel",{icon:"🗡️",cat:"Arma",r:2,val:40,slot:"weapon",damage:11}],
+ ["Arco de ramas",{icon:"🏹",cat:"Arma",r:1,val:18,slot:"weapon",damage:7}],
+ ["Arco reforzado",{icon:"🏹",cat:"Arma",r:2,val:40,slot:"weapon",damage:12}],
+ ["Ballesta de chatarra",{icon:"🏹",cat:"Arma",r:2,val:48,slot:"weapon",damage:14}],
+ ["Ballesta de hierro",{icon:"🏹",cat:"Arma",r:3,val:75,slot:"weapon",damage:20}],
+ ["Látigo de cable",{icon:"〰️",cat:"Arma",r:2,val:30,slot:"weapon",damage:9}],
+ ["Martillo de guerra",{icon:"🔨",cat:"Arma",r:3,val:85,slot:"weapon",damage:22}],
+ ["Traje de chatarra",{icon:"🛡️",cat:"Equipo",r:1,val:28,slot:"armor",defense:8}],
+ ["Traje de madera",{icon:"🧥",cat:"Equipo",r:1,val:22,slot:"armor",defense:6}],
+ ["Armadura de hierro",{icon:"🛡️",cat:"Equipo",r:2,val:55,slot:"armor",defense:14}],
+ ["Armadura de cobre",{icon:"🛡️",cat:"Equipo",r:2,val:50,slot:"armor",defense:12}],
+ ["Armadura de titanio",{icon:"🛡️",cat:"Equipo",r:3,val:95,slot:"armor",defense:22}],
+ ["Armadura de cobalto",{icon:"🛡️",cat:"Equipo",r:3,val:90,slot:"armor",defense:20}],
+ ["Armadura de obsidiana",{icon:"🛡️",cat:"Equipo",r:4,val:130,slot:"armor",defense:28}],
+ ["Armadura de tungsteno",{icon:"🛡️",cat:"Equipo",r:4,val:140,slot:"armor",defense:32}],
+ ["Armadura de níquel",{icon:"🛡️",cat:"Equipo",r:3,val:85,slot:"armor",defense:18}],
+ ["Traje de esporas",{icon:"🧥",cat:"Equipo",r:2,val:45,slot:"armor",defense:11}],
+ ["Traje filtrante",{icon:"🧥",cat:"Equipo",r:2,val:42,slot:"armor",defense:10}],
+ ["Armadura de cuarzo",{icon:"🛡️",cat:"Equipo",r:3,val:80,slot:"armor",defense:17}],
+ ["Armadura de aleación",{icon:"🛡️",cat:"Equipo",r:3,val:88,slot:"armor",defense:19}],
+ ["Traje de neón",{icon:"🧥",cat:"Equipo",r:3,val:92,slot:"armor",defense:16}],
+ ["Traje abisal",{icon:"🧥",cat:"Equipo",r:3,val:86,slot:"armor",defense:15}]
+].forEach(([name,data])=>{
+  const prev=itemDB[name]||{};
+  itemDB[name]={...prev,...data,name,desc:prev.desc||data.desc||`${name}. Fabricado en la mesa de creación.`};
+});
+
+
 [
  ["Pico de madera",{icon:"⛏️",cat:"Herramienta",r:1,val:14,desc:"Pico improvisado de madera y ramas.",slot:"pick",gather:10,damage:1}],
- ["Hacha de madera",{icon:"🪓",cat:"Herramienta",r:1,val:14,desc:"Hacha básica de leñador.",slot:"axe",gather:12,damage:1}],
- ["Hacha de chatarra",{icon:"🪓",cat:"Herramienta",r:1,val:22,desc:"Hacha con filo de chatarra.",slot:"axe",gather:22,damage:3}]
-].forEach(([n,d])=>{if(!itemDB[n]){itemDB[n]=d;generatedItems.push(n)}});
-// Asegurar pinzas y picos base
-if(!itemDB["Pinzas oxidadas"]){itemDB["Pinzas oxidadas"]={icon:"⚕",cat:"Herramienta",r:1,val:16,desc:"Instrumento básico de extracción. +6% éxito.",slot:"tongs",extractBonus:6};generatedItems.push("Pinzas oxidadas")}
-if(!itemDB["Pinzas de campo"]){itemDB["Pinzas de campo"]={icon:"⚕",cat:"Herramienta",r:2,val:32,desc:"Mejor agarre. +12% éxito.",slot:"tongs",extractBonus:12};generatedItems.push("Pinzas de campo")}
-if(!itemDB["Pinzas de precisión"]){itemDB["Pinzas de precisión"]={icon:"⚕",cat:"Herramienta",r:3,val:55,desc:"Microajuste. +20% éxito.",slot:"tongs",extractBonus:20};generatedItems.push("Pinzas de precisión")}
+ ["Pico de chatarra",{icon:"⛏️",cat:"Herramienta",r:1,val:18,desc:"Pico con cabeza de chatarra.",slot:"pick",gather:15,damage:2}],
+ ["Pico de piedra",{icon:"⛏️",cat:"Herramienta",r:1,val:16,desc:"Pico de piedra y resina.",slot:"pick",gather:12,damage:2}],
+ ["Pico de hierro",{icon:"⛏️",cat:"Herramienta",r:2,val:40,desc:"Pico de lingote de hierro.",slot:"pick",gather:30,damage:5}],
+ ["Pico de cobre",{icon:"⛏️",cat:"Herramienta",r:2,val:36,desc:"Pico de lingote de cobre.",slot:"pick",gather:28,damage:4}],
+ ["Pico de titanio",{icon:"⛏️",cat:"Herramienta",r:3,val:70,desc:"Pico de lingote de titanio.",slot:"pick",gather:42,damage:8}],
+ ["Pico de cobalto",{icon:"⛏️",cat:"Herramienta",r:3,val:68,desc:"Pico de lingote de cobalto.",slot:"pick",gather:40,damage:7}],
+ ["Pico de obsidiana",{icon:"⛏️",cat:"Herramienta",r:4,val:110,desc:"Pico de lingote de obsidiana.",slot:"pick",gather:55,damage:12}],
+ ["Pico de tungsteno",{icon:"⛏️",cat:"Herramienta",r:4,val:120,desc:"Pico de lingote de tungsteno.",slot:"pick",gather:58,damage:13}],
+ ["Hacha de madera",{icon:"🪓",cat:"Herramienta",r:1,val:14,desc:"Hacha de leñador.",slot:"axe",gather:12,damage:1}],
+ ["Hacha de chatarra",{icon:"🪓",cat:"Herramienta",r:1,val:22,desc:"Hacha con filo de chatarra.",slot:"axe",gather:22,damage:3}],
+ ["Hacha de hierro",{icon:"🪓",cat:"Herramienta",r:2,val:42,desc:"Hacha de lingote de hierro.",slot:"axe",gather:35,damage:6}],
+ ["Hacha de cobre",{icon:"🪓",cat:"Herramienta",r:2,val:38,desc:"Hacha de lingote de cobre.",slot:"axe",gather:32,damage:5}],
+ ["Hacha de titanio",{icon:"🪓",cat:"Herramienta",r:3,val:75,desc:"Hacha de lingote de titanio.",slot:"axe",gather:45,damage:9}],
+ ["Hacha de obsidiana",{icon:"🪓",cat:"Herramienta",r:4,val:115,desc:"Hacha de lingote de obsidiana.",slot:"axe",gather:58,damage:14}],
+ ["Hacha de cobalto",{icon:"🪓",cat:"Herramienta",r:3,val:72,desc:"Hacha de lingote de cobalto.",slot:"axe",gather:44,damage:8}],
+ ["Pinzas oxidadas",{icon:"⚕",cat:"Herramienta",r:1,val:16,desc:"Pinzas de chatarra. +6% extracción.",slot:"tongs",extractBonus:6}],
+ ["Pinzas de hierro",{icon:"⚕",cat:"Herramienta",r:2,val:32,desc:"Pinzas de lingote de hierro. +12% extracción.",slot:"tongs",extractBonus:12}],
+ ["Pinzas de cobre",{icon:"⚕",cat:"Herramienta",r:2,val:34,desc:"Pinzas de lingote de cobre. +16% extracción.",slot:"tongs",extractBonus:16}],
+ ["Pinzas de titanio",{icon:"⚕",cat:"Herramienta",r:3,val:55,desc:"Pinzas de lingote de titanio. +20% extracción.",slot:"tongs",extractBonus:20}],
+ ["Pinzas de precisión",{icon:"⚕",cat:"Herramienta",r:4,val:80,desc:"Pinzas de titanio y cristal. +25% extracción.",slot:"tongs",extractBonus:25}],
+ ["Cuchillo oxidado",{icon:"🔪",cat:"Arma",r:1,val:12,desc:"Hoja de chatarra.",slot:"weapon",damage:4}],
+ ["Cuchillo de hierro",{icon:"🔪",cat:"Arma",r:2,val:28,desc:"Hoja de lingote de hierro.",slot:"weapon",damage:8}],
+ ["Bate claveteado",{icon:"🏏",cat:"Arma",r:1,val:15,desc:"Madera con tornillos.",slot:"weapon",damage:5}],
+ ["Espada de cobre",{icon:"⚔️",cat:"Arma",r:2,val:35,desc:"Hoja de lingote de cobre.",slot:"weapon",damage:10}],
+ ["Espada de hierro",{icon:"⚔️",cat:"Arma",r:2,val:45,desc:"Hoja de lingote de hierro.",slot:"weapon",damage:14}],
+ ["Espada de titanio",{icon:"⚔️",cat:"Arma",r:3,val:80,desc:"Hoja de lingote de titanio.",slot:"weapon",damage:20}],
+ ["Espada de obsidiana",{icon:"⚔️",cat:"Arma",r:4,val:120,desc:"Filo de lingote de obsidiana.",slot:"weapon",damage:28}],
+ ["Lanza de madera",{icon:"🗡️",cat:"Arma",r:1,val:14,desc:"Asta de madera y punta de piedra.",slot:"weapon",damage:6}],
+ ["Lanza de hierro",{icon:"🗡️",cat:"Arma",r:2,val:38,desc:"Punta de lingote de hierro.",slot:"weapon",damage:12}],
+ ["Maza de hierro",{icon:"🔨",cat:"Arma",r:2,val:42,desc:"Cabeza de lingote de hierro.",slot:"weapon",damage:15}],
+ ["Maza de tungsteno",{icon:"🔨",cat:"Arma",r:4,val:125,desc:"Cabeza de lingote de tungsteno.",slot:"weapon",damage:30}],
+ ["Daga de cobalto",{icon:"🗡️",cat:"Arma",r:3,val:65,desc:"Hoja de lingote de cobalto.",slot:"weapon",damage:16}],
+ ["Arco de ramas",{icon:"🏹",cat:"Arma",r:1,val:18,desc:"Arco de ramas y fibra.",slot:"weapon",damage:7}],
+ ["Ballesta de chatarra",{icon:"🏹",cat:"Arma",r:2,val:48,desc:"Ballesta de chatarra y cable.",slot:"weapon",damage:14}],
+ ["Armadura de chatarra",{icon:"🛡️",cat:"Equipo",r:1,val:25,desc:"Placas de chatarra.",slot:"armor",defense:6}],
+ ["Armadura de hierro",{icon:"🛡️",cat:"Equipo",r:2,val:55,desc:"Placas de lingote de hierro.",slot:"armor",defense:14}],
+ ["Armadura de titanio",{icon:"🛡️",cat:"Equipo",r:3,val:95,desc:"Placas de lingote de titanio.",slot:"armor",defense:22}],
+ ["Casco de chatarra",{icon:"🪖",cat:"Equipo",r:1,val:18,desc:"Casco de chatarra.",slot:"armor",defense:4}],
+ ["Casco de hierro",{icon:"🪖",cat:"Equipo",r:2,val:35,desc:"Casco de lingote de hierro.",slot:"armor",defense:9}],
+ ["Casco de cuarzo",{icon:"🪖",cat:"Equipo",r:2,val:40,desc:"Casco con visera de cristal.",slot:"armor",defense:10}],
+ ["Botas de chatarra",{icon:"🥾",cat:"Equipo",r:1,val:16,desc:"Botas reforzadas con chatarra.",slot:"armor",defense:3}],
+ ["Botas de hierro",{icon:"🥾",cat:"Equipo",r:2,val:32,desc:"Botas con lingote de hierro.",slot:"armor",defense:7}],
+ ["Guantes de chatarra",{icon:"🧤",cat:"Equipo",r:1,val:14,desc:"Guantes con placas de chatarra.",slot:"armor",defense:3}],
+ ["Guantes de hierro",{icon:"🧤",cat:"Equipo",r:2,val:28,desc:"Guantes con lingote de hierro.",slot:"armor",defense:6}],
+ ["Escudo de madera",{icon:"🛡️",cat:"Equipo",r:1,val:20,desc:"Escudo de tablas de madera.",slot:"armor",defense:5}],
+ ["Escudo de hierro",{icon:"🛡️",cat:"Equipo",r:2,val:50,desc:"Escudo de lingote de hierro.",slot:"armor",defense:12}],
+ ["Escudo de titanio",{icon:"🛡️",cat:"Equipo",r:3,val:90,desc:"Escudo de lingote de titanio.",slot:"armor",defense:20}],
+ ["Máscara filtrante",{icon:"😷",cat:"Equipo",r:2,val:30,desc:"Máscara con filtro de fibra y carbón.",slot:"armor",defense:4}],
+ ["Traje de esporas",{icon:"🧥",cat:"Equipo",r:2,val:45,desc:"Traje con hojas mutadas y resina.",slot:"armor",defense:11}],
+ ["Amuleto de esporas",{icon:"🔮",cat:"Equipo",r:3,val:60,desc:"Espora viva en resina.",slot:"armor",defense:5}],
+ ["Cinturón de chatarra",{icon:"🪢",cat:"Equipo",r:1,val:15,desc:"Cinturón de chatarra y fibra.",slot:"armor",defense:2}],
+ ["Placa dorsal de obsidiana",{icon:"🛡️",cat:"Equipo",r:4,val:100,desc:"Placa de lingote de obsidiana.",slot:"armor",defense:18}]
+].forEach(([name,data])=>{if(!itemDB[name])itemDB[name]=data;else Object.assign(itemDB[name],data)});
 
-
-
-// Recetas de materiales base y componentes procesados.
-[
- {id:"mat_fiber",name:"Fibra vegetal",icon:"🧵",desc:"Extrae y retuerce fibras útiles de hojas y ramas.",cost:{"Hojas":3,"Ramas":1},out:"Fibra vegetal",category:"Material"},
- {id:"mat_rope",name:"Cuerda de fibra",icon:"➰",desc:"Trenza fibras vegetales hasta formar un cordaje resistente.",cost:{"Fibra vegetal":3},out:"Cuerda de fibra",category:"Material"},
- {id:"mat_board",name:"Tabla reforzada",icon:"🪵",desc:"Corta y refuerza madera para fabricar estructuras y mangos.",cost:{"Madera":3,"Chatarra":1},out:"Tabla reforzada",category:"Material"},
- {id:"mat_brick",name:"Ladrillo de piedra",icon:"🧱",desc:"Compacta piedra triturada en un bloque uniforme.",cost:{"Piedra":4},out:"Ladrillo de piedra",category:"Material"},
- {id:"mat_glass",name:"Vidrio reciclado",icon:"🔹",desc:"Funde fragmentos de cristal para reutilizarlos en componentes.",cost:{"Cristal agrietado":2,"Carbón":1},out:"Vidrio reciclado",category:"Material"},
- {id:"mat_cable",name:"Cable trenzado",icon:"〰️",desc:"Une cable conductor y fibra para mejorar su resistencia.",cost:{"Cable de cobre":2,"Fibra vegetal":1},out:"Cable trenzado",category:"Material"},
- {id:"mat_plate",name:"Placa de aleación",icon:"⚙️",desc:"Prensa chatarra con metal refinado para obtener una placa industrial.",cost:{"Chatarra":3,"Lingote de hierro":1},out:"Placa de aleación",category:"Material"},
- {id:"mat_coal",name:"Polvo de carbón",icon:"⚫",desc:"Muele carbón para preparar mezclas y reactivos industriales.",cost:{"Carbón":2},out:"Polvo de carbón",category:"Material"},
- {id:"mat_compound",name:"Compuesto aislante",icon:"🧪",desc:"Combina resina y fibras para aislar calor y electricidad.",cost:{"Resina":2,"Fibra vegetal":2},out:"Compuesto aislante",category:"Material"},
- {id:"mat_crystal",name:"Cristal pulido",icon:"💎",desc:"Pule cristal bruto para fabricar lentes y piezas de precisión.",cost:{"Cristal agrietado":2,"Piedra":1},out:"Cristal pulido",category:"Material"},
- {id:"mat_core",name:"Núcleo de batería",icon:"🔋",desc:"Recupera las celdas útiles de una batería vieja.",cost:{"Batería vieja":1,"Cable de cobre":2},out:"Núcleo de batería",category:"Material"},
- {id:"mat_alloy",name:"Aleación ligera",icon:"🪙",desc:"Combina metal refinado y componentes reciclados en una mezcla ligera.",cost:{"Lingote de aluminio":2,"Chatarra":1},out:"Aleación ligera",category:"Material"}
-].forEach(r=>recipes.push(r));
-
-// Gran catálogo de recetas de materiales: 96 componentes nuevos, con costes coherentes
-// con sus familias y materias primas disponibles en exploración o en el horno.
-const materialRecipeFamilies = [
- {key:"bio",items:[
-  ["Cordón de corteza","🧵","Madera","Ramas","Se extraen tiras flexibles de corteza y se trenzan."],
-  ["Panel de corteza prensada","▤","Madera","Resina","Corteza compactada y sellada con resina."],
-  ["Pasta de celulosa","🟩","Hojas","Ramas","Pulpa vegetal para papel técnico y filtros."],
-  ["Tela de fibra silvestre","🧶","Fibra vegetal","Hojas","Fibras vegetales tejidas en una tela basta."],
-  ["Fieltro de esporas","🍄","Hongo negro","Espora viva","Biomasa fúngica prensada en una lámina aislante."],
-  ["Sellador de resina","🟤","Resina","Carbón","Resina estabilizada para sellar juntas."],
-  ["Bioplástico de hojas","🌱","Hoja mutada","Resina","Polímero flexible de origen vegetal mutado."],
-  ["Compost reactivo","♻️","Hojas","Hongo negro","Materia orgánica procesada para cultivos y reactivos."]]},
- {key:"stone",items:[
-  ["Grava clasificada","🪨","Piedra","Piedra","Piedra triturada y cribada por tamaño."],
-  ["Bloque de basalto","⬛","Mena de basalto","Carbón","Basalto compactado para estructuras resistentes."],
-  ["Polvo de cuarzo","✨","Mena de cuarzo","Piedra","Cuarzo molido para abrasivos y circuitos."],
-  ["Cerámica técnica","🧱","Piedra","Carbón","Mezcla mineral cocida para piezas resistentes al calor."],
-  ["Mortero mineral","⚒️","Piedra","Resina","Aglutinante mineral para reparar estructuras."],
-  ["Lámina de pizarra","🪨","Piedra","Chatarra","Piedra cortada en placas finas."],
-  ["Abrasivo de cantera","🔸","Piedra","Mena de cuarzo","Granulado duro para pulir piezas metálicas."],
-  ["Agregado refractario","🌋","Roca volcánica","Piedra","Mezcla mineral preparada para soportar altas temperaturas."]]},
- {key:"metal",items:[
-  ["Remaches de hierro","📌","Lingote de hierro","Chatarra","Pequeños remaches estampados para ensamblajes."],
-  ["Alambre de hierro","〰️","Lingote de hierro","Carbón","Metal trefilado para ataduras y mecanismos."],
-  ["Malla de cobre","🕸️","Lingote de cobre","Cable de cobre","Trama conductora para blindaje electromagnético."],
-  ["Lámina de cobre","🟠","Lingote de cobre","Chatarra","Cobre laminado para placas y contactos."],
-  ["Polvo de oro","🟡","Lingote de oro","Piedra","Oro molido para contactos de alta precisión."],
-  ["Pasta de soldadura","🧪","Lingote de estaño","Cable de cobre","Pasta metálica para unir circuitos."],
-  ["Aleación de níquel","⚙️","Lingote de níquel","Lingote de hierro","Aleación resistente al desgaste y a la corrosión."],
-  ["Placa de titanio","🛡️","Lingote de titanio","Chatarra","Titanio laminado para equipo ligero y resistente."]]},
- {key:"crystal",items:[
-  ["Lente de cristal bruto","🔎","Cristal agrietado","Piedra","Cristal tallado para ampliar señales y detalles."],
-  ["Prisma refractor","🔷","Cristal pulido","Cable de cobre","Prisma que separa y redirige haces de luz."],
-  ["Polvo de geoda","💠","Geoda","Piedra","Fragmentos cristalinos molidos para mezclas técnicas."],
-  ["Mosaico de cuarzo","💎","Mena de cuarzo","Resina","Piezas de cuarzo fijadas en una superficie estable."],
-  ["Fibra óptica bruta","〰️","Vidrio reciclado","Cable de cobre","Filamento conductor de señales luminosas."],
-  ["Cristal templado","🪟","Cristal pulido","Carbón","Cristal tratado para resistir impactos moderados."],
-  ["Resonador de geoda","🔔","Geoda","Cable de cobre","Cavidad cristalina que vibra con frecuencias constantes."],
-  ["Polvo fotónico","✨","Cristal de hielo azul","Cristal agrietado","Polvo luminoso recuperado de cristales energéticos."]]},
- {key:"toxic",items:[
-  ["Gel neutralizante","🧪","Moco tóxico","Carbón","Gel tratado para estabilizar residuos corrosivos."],
-  ["Filtro de esporas","😷","Hongo negro","Fibra vegetal","Malla vegetal que retiene partículas biológicas."],
-  ["Extracto de hoja mutada","🌿","Hoja mutada","Resina","Extracto concentrado de flora alterada."],
-  ["Membrana biológica","🫧","Espora viva","Moco tóxico","Película orgánica flexible y reactiva."],
-  ["Polvo de quitina","🦴","Colmillo","Piedra","Fragmentos orgánicos triturados para compuestos duros."],
-  ["Catalizador enzimático","🧬","Espora viva","Hongo negro","Cultivo estabilizado para acelerar reacciones orgánicas."],
-  ["Resina antiséptica","🟢","Resina","Hoja mutada","Sellador tratado para descontaminar superficies."],
-  ["Compuesto de quitina","🛡️","Colmillo","Resina","Biocompuesto rígido para placas y refuerzos."]]},
- {key:"electronics",items:[
-  ["Contacto electrónico","🔌","Placa electrónica","Chatarra","Contacto recuperado para reparar dispositivos."],
-  ["Circuito impreso simple","🧩","Placa electrónica","Cable de cobre","Pistas conductoras prensadas sobre una base aislante."],
-  ["Bobina de cobre","🌀","Cable de cobre","Tornillo oxidado","Bobina para motores, sensores y electroimanes."],
-  ["Celda de energía reparada","🔋","Batería vieja","Cable de cobre","Celda reacondicionada con capacidad limitada."],
-  ["Módulo de sensores","📡","Placa electrónica","Cristal pulido","Conjunto de sensores ópticos y electrónicos."],
-  ["Disipador metálico","❄️","Chatarra","Lingote de aluminio","Pieza que evacúa el calor de equipos electrónicos."],
-  ["Conector blindado","🔗","Cable trenzado","Placa de aleación","Conector reforzado para entornos hostiles."],
-  ["Microcontrolador recuperado","💾","Placa electrónica","Batería vieja","Unidad lógica rescatada de maquinaria abandonada."]]},
- {key:"volcanic",items:[
-  ["Vidrio volcánico","🌋","Roca volcánica","Carbón","Roca fundida y enfriada en fragmentos cortantes."],
-  ["Polvo de azufre","🟡","Mena de azufre","Piedra","Azufre molido para procesos químicos industriales."],
-  ["Cerámica de magma","🔥","Núcleo de magma","Piedra","Cerámica sinterizada con calor extremo."],
-  ["Escoria metálica","⚒️","Mena de tungsteno","Carbón","Residuo separado durante el tratamiento mineral."],
-  ["Malla térmica","♨️","Lingote de tungsteno","Cable de cobre","Trama metálica diseñada para distribuir calor."],
-  ["Aislante de ceniza","🌫️","Carbón","Roca volcánica","Mezcla porosa que reduce la transferencia térmica."],
-  ["Núcleo refractario","🔴","Núcleo de magma","Lingote de hierro","Núcleo para hornos y herramientas de alta temperatura."],
-  ["Compuesto de obsidiana","⬛","Mena de obsidiana","Resina","Fragmentos volcánicos unidos en un material duro."]]},
- {key:"ice",items:[
-  ["Escama de permafrost","❄️","Fragmento de permafrost","Piedra","Muestra helada preservada para reactivos criogénicos."],
-  ["Gel criogénico","🧊","Cristal de hielo azul","Moco tóxico","Gel frío estabilizado para contenedores térmicos."],
-  ["Placa de hielo mineral","🔹","Cristal de hielo azul","Carbón","Cristal helado compactado en una placa."],
-  ["Aislante criogénico","🥶","Fragmento de permafrost","Fibra vegetal","Revestimiento que frena el intercambio de calor."],
-  ["Prisma glacial","💠","Cristal de hielo azul","Cristal pulido","Prisma transparente tallado en hielo mineral."],
-  ["Polvo de escarcha","❄️","Fragmento de permafrost","Piedra","Partículas heladas para mezclas de refrigeración."],
-  ["Cápsula térmica","🧊","Batería criogénica","Placa de aleación","Contenedor que conserva temperaturas extremas."],
-  ["Compuesto anticongelante","🧪","Gel criogénico","Resina","Mezcla que evita la congelación de conductos."]]},
- {key:"ocean",items:[
-  ["Fibra de alga","🌊","Alga conductora","Fibra vegetal","Fibra flexible extraída de algas abisales."],
-  ["Perla triturada","⚪","Perla abisal","Piedra","Polvo mineral-orgánico para revestimientos."],
-  ["Gel bioluminiscente estabilizado","🟢","Gel bioluminiscente","Resina","Gel luminoso encapsulado para balizas."],
-  ["Placa de concha","🐚","Concha blindada","Resina","Concha cortada y sellada como protección ligera."],
-  ["Conductor salino","〰️","Alga conductora","Cable de cobre","Material conductor para sensores húmedos."],
-  ["Membrana impermeable","💧","Gel bioluminiscente","Fibra vegetal","Capa flexible resistente al agua."],
-  ["Carbonato abisal","🪸","Concha blindada","Piedra","Mineral biogénico para cerámica y compuestos."],
-  ["Catalizador de perla","✨","Perla abisal","Cristal pulido","Polvo perlado para procesos de precisión."]]},
- {key:"dimensional",items:[
-  ["Polvo de fase estabilizado","🌀","Polvo cuántico","Carbón","Partículas de fase mezcladas con un soporte inerte."],
-  ["Lámina de distorsión","🪞","Fragmento dimensional","Placa electrónica","Lámina que altera ligeramente la lectura de sensores."],
-  ["Núcleo de fase sellado","🔮","Núcleo de fase","Resina","Núcleo dimensional encapsulado para evitar fugas."],
-  ["Cristal de paradoja molido","💠","Cristal de paradoja","Piedra","Fragmentos de cristal que parecen cambiar de posición."],
-  ["Conductor cuántico","⚡","Polvo cuántico","Cable de cobre","Conductor experimental para impulsos de fase."],
-  ["Malla de contención","🕸️","Fragmento dimensional","Cable trenzado","Malla para contener pequeñas anomalías materiales."],
-  ["Compuesto de iridio","🪙","Lingote de iridio","Placa electrónica","Material estable para dispositivos de alta energía."],
-  ["Catalizador de paradoja","🧬","Cristal de paradoja","Núcleo energético","Catalizador raro para procesos anómalos controlados."]]},
- {key:"recycling",items:[
-  ["Fragmentos metálicos clasificados","🔩","Chatarra","Tornillo oxidado","Chatarra separada por tamaño y composición."],
-  ["Pasta de reparación","🧰","Chatarra","Resina","Pasta de emergencia para reparar carcasas y juntas."],
-  ["Tornillería reutilizable","🔧","Tornillo oxidado","Chatarra","Tornillos limpiados y ordenados por medida."],
-  ["Módulo de cableado","〰️","Cable de cobre","Cable trenzado","Haz de conductores preparado para maquinaria."],
-  ["Plástico recuperado","♻️","Batería vieja","Resina","Carcasa polimérica separada de componentes usados."],
-  ["Pieza mecánica calibrada","⚙️","Tornillo oxidado","Placa de aleación","Pieza mecánica revisada para mecanismos de precisión."],
-  ["Lámina de blindaje reciclado","🛡️","Chatarra","Lingote de hierro","Lámina defensiva fabricada a partir de metal recuperado."],
-  ["Compuesto de aislamiento eléctrico","🔌","Cable de cobre","Compuesto aislante","Aislamiento mejorado para cableado industrial."]]},
- {key:"advanced",items:[
-  ["Aleación de cobalto","🪙","Lingote de cobalto","Lingote de hierro","Aleación resistente para herramientas y blindajes."],
-  ["Aleación de tungsteno","⚙️","Lingote de tungsteno","Lingote de níquel","Mezcla de alta dureza para piezas industriales."],
-  ["Aleación de paladio","✨","Lingote de paladio","Lingote de cobre","Aleación conductora para contactos delicados."],
-  ["Lámina de aluminio","🔲","Lingote de aluminio","Chatarra","Aluminio laminado para carcasas ligeras."],
-  ["Polvo de litio","🔋","Mena de litio","Carbón","Mineral procesado para celdas de energía."],
-  ["Pasta conductora de paladio","⚡","Lingote de paladio","Cable de cobre","Pasta metálica para conexiones de baja resistencia."],
-  ["Cerámica de circonio","🧱","Lingote de circonio","Piedra","Cerámica técnica para calor y desgaste."],
-  ["Compuesto de bismuto","🧪","Lingote de bismuto","Resina","Material de baja fusión para componentes especializados."]]}
-];
 let materialRecipeCounter=0;
 materialRecipeFamilies.forEach((family,fi)=>family.items.forEach(([out,icon,a,b,desc],j)=>{
  const rarity=Math.min(5,1+Math.floor(fi/3)+(j%2));
@@ -485,15 +540,7 @@ rebuildRecipeCosts();
 // REWORK mesa: recortar recetas auto sin sentido. Conservar herramientas (Pico/Hacha/Pinzas),
 // armas/equipo básicos y un número limitado de materiales procesados.
 (function pruneRecipes(){
-  const keepIds=new Set(recipes.filter(r=>r.category==="Herramienta"||r.category==="Arma"||r.category==="Equipo"||r.category==="Consumible"||(r.id&&String(r.id).startsWith("lore_"))||(r.id&&String(r.id).startsWith("mat_")&&!String(r.id).startsWith("mat_extra_")&&!String(r.id).startsWith("mat_bulk_"))).map(r=>r.id));
-  // Mantener también un máximo de 12 mat_extra_ / mat_bulk_ para no vaciar materiales
-  let extra=0;
-  const kept=[];
-  for(const r of recipes){
-    if(keepIds.has(r.id)){kept.push(r);continue}
-    if((String(r.id).startsWith("mat_extra_")||String(r.id).startsWith("mat_bulk_"))&&extra<12){kept.push(r);extra++;continue}
-    if(r.category==="Material"&&r.cost&&Object.keys(r.cost).length&&extra<12&&!String(r.id).startsWith("mat_extra_")&&!String(r.id).startsWith("mat_bulk_")){kept.push(r);extra++;continue}
-  }
+  const kept=recipes.filter(r=>["Herramienta","Arma","Equipo","Material"].includes(r.category));
   recipes.length=0;recipes.push(...kept);
 })();
 
@@ -1595,40 +1642,25 @@ function renderUpgradeMachine(){
   }
   if(btn)btn.disabled=upgradeSpinning||!upgradeInputId||!upgradeTargetName||pct<=0||!!activeTask||!!currentEnemy;
 }
+function openUpgradeTargetPicker(){
+  if(upgradeSpinning)return;
+  pickerMode="upgradeTarget";pickerSlot=null;pickerFilter="Todos";pickerPage=1;
+  if($("pickerSearch"))$("pickerSearch").value="";
+  if($("pickerTitle"))$("pickerTitle").textContent="▤ REGISTRO BASE · OBJETIVO";
+  if($("pickerDescription"))$("pickerDescription").textContent="Solo objetos base descubiertos (sin síntesis ni criaturas). Elige lo que quieres obtener.";
+  if($("pickerFilterMenu"))$("pickerFilterMenu").classList.add("hidden");
+  $("inventoryPicker").classList.remove("hidden");
+  renderPicker();
+}
 function openUpgradeInputPicker(){
   if(upgradeSpinning)return;
   pickerMode="upgradeInput";pickerSlot=null;pickerFilter="Todos";pickerPage=1;
-  $("inventoryPicker").classList.remove("hidden");renderPicker();
-}
-function openUpgradeTargetPicker(){
-  if(upgradeSpinning)return;
-  // Lista de registro base (no síntesis)
-  const names=[...new Set([...(state.seen||[]),...Object.keys(state.discovered||{}),...Object.keys(itemDB)])]
-    .filter(n=>{const d=info(n);return d&&d.cat&&!["Criatura"].includes(d.cat)===false?true:true})
-    .filter(n=>!isSynthesisItem({name:n,...info(n)}))
-    .filter(n=>["Material","Lingote","Herramienta","Arma","Equipo","Consumible","Otro","Anomalía"].includes(info(n).cat||""));
-  // Reuse picker in a special mode
-  pickerMode="upgradeTarget";pickerSlot=null;pickerFilter="Todos";pickerPage=1;
+  if($("pickerSearch"))$("pickerSearch").value="";
+  if($("pickerTitle"))$("pickerTitle").textContent="▤ INVENTARIO · ENTRADA";
+  if($("pickerDescription"))$("pickerDescription").textContent="Elige un objeto base de tu inventario (no síntesis) para entregar.";
+  if($("pickerFilterMenu"))$("pickerFilterMenu").classList.add("hidden");
   $("inventoryPicker").classList.remove("hidden");
-  // Custom render for target: from registry not inventory
-  const host=$("pickerGrid");
-  if(!host)return;
-  const search=($("pickerSearch")?.value||"").trim().toLowerCase();
-  let list=names.filter(n=>n.toLowerCase().includes(search));
-  if(pickerFilter&&pickerFilter!=="Todos")list=list.filter(n=>(info(n).cat||"")===(pickerFilter==="Otros"?"Otro":pickerFilter));
-  list.sort((a,b)=>(info(a).r||1)-(info(b).r||1)||a.localeCompare(b,"es"));
-  const pageSize=12;
-  const pages=Math.max(1,Math.ceil(list.length/pageSize));
-  pickerPage=Math.min(Math.max(1,pickerPage),pages);
-  const shown=list.slice((pickerPage-1)*pageSize,pickerPage*pageSize);
-  host.innerHTML=shown.length?shown.map(n=>`<button class="picker-item" data-upgrade-target="${escapeHtml(n)}"><span class="item-icon">${itemIconMarkup(n,info(n).icon)}</span><span style="min-width:0"><b title="${escapeHtml(n)}">${escapeHtml(n)}</b><small>N${info(n).r||1} · ${escapeHtml(info(n).cat||"?")}</small></span></button>`).join(""):'<div class="empty" style="grid-column:1/-1">No hay objetos base en el registro.</div>';
-  if($("pickerPageInfo"))$("pickerPageInfo").textContent=`Página ${pickerPage} / ${pages}`;
-  if($("pickerPrev"))$("pickerPrev").disabled=pickerPage<=1;
-  if($("pickerNext"))$("pickerNext").disabled=pickerPage>=pages;
-  host.querySelectorAll("[data-upgrade-target]").forEach(b=>b.onclick=()=>{
-    upgradeTargetName=b.dataset.upgradeTarget;upgradeTargetQty=1;
-    $("inventoryPicker").classList.add("hidden");renderUpgradeMachine();
-  });
+  renderPicker();
 }
 function spinUpgradeRoulette(){
   if(upgradeSpinning||!upgradeInputId||!upgradeTargetName)return;
@@ -1863,13 +1895,68 @@ function fight(){
 }
 function renderFusionSelects(){["A","B"].forEach(k=>{const id=state.fusionSlots?.[k];const x=state.inventory.find(x=>x.id===id);const slot=$("slot"+k);slot.classList.toggle("filled",!!x);slot.querySelector(".slot-icon").innerHTML=x?itemIconMarkup(x.name,x.icon||info(x.name).icon):"＋";$("fusion"+k+"Label").textContent=x?inventoryDisplayName(x):`Objeto ${k}`;$("chooseFusion"+k).textContent=x?"Cambiar objeto":"Elegir del inventario";const clearBtn=$("clearFusion"+k);if(clearBtn){clearBtn.classList.toggle("hidden",!x);clearBtn.disabled=!!activeTask||!!state.pendingFusion}});$("fuseBtn").disabled=!!activeTask||!!state.pendingFusion||!state.inventory.some(x=>x.id===state.fusionSlots?.A)||!state.inventory.some(x=>x.id===state.fusionSlots?.B);$("chooseFusionA").disabled=!!state.pendingFusion||!!activeTask;$("chooseFusionB").disabled=!!state.pendingFusion||!!activeTask}
 function openPicker(mode,slot=null){pickerMode=mode;pickerSlot=slot;pickerFilter="Todos";pickerPage=1;$("pickerSearch").value="";$("pickerTitle").textContent=mode==="fusion"?`▤ INVENTARIO · OBJETO ${slot}`:mode==="spawnAnomaly"?"▤ INVENTARIO · ANOMALÍA":mode==="spawn"?`▤ INVENTARIO · ÓRGANO ${Number(slot)+1}`:mode==="extract"?"▤ INVENTARIO · EXTRACCIÓN":mode==="sell"?"▤ INVENTARIO · VENDER":"▤ INVENTARIO · EQUIPAR";$("pickerDescription").textContent=mode==="fusion"?"Selecciona un objeto propio del juego para la cámara de fusión.":mode==="spawnAnomaly"?"Selecciona una anomalía del inventario (opcional).":mode==="spawn"?"Selecciona un órgano del inventario.":mode==="extract"?"Selecciona una criatura orgánica. Las unidades robóticas no sirven.":mode==="sell"?"Selecciona el objeto que quieres vender.":"Selecciona una pieza compatible con el espacio de equipo.";$("pickerFilterMenu").classList.toggle("hidden",mode!=="fusion");$("pickerFilterLabel").textContent=pickerFilter;$("inventoryPicker").classList.remove("hidden");renderPicker()}
-function renderPicker(){let list=state.inventory.filter(x=>x.qty>0&&x.name.toLowerCase().includes($("pickerSearch").value.toLowerCase()));if(pickerMode==="fusion"&&pickerFilter!=="Todos")list=list.filter(x=>pickerFilter==="Síntesis"?isSynthesisItem(x):pickerFilter==="Lingote"?(x.cat==="Lingote"||x.name.startsWith("Lingote de ")):pickerFilter==="Otro"?!( ["Material","Lingote","Herramienta","Arma","Equipo","Consumible","Criatura","Órgano","Anomalía"].includes(x.cat)):x.cat===pickerFilter);if(pickerMode==="extract")list=list.filter(x=>x.cat==="Criatura"&&!isRoboticCreature(x));
-if(pickerMode==="spawn")list=list.filter(x=>x.cat==="Órgano"&&!Object.values(spawnSelected||{}).includes(x.id));
-if(pickerMode==="spawnAnomaly")list=list.filter(x=>x.cat==="Anomalía");
-if(pickerMode==="equip")list=list.filter(x=>pickerSlot==="anomaly"?x.cat==="Anomalía":pickerSlot==="companion"?x.cat==="Criatura":info(x.name).slot===pickerSlot||x.slot===pickerSlot);const pickerPageSize=6;const pages=Math.max(1,Math.ceil(list.length/pickerPageSize));pickerPage=Math.min(Math.max(1,pickerPage),pages);const shown=list.slice((pickerPage-1)*pickerPageSize,pickerPage*pickerPageSize);$("pickerGrid").innerHTML=shown.length?shown.map(x=>`<button class="picker-item" data-pick-id="${x.id}"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><span style="min-width:0"><b title="${escapeHtml(x.name)}">${escapeHtml(inventoryDisplayName(x))}</b><small>N${x.r} · ${escapeHtml(x.cat)} · ×${x.qty}</small></span></button>`).join(""):'<div class="empty" style="grid-column:1/-1">No hay objetos disponibles en esta categoría.</div>';$ ("pickerPageInfo").textContent=`Página ${pickerPage} / ${pages}`;$("pickerPrev").disabled=pickerPage<=1;$("pickerNext").disabled=pickerPage>=pages;document.querySelectorAll("[data-pick-id]").forEach(b=>b.onclick=()=>{const x=state.inventory.find(i=>i.id===b.dataset.pickId);if(!x)return;if(pickerMode==="fusion"){state.fusionSlots=state.fusionSlots||{A:null,B:null};state.fusionSlots[pickerSlot]=x.id;renderFusionSelects()}else if(pickerMode==="extract"){extractCreatureId=x.id;extractSelected={};extractOrgansPage=1;renderExtractTable()}else if(pickerMode==="spawn"){spawnSelected[pickerSlot]=x.id;renderSpawnTable()}else if(pickerMode==="spawnAnomaly"){spawnAnomalyId=x.id;renderSpawnTable()}else if(pickerMode==="upgradeInput"){
+function renderPicker(){
+ const search=(($("pickerSearch")&&$("pickerSearch").value)||"").trim().toLowerCase();
+ // --- Máquina de Mejora: objetivo desde Registro Base ---
+ if(pickerMode==="upgradeTarget"){
+  const names=[...new Set([...(state.seen||[]),...Object.keys(state.discovered||{})])]
+   .filter(n=>{
+     const d=info(n);
+     if(!d||!d.cat)return false;
+     if(isSynthesisItem({name:n,...d}))return false;
+     if(["Criatura","Órgano"].includes(d.cat))return false;
+     return ["Material","Lingote","Herramienta","Arma","Equipo","Consumible","Otro","Anomalía"].includes(d.cat);
+   })
+   .filter(n=>n.toLowerCase().includes(search))
+   .sort((a,b)=>(info(a).r||1)-(info(b).r||1)||a.localeCompare(b,"es"));
+  const pageSize=12;
+  const pages=Math.max(1,Math.ceil(names.length/pageSize));
+  pickerPage=Math.min(Math.max(1,pickerPage),pages);
+  const shown=names.slice((pickerPage-1)*pageSize,pickerPage*pageSize);
+  $("pickerGrid").innerHTML=shown.length?shown.map(n=>`<button type="button" class="picker-item" data-upgrade-target="${escapeHtml(n)}"><span class="item-icon">${itemIconMarkup(n,info(n).icon)}</span><span style="min-width:0"><b title="${escapeHtml(n)}">${escapeHtml(n)}</b><small>N${info(n).r||1} · ${escapeHtml(info(n).cat||"?")}</small></span></button>`).join(""):'<div class="empty" style="grid-column:1/-1">No hay objetos base descubiertos en el registro.</div>';
+  if($("pickerPageInfo"))$("pickerPageInfo").textContent=`Página ${pickerPage} / ${pages}`;
+  if($("pickerPrev")){$("pickerPrev").disabled=pickerPage<=1;$("pickerPrev").onclick=()=>{pickerPage=Math.max(1,pickerPage-1);renderPicker()};}
+  if($("pickerNext")){$("pickerNext").disabled=pickerPage>=pages;$("pickerNext").onclick=()=>{pickerPage++;renderPicker()};}
+  $("pickerGrid").querySelectorAll("[data-upgrade-target]").forEach(b=>b.onclick=()=>{
+    upgradeTargetName=b.dataset.upgradeTarget;upgradeTargetQty=1;
+    $("inventoryPicker").classList.add("hidden");renderUpgradeMachine();sound(500);
+  });
+  return;
+ }
+ // --- Máquina de Mejora: entrada desde inventario (solo base) ---
+ if(pickerMode==="upgradeInput"){
+  let list=state.inventory.filter(x=>x.qty>0&&!isSynthesisItem(x)&&x.name.toLowerCase().includes(search));
+  const pageSize=12;
+  const pages=Math.max(1,Math.ceil(list.length/pageSize));
+  pickerPage=Math.min(Math.max(1,pickerPage),pages);
+  const shown=list.slice((pickerPage-1)*pageSize,pickerPage*pageSize);
+  $("pickerGrid").innerHTML=shown.length?shown.map(x=>`<button type="button" class="picker-item" data-pick-id="${x.id}"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><span style="min-width:0"><b title="${escapeHtml(x.name)}">${escapeHtml(inventoryDisplayName(x))}</b><small>N${x.r||1} · ${escapeHtml(x.cat||"?")} · ×${x.qty}</small></span></button>`).join(""):'<div class="empty" style="grid-column:1/-1">No hay objetos base en el inventario.</div>';
+  if($("pickerPageInfo"))$("pickerPageInfo").textContent=`Página ${pickerPage} / ${pages}`;
+  if($("pickerPrev")){$("pickerPrev").disabled=pickerPage<=1;$("pickerPrev").onclick=()=>{pickerPage=Math.max(1,pickerPage-1);renderPicker()};}
+  if($("pickerNext")){$("pickerNext").disabled=pickerPage>=pages;$("pickerNext").onclick=()=>{pickerPage++;renderPicker()};}
+  $("pickerGrid").querySelectorAll("[data-pick-id]").forEach(b=>b.onclick=()=>{
+    const x=state.inventory.find(i=>i.id===b.dataset.pickId);if(!x)return;
+    if(isSynthesisItem(x)){toast("Solo objetos base (sin síntesis).",true);return}
+    upgradeInputId=x.id;upgradeInputQty=1;$("inventoryPicker").classList.add("hidden");renderUpgradeMachine();save();sound(500);
+  });
+  return;
+ }
+ let list=state.inventory.filter(x=>x.qty>0&&x.name.toLowerCase().includes(search));
+ if(pickerMode==="fusion"&&pickerFilter!=="Todos")list=list.filter(x=>pickerFilter==="Síntesis"?isSynthesisItem(x):pickerFilter==="Lingote"?(x.cat==="Lingote"||x.name.startsWith("Lingote de ")):pickerFilter==="Otro"?!( ["Material","Lingote","Herramienta","Arma","Equipo","Consumible","Criatura","Órgano","Anomalía"].includes(x.cat)):x.cat===pickerFilter);
+ if(pickerMode==="extract")list=list.filter(x=>x.cat==="Criatura"&&!isRoboticCreature(x));
+ if(pickerMode==="spawn")list=list.filter(x=>x.cat==="Órgano"&&!Object.values(spawnSelected||{}).includes(x.id));
+ if(pickerMode==="spawnAnomaly")list=list.filter(x=>x.cat==="Anomalía");
+ if(pickerMode==="equip")list=list.filter(x=>pickerSlot==="anomaly"?x.cat==="Anomalía":pickerSlot==="companion"?x.cat==="Criatura":info(x.name).slot===pickerSlot||x.slot===pickerSlot);
+ const pickerPageSize=6;const pages=Math.max(1,Math.ceil(list.length/pickerPageSize));pickerPage=Math.min(Math.max(1,pickerPage),pages);const shown=list.slice((pickerPage-1)*pickerPageSize,pickerPage*pickerPageSize);
+ $("pickerGrid").innerHTML=shown.length?shown.map(x=>`<button class="picker-item" data-pick-id="${x.id}"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><span style="min-width:0"><b title="${escapeHtml(x.name)}">${escapeHtml(inventoryDisplayName(x))}</b><small>N${x.r} · ${escapeHtml(x.cat)} · ×${x.qty}</small></span></button>`).join(""):'<div class="empty" style="grid-column:1/-1">No hay objetos disponibles en esta categoría.</div>';
+ if($("pickerPageInfo"))$("pickerPageInfo").textContent=`Página ${pickerPage} / ${pages}`;
+ if($("pickerPrev")){$("pickerPrev").disabled=pickerPage<=1;$("pickerPrev").onclick=()=>{pickerPage=Math.max(1,pickerPage-1);renderPicker()};}
+ if($("pickerNext")){$("pickerNext").disabled=pickerPage>=pages;$("pickerNext").onclick=()=>{pickerPage++;renderPicker()};}
+ document.querySelectorAll("[data-pick-id]").forEach(b=>b.onclick=()=>{const x=state.inventory.find(i=>i.id===b.dataset.pickId);if(!x)return;if(pickerMode==="fusion"){state.fusionSlots=state.fusionSlots||{A:null,B:null};state.fusionSlots[pickerSlot]=x.id;renderFusionSelects()}else if(pickerMode==="extract"){extractCreatureId=x.id;extractSelected={};extractOrgansPage=1;renderExtractTable()}else if(pickerMode==="spawn"){spawnSelected[pickerSlot]=x.id;renderSpawnTable()}else if(pickerMode==="spawnAnomaly"){spawnAnomalyId=x.id;renderSpawnTable()}else if(pickerMode==="upgradeInput"){
   if(isSynthesisItem(x)){toast("Solo objetos base (sin síntesis).",true);return}
   upgradeInputId=x.id;upgradeInputQty=1;$("inventoryPicker").classList.add("hidden");renderUpgradeMachine();save();return;
  }else if(pickerMode==="equip"){if(pickerSlot==="companion"&&!x.abilities?.length&&!x.ability){x.abilities=rollCompanionAbilities(x.r||1);x.ability=x.abilities[0];x.desc=`Compañero de campo. Habilidades procedurales: ${x.abilities.map(a=>a.name+" ("+a.desc+")").join(" · ")}.`}state.equipped[pickerSlot]=x.id;log(`Equipo actualizado: ${x.name}.`);renderEquipment();renderStats();renderBonus()}$("inventoryPicker").classList.add("hidden");save();sound(500)})}
+
 function fusionOutcome(a,b){
  const da={...info(a.name),...a},db={...info(b.name),...b},text=(a.name+" "+b.name+" "+da.cat+" "+db.cat).toLowerCase();
  const creature=da.cat==="Criatura"||db.cat==="Criatura"||/zombie|mutante|ghoul|híbrido|infectado|merodeador|aberración|cosechador|dron biológico/.test(text);
