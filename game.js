@@ -186,7 +186,20 @@ function addGenerated(name,data){if(!itemDB[name]){itemDB[name]=data;generatedIt
 ].forEach(([name,icon,cat,r,val,desc])=>addGenerated(name,{icon,cat,r,val,desc,companion:cat==="Criatura",unique:cat==="Criatura"}));
 const mineralRoots=["basalto","cobalto","titanio","níquel","aluminio","estaño","zinc","plomo","wolframio","tungsteno","litio","iridio","platino","paladio","uranio","obsidiana","azufre","cuarzo","jade","ónix","granito","hematita","manganeso","cromo","vanadio","magnesio","circonio","bismuto","antimonio","galena"];
 const mineralQualities=["común","veteada","densa"];
-mineralRoots.forEach((root,i)=>{const proper=root.charAt(0).toUpperCase()+root.slice(1);addGenerated(`Mena de ${root}`,{icon:["⛏️","🪨","💠"][i%3],cat:"Material",r:1+(i%4===0?1:0),val:5+(i%7)*3,desc:`Mineral bruto de ${root}, extraído de vetas geológicas. Se puede refinar en el horno.`});addGenerated(`Lingote de ${root}`,{icon:["🧱","🟫","🪙"][i%3],cat:"Lingote",r:2+(i%4===0?1:0),val:14+(i%8)*5,desc:`${proper} refinado a partir de mena de ${root}; útil para fabricar equipo y componentes.`});});
+mineralRoots.forEach((root,i)=>{
+ const proper=root.charAt(0).toUpperCase()+root.slice(1);
+ const lingoteR=({basalto:2,cobalto:3,titanio:3,níquel:2,aluminio:2,estaño:2,zinc:2,plomo:2,wolframio:4,tungsteno:4,litio:3,iridio:5,platino:5,paladio:4,uranio:5,obsidiana:4,azufre:2,cuarzo:2,jade:3,"ónix":3,granito:2,hematita:3,manganeso:2,cromo:3,vanadio:3,magnesio:2,circonio:3,bismuto:3,antimonio:2,galena:2})[root]||2;
+ const menaR=Math.max(1,lingoteR-1);
+ addGenerated(`Mena de ${root}`,{icon:["⛏️","🪨","💠"][i%3],cat:"Material",r:menaR,val:4+menaR*5+(i%4)*2,desc:`Mineral bruto de ${root}, extraído de vetas geológicas. Se puede refinar en el horno.`});
+ addGenerated(`Lingote de ${root}`,{icon:["🧱","🟫","🪙"][i%3],cat:"Lingote",r:lingoteR,val:10+lingoteR*12+(i%5)*2,desc:`${proper} refinado a partir de mena de ${root}; útil para fabricar equipo y componentes.`});
+});
+// Niveles coherentes de lingotes/menas clave
+[["iridio",5],["platino",5],["uranio",5],["paladio",4],["tungsteno",4],["wolframio",4],["obsidiana",4],["titanio",3],["cobalto",3],["níquel",3],["hierro",2],["cobre",2],["aluminio",2]].forEach(([root,r])=>{
+  const mena=`Mena de ${root}`, ling=`Lingote de ${root}`;
+  if(itemDB[mena])itemDB[mena].r=Math.max(1,r-1);
+  if(itemDB[ling])itemDB[ling].r=r;
+});
+addGenerated(`Lingote de ${root}`,{icon:["🧱","🟫","🪙"][i%3],cat:"Lingote",r:2+(i%4===0?1:0),val:14+(i%8)*5,desc:`${proper} refinado a partir de mena de ${root}; útil para fabricar equipo y componentes.`});});
 const toolBases=["Pico","Hacha","Pinzas"];
 const toolMaterials=["de basalto","de cobre","de titanio","de obsidiana","de cuarzo","de cobalto","de chatarra","de cristal","de níquel","de iridio"];
 toolBases.forEach((base,i)=>toolMaterials.slice(0,6).forEach((mat,j)=>{
@@ -313,6 +326,25 @@ const recipes = [
  {id:"suit_alloy",name:"Armadura de aleación",icon:"🛡️",desc:"Armadura de placa de aleación y lingote de hierro.",cost:{"Placa de aleación":3,"Lingote de hierro":2,"Cable de cobre":2},out:"Armadura de aleación",category:"Equipo"},
  {id:"suit_neon",name:"Traje de neón",icon:"🧥",desc:"Traje con batería de neón y cable de fibra óptica.",cost:{"Batería de neón":2,"Cable de fibra óptica":2,"Lingote de cobre":2},out:"Traje de neón",category:"Equipo"},
  {id:"suit_abyssal",name:"Traje abisal",icon:"🧥",desc:"Traje sellado con concha blindada y gel bioluminiscente.",cost:{"Concha blindada":2,"Gel bioluminiscente":2,"Fibra vegetal":2,"Resina":2},out:"Traje abisal",category:"Equipo"},
+ // === NIVEL 5: materiales N5 (iridio, platino, uranio) → objeto N5 ===
+ {id:"pick_iridium",name:"Pico de iridio",icon:"⛏️",desc:"Pico de lingote de iridio. Nivel 5.",cost:{"Lingote de iridio":3,"Madera":1,"Carbón":1},out:"Pico de iridio",category:"Herramienta"},
+ {id:"pick_platinum",name:"Pico de platino",icon:"⛏️",desc:"Pico de lingote de platino. Nivel 5.",cost:{"Lingote de platino":3,"Madera":1},out:"Pico de platino",category:"Herramienta"},
+ {id:"pick_uranium",name:"Pico de uranio",icon:"⛏️",desc:"Pico de lingote de uranio. Nivel 5.",cost:{"Lingote de uranio":3,"Carbón":2,"Madera":1},out:"Pico de uranio",category:"Herramienta"},
+ {id:"axe_iridium",name:"Hacha de iridio",icon:"🪓",desc:"Hacha de lingote de iridio. Nivel 5.",cost:{"Lingote de iridio":2,"Madera":2,"Resina":1},out:"Hacha de iridio",category:"Herramienta"},
+ {id:"axe_platinum",name:"Hacha de platino",icon:"🪓",desc:"Hacha de lingote de platino. Nivel 5.",cost:{"Lingote de platino":2,"Madera":2},out:"Hacha de platino",category:"Herramienta"},
+ {id:"axe_uranium",name:"Hacha de uranio",icon:"🪓",desc:"Hacha de lingote de uranio. Nivel 5.",cost:{"Lingote de uranio":2,"Carbón":1,"Madera":1},out:"Hacha de uranio",category:"Herramienta"},
+ {id:"tongs_iridium",name:"Pinzas de iridio",icon:"⚕",desc:"Pinzas de lingote de iridio. +30% éxito. Nivel 5.",cost:{"Lingote de iridio":2,"Cristal pulido":1},out:"Pinzas de iridio",category:"Herramienta"},
+ {id:"tongs_platinum",name:"Pinzas de platino",icon:"⚕",desc:"Pinzas de lingote de platino. +28% éxito. Nivel 5.",cost:{"Lingote de platino":2,"Cable de cobre":1},out:"Pinzas de platino",category:"Herramienta"},
+ {id:"sword_iridium",name:"Espada de iridio",icon:"⚔️",desc:"Hoja de lingote de iridio. Nivel 5.",cost:{"Lingote de iridio":3,"Madera":1,"Carbón":1},out:"Espada de iridio",category:"Arma"},
+ {id:"sword_platinum",name:"Espada de platino",icon:"⚔️",desc:"Hoja de lingote de platino. Nivel 5.",cost:{"Lingote de platino":3,"Madera":1},out:"Espada de platino",category:"Arma"},
+ {id:"sword_uranium",name:"Espada de uranio",icon:"⚔️",desc:"Hoja de lingote de uranio. Nivel 5.",cost:{"Lingote de uranio":3,"Carbón":2,"Madera":1},out:"Espada de uranio",category:"Arma"},
+ {id:"mace_iridium",name:"Maza de iridio",icon:"🔨",desc:"Cabeza de lingote de iridio. Nivel 5.",cost:{"Lingote de iridio":3,"Madera":2},out:"Maza de iridio",category:"Arma"},
+ {id:"mace_uranium",name:"Maza de uranio",icon:"🔨",desc:"Cabeza de lingote de uranio. Nivel 5.",cost:{"Lingote de uranio":3,"Madera":2,"Carbón":1},out:"Maza de uranio",category:"Arma"},
+ {id:"spear_platinum",name:"Lanza de platino",icon:"🗡️",desc:"Punta de lingote de platino. Nivel 5.",cost:{"Lingote de platino":2,"Madera":3},out:"Lanza de platino",category:"Arma"},
+ {id:"crossbow_iridium",name:"Ballesta de iridio",icon:"🏹",desc:"Ballesta de lingote de iridio y cable. Nivel 5.",cost:{"Lingote de iridio":3,"Cable de cobre":2,"Madera":2},out:"Ballesta de iridio",category:"Arma"},
+ {id:"suit_iridium",name:"Armadura de iridio",icon:"🛡️",desc:"Armadura completa de lingote de iridio. Nivel 5.",cost:{"Lingote de iridio":5,"Cable de cobre":2,"Carbón":1},out:"Armadura de iridio",category:"Equipo"},
+ {id:"suit_platinum",name:"Armadura de platino",icon:"🛡️",desc:"Armadura completa de lingote de platino. Nivel 5.",cost:{"Lingote de platino":5,"Cable de cobre":2},out:"Armadura de platino",category:"Equipo"},
+ {id:"suit_uranium",name:"Armadura de uranio",icon:"🛡️",desc:"Armadura completa de lingote de uranio. Nivel 5.",cost:{"Lingote de uranio":5,"Carbón":2,"Cable de cobre":1},out:"Armadura de uranio",category:"Equipo"},
  // === MATERIALES BÁSICOS ===
  {id:"mat_fiber",name:"Fibra vegetal",icon:"🧵",desc:"Fibras de hojas y ramas para cordajes.",cost:{"Hojas":3,"Ramas":1},out:"Fibra vegetal",category:"Material"},
  {id:"mat_rope",name:"Cuerda de fibra",icon:"➰",desc:"Fibras trenzadas en cordaje.",cost:{"Fibra vegetal":3},out:"Cuerda de fibra",category:"Material"},
@@ -398,6 +430,28 @@ const recipes = [
   const prev=itemDB[name]||{};
   itemDB[name]={...prev,...data,name,desc:prev.desc||data.desc||`${name}. Fabricado en la mesa de creación.`};
 });
+
+[
+ ["Pico de iridio",{icon:"⛏️",cat:"Herramienta",r:5,val:160,slot:"pick",gather:70,damage:18}],
+ ["Pico de platino",{icon:"⛏️",cat:"Herramienta",r:5,val:155,slot:"pick",gather:68,damage:17}],
+ ["Pico de uranio",{icon:"⛏️",cat:"Herramienta",r:5,val:165,slot:"pick",gather:72,damage:19}],
+ ["Hacha de iridio",{icon:"🪓",cat:"Herramienta",r:5,val:158,slot:"axe",gather:70,damage:18}],
+ ["Hacha de platino",{icon:"🪓",cat:"Herramienta",r:5,val:152,slot:"axe",gather:68,damage:17}],
+ ["Hacha de uranio",{icon:"🪓",cat:"Herramienta",r:5,val:162,slot:"axe",gather:72,damage:19}],
+ ["Pinzas de iridio",{icon:"⚕",cat:"Herramienta",r:5,val:120,slot:"tongs",extractBonus:30}],
+ ["Pinzas de platino",{icon:"⚕",cat:"Herramienta",r:5,val:115,slot:"tongs",extractBonus:28}],
+ ["Espada de iridio",{icon:"⚔️",cat:"Arma",r:5,val:180,slot:"weapon",damage:40}],
+ ["Espada de platino",{icon:"⚔️",cat:"Arma",r:5,val:175,slot:"weapon",damage:38}],
+ ["Espada de uranio",{icon:"⚔️",cat:"Arma",r:5,val:185,slot:"weapon",damage:42}],
+ ["Maza de iridio",{icon:"🔨",cat:"Arma",r:5,val:178,slot:"weapon",damage:40}],
+ ["Maza de uranio",{icon:"🔨",cat:"Arma",r:5,val:182,slot:"weapon",damage:41}],
+ ["Lanza de platino",{icon:"🗡️",cat:"Arma",r:5,val:150,slot:"weapon",damage:34}],
+ ["Ballesta de iridio",{icon:"🏹",cat:"Arma",r:5,val:170,slot:"weapon",damage:36}],
+ ["Armadura de iridio",{icon:"🛡️",cat:"Equipo",r:5,val:200,slot:"armor",defense:40}],
+ ["Armadura de platino",{icon:"🛡️",cat:"Equipo",r:5,val:195,slot:"armor",defense:38}],
+ ["Armadura de uranio",{icon:"🛡️",cat:"Equipo",r:5,val:205,slot:"armor",defense:42}]
+].forEach(([name,data])=>{const prev=itemDB[name]||{};itemDB[name]={...prev,...data,name,desc:prev.desc||data.desc||`${name}. Nivel ${data.r}.`};});
+
 
 
 [
@@ -542,6 +596,95 @@ rebuildRecipeCosts();
 (function pruneRecipes(){
   const kept=recipes.filter(r=>["Herramienta","Arma","Equipo","Material"].includes(r.category));
   recipes.length=0;recipes.push(...kept);
+})();
+
+// Nivel del objeto fabricado = max nivel de sus materiales de coste (1–5).
+// Si entra un material N5 (p. ej. Lingote de iridio), el resultado es N5 aunque el resto sea N4.
+(function syncRecipeOutputLevels(){
+  const baseTier={
+    "Madera":1,"Ramas":1,"Hojas":1,"Piedra":1,"Carbón":1,"Resina":1,"Chatarra":1,"Tornillo oxidado":1,
+    "Mena de hierro":1,"Mena de cobre":1,"Cable de cobre":1,"Fibra vegetal":1,"Cuerda de fibra":1,
+    "Cristal agrietado":2,"Batería vieja":2,"Placa electrónica":2,"Geoda":2,"Hoja mutada":2,
+    "Lingote de hierro":2,"Lingote de cobre":2,"Cristal pulido":2,"Compuesto aislante":2,"Tabla reforzada":2,
+    "Ladrillo de piedra":1,"Polvo de carbón":1,"Cable trenzado":2,"Placa de aleación":2,"Núcleo de batería":2,
+    "Lingote de titanio":3,"Lingote de cobalto":3,"Lingote de níquel":2,"Lingote de aluminio":2,
+    "Cristal de hielo azul":3,"Roca volcánica":3,"Espora viva":3,"Aleación extraña":3,
+    "Lingote de tungsteno":4,"Lingote de obsidiana":4,"Lingote de wolframio":4,"Lingote de paladio":4,
+    "Núcleo energético":4,"Núcleo de magma":4,
+    "Lingote de iridio":5,"Lingote de uranio":5,"Lingote de platino":5,
+    "Batería de neón":3,"Cable de fibra óptica":3,"Concha blindada":3,"Gel bioluminiscente":3
+  };
+  function tierOf(name){
+    if(baseTier[name]!=null)return baseTier[name];
+    const d=itemDB[name];
+    if(d&&d.r)return Math.max(1,Math.min(5,Number(d.r)||1));
+    if(/^Lingote de /.test(name))return 2;
+    if(/^Mena de /.test(name))return 1;
+    return 1;
+  }
+  for(const r of recipes){
+    if(!r.cost||!r.out)continue;
+    let maxR=1;
+    for(const mat of Object.keys(r.cost))maxR=Math.max(maxR,tierOf(mat));
+    maxR=Math.max(1,Math.min(5,maxR));
+    const prev=itemDB[r.out]||{icon:r.icon,cat:r.category||"Otro",desc:r.desc};
+    const mult={1:1,2:1.6,3:2.4,4:3.5,5:5}[maxR]||1;
+    const baseVal=Math.max(8,Number(prev.val)||12);
+    const val=Math.round(8+maxR*14+(Object.keys(r.cost).length*3));
+    itemDB[r.out]={...prev,name:r.out,r:maxR,val:val,desc:prev.desc||r.desc};
+    // stats scale lightly with level
+    if(itemDB[r.out].gather!=null)itemDB[r.out].gather=Math.round((Number(prev.gather)||10)*(0.7+maxR*0.25));
+    if(itemDB[r.out].damage!=null)itemDB[r.out].damage=Math.round((Number(prev.damage)||4)*(0.7+maxR*0.3));
+    if(itemDB[r.out].defense!=null)itemDB[r.out].defense=Math.round((Number(prev.defense)||4)*(0.7+maxR*0.3));
+    if(itemDB[r.out].extractBonus!=null)itemDB[r.out].extractBonus=Math.min(40,Math.round((Number(prev.extractBonus)||6)*(0.75+maxR*0.2)));
+  }
+})();
+
+
+// Nivel del objeto fabricado = max nivel de sus materiales (mín. el r ya definido)
+recipes.forEach(rec=>{
+  if(!rec.out||!rec.cost)return;
+  let maxR=1;
+  Object.keys(rec.cost).forEach(n=>{maxR=Math.max(maxR,Number(info(n).r)||1)});
+  if(!itemDB[rec.out])return;
+  // Si algún material es N5, el resultado es N5; si no, al menos el max de ingredientes
+  itemDB[rec.out].r=Math.max(Number(itemDB[rec.out].r)||1, maxR);
+});
+
+
+
+// FINAL_LEVEL_SYNC: nivel del objeto = max nivel de materiales del coste (cap 5)
+(function finalLevelSync(){
+  const baseTier={
+    "Madera":1,"Ramas":1,"Hojas":1,"Piedra":1,"Carbón":1,"Resina":1,"Chatarra":1,"Tornillo oxidado":1,
+    "Mena de hierro":1,"Mena de cobre":1,"Cable de cobre":1,"Fibra vegetal":1,
+    "Cristal agrietado":2,"Batería vieja":2,"Placa electrónica":2,
+    "Lingote de hierro":2,"Lingote de cobre":2,"Cristal pulido":2,"Compuesto aislante":2,
+    "Lingote de titanio":3,"Lingote de cobalto":3,"Lingote de níquel":2,"Lingote de aluminio":2,
+    "Cristal de hielo azul":3,"Roca volcánica":3,"Espora viva":3,
+    "Lingote de tungsteno":4,"Lingote de obsidiana":4,"Lingote de wolframio":4,"Lingote de paladio":4,
+    "Núcleo energético":4,"Núcleo de magma":4,
+    "Lingote de iridio":5,"Lingote de uranio":5,"Lingote de platino":5,
+    "Batería de neón":3,"Cable de fibra óptica":3,"Concha blindada":3,"Gel bioluminiscente":3
+  };
+  const tierOf=name=>{
+    if(baseTier[name]!=null)return baseTier[name];
+    const d=itemDB[name];
+    if(d&&d.r)return Math.max(1,Math.min(5,Number(d.r)||1));
+    if(/^Lingote de /.test(name)){
+      const root=name.replace(/^Lingote de /,'');
+      const map={iridio:5,platino:5,uranio:5,tungsteno:4,wolframio:4,obsidiana:4,paladio:4,titanio:3,cobalto:3,níquel:2,hierro:2,cobre:2,aluminio:2};
+      return map[root]||2;
+    }
+    return 1;
+  };
+  for(const r of recipes){
+    if(!r||!r.cost||!r.out||!itemDB[r.out])continue;
+    let maxR=1;
+    for(const mat of Object.keys(r.cost))maxR=Math.max(maxR,tierOf(mat));
+    maxR=Math.max(1,Math.min(5,maxR));
+    itemDB[r.out].r=maxR;
+  }
 })();
 
 const supplyPacks = [
@@ -2610,14 +2753,48 @@ function migrateOrganVariants(){
  (state.inventory||[]).forEach(it=>{if(it&&it.cat==="Órgano")saveOrganVariant(it)});
  Object.values(state.discovered||{}).forEach(it=>{if(it&&it.cat==="Órgano")saveOrganVariant(it)});
 }
-function init(){if(!state.version){state=stateDefault();log("Sistema inicializado. Inventario y créditos a cero.")}if(!state.activity.length&&!state.inventory.length&&state.credits===0)log("Sistema inicializado. Inventario vacío. Explora para conseguir tus primeros recursos.");
-document.querySelectorAll("[data-settings-panel].settings-tab, .settings-tab[data-settings-panel]").forEach(b=>{
- b.addEventListener("click",()=>{
-  const key=b.dataset.settingsPanel;
-  document.querySelectorAll(".settings-tab").forEach(x=>x.classList.toggle("active",x===b));
-  document.querySelectorAll(".settings-panel").forEach(x=>x.classList.toggle("active",x.dataset.settingsPanel===key));
+function init(){
+ if(!state.version){state=stateDefault();log("Sistema inicializado. Inventario y créditos a cero.")}
+ if(!state.activity.length&&!state.inventory.length&&state.credits===0)log("Sistema inicializado. Inventario vacío. Explora para conseguir tus primeros recursos.");
+ document.querySelectorAll("[data-settings-panel].settings-tab, .settings-tab[data-settings-panel]").forEach(b=>{
+  b.addEventListener("click",()=>{
+   const key=b.dataset.settingsPanel;
+   document.querySelectorAll(".settings-tab").forEach(x=>x.classList.toggle("active",x===b));
+   document.querySelectorAll(".settings-panel").forEach(x=>x.classList.toggle("active",x.dataset.settingsPanel===key));
+  });
  });
-});
-migrateOrganVariants();migrateIllegalPolicy();applyMusicVolume();bindNavigation();updateHomeClock();setInterval(updateHomeClock,1000);if($("soundToggle"))$("soundToggle").checked=state.settings.sound;if($("scaleSelect"))$("scaleSelect").value=state.settings.scale||"1";document.documentElement.style.setProperty("--scale",state.settings.scale||"1");if($("motionToggle"))$("motionToggle").checked=!!state.settings.motion;document.body.classList.toggle("reduce-motion",!!state.settings.motion);applyLayoutMode(state.settings.layoutMode||"auto");setSoundVolume(state.settings.soundVolume??75);syncSettingsUI();render();if(state.pendingSupply&&state.pendingSupply.stage==="animating"){setTimeout(()=>{if(state.pendingSupply&&state.pendingSupply.stage==="animating"){state.pendingSupply.stage="ready";renderSupplyDelivery();renderSupplies();save()}},1200)}if("serviceWorker"in navigator&&location.protocol.startsWith("http")){navigator.serviceWorker.register("./sw.js",{updateViaCache:"none"}).then(reg=>{checkForAppUpdates(reg);setInterval(()=>checkForAppUpdates(reg),60000);document.addEventListener("visibilitychange",()=>{if(!document.hidden)checkForAppUpdates(reg)});window.addEventListener("focus",()=>checkForAppUpdates(reg));}).catch(()=>{});}}
+ migrateOrganVariants();
+ migrateIllegalPolicy();
+ applyMusicVolume();
+ bindNavigation();
+ updateHomeClock();
+ setInterval(updateHomeClock,1000);
+ if($("soundToggle"))$("soundToggle").checked=state.settings.sound;
+ if($("scaleSelect"))$("scaleSelect").value=state.settings.scale||"1";
+ document.documentElement.style.setProperty("--scale",state.settings.scale||"1");
+ if($("motionToggle"))$("motionToggle").checked=!!state.settings.motion;
+ document.body.classList.toggle("reduce-motion",!!state.settings.motion);
+ applyLayoutMode(state.settings.layoutMode||"auto");
+ setSoundVolume(state.settings.soundVolume??75);
+ syncSettingsUI();
+ render();
+ if(state.pendingSupply&&state.pendingSupply.stage==="animating"){
+  setTimeout(()=>{
+   if(state.pendingSupply&&state.pendingSupply.stage==="animating"){
+    state.pendingSupply.stage="ready";
+    renderSupplyDelivery();
+    renderSupplies();
+    save();
+   }
+  },1200);
+ }
+ if("serviceWorker"in navigator&&location.protocol.startsWith("http")){
+  navigator.serviceWorker.register("./sw.js",{updateViaCache:"none"}).then(reg=>{
+   checkForAppUpdates(reg);
+   setInterval(()=>checkForAppUpdates(reg),60000);
+   document.addEventListener("visibilitychange",()=>{if(!document.hidden)checkForAppUpdates(reg)});
+   window.addEventListener("focus",()=>checkForAppUpdates(reg));
+  }).catch(()=>{});
+ }
+}
 init();
-})();
