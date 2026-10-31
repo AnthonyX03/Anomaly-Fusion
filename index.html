@@ -693,11 +693,11 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 .upgrade-layout{display:grid;grid-template-columns:1fr minmax(200px,1.1fr) 1fr;gap:16px;margin-top:14px;align-items:start}
 @media(max-width:900px){.upgrade-layout{grid-template-columns:1fr}}
 .upgrade-slot{width:100%;min-height:72px;justify-content:center}
-.upgrade-roulette{position:relative;width:180px;height:180px;margin:12px auto;border-radius:50%;background:#0c1218;border:3px solid #ffe14a;box-shadow:0 0 0 1px #c9a012,0 0 18px #f5c54255,inset 0 0 20px #000a;transition:box-shadow .3s}
-.upgrade-roulette.is-spinning{box-shadow:0 0 0 1px #ffe14a,0 0 28px #f5c54288,inset 0 0 24px #000c;animation:upgradePulse 0.4s ease-in-out infinite}
-@keyframes upgradePulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.15)}}
+.upgrade-roulette{position:relative;width:180px;height:180px;margin:12px auto;border-radius:50%;background:#0c1218;border:3px solid #2a3d48;box-shadow:inset 0 0 20px #000a;transition:box-shadow .3s}
+.upgrade-roulette.is-spinning{box-shadow:inset 0 0 24px #000c,0 0 16px #f5c54233;animation:upgradePulse 0.4s ease-in-out infinite}
+@keyframes upgradePulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.1)}}
 .upgrade-roulette-track{position:absolute;inset:0;border-radius:50%;overflow:hidden;pointer-events:none}
-/* Anillo exterior: el arco de éxito se reduce en sentido antihorario desde las 12h */
+/* Solo la barra de % es amarilla; el resto del anillo es gris */
 .upgrade-roulette-success{position:absolute;inset:0;border-radius:50%;background:
   conic-gradient(from -90deg,
     #2a3d48 0deg,
@@ -709,18 +709,24 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   mask:radial-gradient(farthest-side,transparent calc(100% - 14px),#000 calc(100% - 13px));
   opacity:1}
 .upgrade-roulette-inner{position:absolute;inset:16px;border-radius:50%;background:#0c1218;box-shadow:inset 0 0 16px #0008;z-index:1;pointer-events:none}
-.upgrade-roulette-needle{position:absolute;left:50%;top:50%;width:5px;height:48%;margin-left:-2.5px;margin-top:-48%;background:linear-gradient(#fff8d6,#f5c542 35%,#c49212);border-radius:3px 3px 1px 1px;transform-origin:50% 100%;transform:rotate(0deg);box-shadow:0 0 12px #f5c542cc,0 0 3px #000;z-index:2;will-change:transform;transition:none}
+.upgrade-roulette-needle{position:absolute;left:50%;top:50%;width:5px;height:48%;margin-left:-2.5px;margin-top:-48%;background:linear-gradient(#ffffff 0%,#fff8d6 12%,#f5c542 40%,#c49212 100%);border-radius:3px 3px 1px 1px;transform-origin:50% 100%;transform:rotate(0deg);box-shadow:0 0 8px #f5c54299,0 0 2px #000;z-index:2;will-change:transform;transition:none}
 .upgrade-roulette-needle.is-spinning{}
+.upgrade-roulette-needle::before{content:"";position:absolute;left:50%;top:0;width:8px;height:8px;margin-left:-4px;margin-top:-3px;background:#fff;border-radius:50%;box-shadow:0 0 6px #fff}
 .exchange-box-list{display:flex;flex-direction:column;gap:8px;max-height:280px;overflow:auto;margin-top:10px}
 .exchange-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:#0c1117}
 .exchange-row small{display:block;color:var(--muted);margin-top:2px}
 .exchange-result-list{display:flex;flex-direction:column;gap:8px;max-height:240px;overflow:auto;margin-top:8px}
 .exchange-anim{text-align:center;padding:28px 12px;color:var(--cyan);font-weight:700;letter-spacing:.08em;animation:fade .8s ease infinite alternate}
 #exchangeResultModal .modal{max-width:420px}
-.upgrade-chance{position:absolute;inset:0;display:grid;place-items:center;font-size:1.75rem;font-weight:900;color:#8a9aa5;text-shadow:none;pointer-events:none;z-index:3;transition:color .2s,text-shadow .2s}
-.upgrade-chance.chance-high{color:#00ff9c;text-shadow:0 0 18px #00ff9caa,0 0 6px #00ff9c,0 0 2px #003}
-.upgrade-chance.chance-mid{color:#ff9500;text-shadow:0 0 18px #ff9500aa,0 0 6px #ff9500,0 0 2px #530}
-.upgrade-chance.chance-low{color:#ff2d4a;text-shadow:0 0 18px #ff2d4aaa,0 0 6px #ff2d4a,0 0 2px #500}
+.picker-qty-bar{display:flex;align-items:center;justify-content:center;gap:10px;margin:12px 0 4px;padding:10px;border:1px solid var(--line);border-radius:8px;background:#0c1117}
+.picker-qty-bar .qty-val{min-width:3ch;text-align:center;font-weight:700}
+.picker-confirm-row{display:flex;gap:8px;margin-top:8px}
+.picker-confirm-row button{flex:1}
+
+.upgrade-chance{position:absolute;inset:0;display:grid;place-items:center;font-size:1.75rem;font-weight:900;color:#8a9aa5;text-shadow:none;pointer-events:none;z-index:3;transition:color .2s}
+.upgrade-chance.chance-high{color:#00e88a;text-shadow:none}
+.upgrade-chance.chance-mid{color:#ff9500;text-shadow:none}
+.upgrade-chance.chance-low{color:#ff3b54;text-shadow:none}
 #nexusTabs button:disabled{opacity:.4;cursor:not-allowed}
 
 </style>
@@ -1167,6 +1173,14 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
  </div>
 </div>
 <div class="modal-backdrop hidden" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle"><div class="modal"><div class="modal-head"><h3 id="confirmTitle">CONFIRMAR ACCIÓN</h3><span class="tag">HUD · SISTEMA</span></div><p class="confirm-copy" id="confirmMessage"></p><div class="confirm-actions"><button id="confirmCancel">Cancelar</button><button class="primary" id="confirmAccept">Confirmar</button></div></div></div>
+
+<div class="modal-backdrop hidden" id="exchangeResultModal" role="dialog" aria-modal="true">
+ <div class="modal">
+  <div class="modal-head"><h3>▣ RESULTADO DEL INTERCAMBIO</h3></div>
+  <div id="exchangeResultBody"></div>
+ </div>
+</div>
+
 <script src="game.js"></script>
 <audio id="bgMusic" src="AnomalyFusion.mp3" data-alt-src="main/AnomalyFusion.mp3" loop preload="auto" playsinline></audio>
 </body></html>

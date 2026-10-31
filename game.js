@@ -1840,7 +1840,8 @@ function openUpgradeTargetPicker(){
   if($("pickerSearch"))$("pickerSearch").value="";
   if($("pickerTitle"))$("pickerTitle").textContent="▤ REGISTRO BASE · OBJETIVO";
   if($("pickerDescription"))$("pickerDescription").textContent="Solo objetos base descubiertos (sin síntesis ni criaturas). Elige lo que quieres obtener.";
-  if($("pickerFilterMenu"))$("pickerFilterMenu").classList.add("hidden");
+  if($("pickerFilterMenu"))$("pickerFilterMenu").classList.remove("hidden");
+  if($("pickerFilterLabel"))$("pickerFilterLabel").textContent=pickerFilter;
   $("inventoryPicker").classList.remove("hidden");
   renderPicker();
 }
@@ -1850,7 +1851,8 @@ function openUpgradeInputPicker(){
   if($("pickerSearch"))$("pickerSearch").value="";
   if($("pickerTitle"))$("pickerTitle").textContent="▤ INVENTARIO · ENTRADA";
   if($("pickerDescription"))$("pickerDescription").textContent="Elige un objeto base de tu inventario (no síntesis) para entregar.";
-  if($("pickerFilterMenu"))$("pickerFilterMenu").classList.add("hidden");
+  if($("pickerFilterMenu"))$("pickerFilterMenu").classList.remove("hidden");
+  if($("pickerFilterLabel"))$("pickerFilterLabel").textContent=pickerFilter;
   $("inventoryPicker").classList.remove("hidden");
   renderPicker();
 }
@@ -1957,7 +1959,8 @@ function openExchangePicker(){
   if($("pickerSearch"))$("pickerSearch").value="";
   if($("pickerTitle"))$("pickerTitle").textContent="▤ CAJA DE INTERCAMBIO";
   if($("pickerDescription"))$("pickerDescription").textContent="Elige objetos base para la caja (máx. 10 unidades en total).";
-  if($("pickerFilterMenu"))$("pickerFilterMenu").classList.add("hidden");
+  if($("pickerFilterMenu"))$("pickerFilterMenu").classList.remove("hidden");
+  if($("pickerFilterLabel"))$("pickerFilterLabel").textContent=pickerFilter;
   $("inventoryPicker").classList.remove("hidden");
   renderPicker();
 }
@@ -1965,24 +1968,14 @@ function runExchange(){
   if(exchangeBusy||exchangeBoxCount()<1)return;
   const inputVal=exchangeBoxValue();
   if(inputVal<=0)return toast("La caja no tiene valor.",true);
-  // Consumir objetos de la caja
   const consumed=[];
   for(const [id,qty] of Object.entries(exchangeBox)){
     const x=state.inventory.find(i=>i.id===id);
     if(!x||x.qty<qty){toast("Faltan objetos en el inventario.",true);return}
     consumed.push({name:x.name,qty,val:Math.max(1,Number(x.val)||Number(info(x.name).val)||1)});
   }
-  for(const [id,qty] of Object.entries(exchangeBox)){
-    if(!removeItemById(id,qty)){toast("Error al consumir la caja.",true);return}
-  }
-  exchangeBox={};
-  exchangeBusy=true;
-  renderExchangeModule();
-  // Resultado: 50% / 100% / 150% del valor
-  const roll=Math.random();
-  const mult=roll<0.33?0.5:roll<0.66?1:1.5;
-  let targetVal=Math.max(1,Math.round(inputVal*mult));
-  const pool=[...new Set([...(state.seen||[]),...Object.keys(state.discovered||{})])]
+  // Pool ANTES de consumir
+  let pool=[...new Set([...(state.seen||[]),...Object.keys(state.discovered||{}),...consumed.map(c=>c.name)])]
     .filter(n=>{
       const d=info(n);
       if(!d||!d.cat)return false;
@@ -1992,11 +1985,19 @@ function runExchange(){
       return ["Material","Lingote","Consumible","Herramienta","Arma","Equipo","Otro"].includes(d.cat);
     });
   if(!pool.length){
-    exchangeBusy=false;
-    toast("No hay objetos base descubiertos en el registro.",true);
-    renderExchangeModule();
-    return;
+    // Fallback: materiales básicos del catálogo
+    pool=Object.keys(itemDB).filter(n=>{const d=itemDB[n];return d&&d.cat==="Material"&&!d.illegal&&(d.r||1)<=2});
   }
+  if(!pool.length){toast("No hay objetos base disponibles para el intercambio.",true);return}
+  for(const [id,qty] of Object.entries(exchangeBox)){
+    if(!removeItemById(id,qty)){toast("Error al consumir la caja.",true);return}
+  }
+  exchangeBox={};
+  exchangeBusy=true;
+  renderExchangeModule();
+  const roll=Math.random();
+  const mult=roll<0.33?0.5:roll<0.66?1:1.5;
+  let targetVal=Math.max(1,Math.round(inputVal*mult));
   // Rellenar caja de salida hasta targetVal
   const outItems={};
   let filled=0;
@@ -2015,32 +2016,34 @@ function runExchange(){
     filled=Math.max(1,Number(info(name).val)||1);
   }
   exchangePending={inputVal,outVal:filled,mult,items:outItems};
-  // Animación HUD
-  const modal=$("exchangeResultModal");
-  if(modal){
-    modal.classList.remove("hidden");
-    const body=$("exchangeResultBody");
-    if(body){
-      body.innerHTML=`<div class="exchange-anim">▣ Empaquetando intercambio…</div>`;
-    }
-    setTimeout(()=>{
-      if(!exchangePending)return;
-      const p=exchangePending;
-      const lines=Object.entries(p.items).map(([n,q])=>`<div class="exchange-row"><span class="item-icon">${itemIconMarkup(n,info(n).icon)}</span><div><b>${escapeHtml(n)}</b><small>×${q} · ${Math.max(1,Number(info(n).val)||1)} cr./u</small></div></div>`).join("");
-      const outcome=p.mult>1?'<span class="cyan">Ganancia (+50%)</span>':p.mult<1?'<span class="red">Pérdida (−50%)</span>':'<span class="gold">Neutro</span>';
-      if(body)body.innerHTML=`
-        <div class="statline"><span>Valor entregado</span><b class="gold">${p.inputVal} cr.</b></div>
-        <div class="statline"><span>Valor recibido</span><b class="gold">${p.outVal} cr.</b></div>
-        <div class="statline"><span>Resultado</span><b>${outcome}</b></div>
-        <div class="section-title" style="margin-top:12px"><h3>CONTENIDO DE LA CAJA</h3></div>
-        <div class="exchange-result-list">${lines}</div>
-        <button class="primary" id="exchangeClaimBtn" style="width:100%;margin-top:14px">⇢ Reclamar objetos</button>`;
-      const claim=$("exchangeClaimBtn");
-      if(claim)claim.onclick=claimExchangeResult;
-      sound(520,.1,"triangle");
-    },1600);
+  let modal=$("exchangeResultModal");
+  if(!modal){
+    modal=document.createElement("div");
+    modal.id="exchangeResultModal";
+    modal.className="modal-backdrop";
+    modal.innerHTML='<div class="modal"><div class="modal-head"><h3>▣ RESULTADO DEL INTERCAMBIO</h3></div><div id="exchangeResultBody"></div></div>';
+    document.body.appendChild(modal);
   }
+  modal.classList.remove("hidden");
+  const body=$("exchangeResultBody");
+  if(body)body.innerHTML=`<div class="exchange-anim">▣ Empaquetando intercambio…</div>`;
   sound(200,.08,"sine");
+  setTimeout(()=>{
+    if(!exchangePending)return;
+    const p=exchangePending;
+    const lines=Object.entries(p.items).map(([n,q])=>`<div class="exchange-row"><span class="item-icon">${itemIconMarkup(n,info(n).icon)}</span><div><b>${escapeHtml(n)}</b><small>×${q} · ${Math.max(1,Number(info(n).val)||1)} cr./u</small></div></div>`).join("");
+    const outcome=p.mult>1?'<span class="cyan">Ganancia (+50%)</span>':p.mult<1?'<span class="red">Pérdida (−50%)</span>':'<span class="gold">Neutro</span>';
+    if(body)body.innerHTML=`
+      <div class="statline"><span>Valor entregado</span><b class="gold">${p.inputVal} cr.</b></div>
+      <div class="statline"><span>Valor recibido</span><b class="gold">${p.outVal} cr.</b></div>
+      <div class="statline"><span>Resultado</span><b>${outcome}</b></div>
+      <div class="section-title" style="margin-top:12px"><h3>CONTENIDO DE LA CAJA</h3></div>
+      <div class="exchange-result-list">${lines}</div>
+      <button class="primary" id="exchangeClaimBtn" style="width:100%;margin-top:14px">⇢ Reclamar objetos</button>`;
+    const claim=$("exchangeClaimBtn");
+    if(claim)claim.onclick=claimExchangeResult;
+    sound(520,.1,"triangle");
+  },1600);
 }
 function claimExchangeResult(){
   if(!exchangePending)return;
@@ -2255,7 +2258,12 @@ function renderPicker(){
      if(!d||!d.cat)return false;
      if(isSynthesisItem({name:n,...d}))return false;
      if(["Criatura","Órgano"].includes(d.cat))return false;
-     return ["Material","Lingote","Herramienta","Arma","Equipo","Consumible","Otro","Anomalía"].includes(d.cat);
+     if(!["Material","Lingote","Herramienta","Arma","Equipo","Consumible","Otro","Anomalía"].includes(d.cat))return false;
+     if(pickerFilter&&pickerFilter!=="Todos"){
+       if(pickerFilter==="Síntesis")return false;
+       if(d.cat!==pickerFilter)return false;
+     }
+     return true;
    })
    .filter(n=>n.toLowerCase().includes(search))
    .sort((a,b)=>(info(a).r||1)-(info(b).r||1)||a.localeCompare(b,"es"));
@@ -2275,7 +2283,14 @@ function renderPicker(){
  }
  // --- Máquina de Mejora: entrada desde inventario (solo base) ---
  if(pickerMode==="upgradeInput"){
-  let list=state.inventory.filter(x=>x.qty>0&&!isSynthesisItem(x)&&x.name.toLowerCase().includes(search));
+  let list=state.inventory.filter(x=>{
+    if(x.qty<=0||isSynthesisItem(x))return false;
+    if(pickerFilter&&pickerFilter!=="Todos"){
+      if(pickerFilter==="Síntesis")return false;
+      if((x.cat||info(x.name).cat)!==pickerFilter)return false;
+    }
+    return x.name.toLowerCase().includes(search);
+  });
   const pageSize=12;
   const pages=Math.max(1,Math.ceil(list.length/pageSize));
   pickerPage=Math.min(Math.max(1,pickerPage),pages);
@@ -2292,12 +2307,54 @@ function renderPicker(){
   return;
  }
  if(pickerMode==="exchangeInput"){
-  let list=state.inventory.filter(x=>x.qty>0&&!isSynthesisItem(x)&&!x.unique&&["Material","Lingote","Consumible","Herramienta","Arma","Equipo","Otro"].includes(x.cat||info(x.name).cat)&&x.name.toLowerCase().includes(search));
+  let list=state.inventory.filter(x=>{
+    if(x.qty<=0||isSynthesisItem(x)||x.unique)return false;
+    if(!["Material","Lingote","Consumible","Herramienta","Arma","Equipo","Otro"].includes(x.cat||info(x.name).cat))return false;
+    if(pickerFilter&&pickerFilter!=="Todos"){
+      if(pickerFilter==="Síntesis")return false;
+      if((x.cat||info(x.name).cat)!==pickerFilter)return false;
+    }
+    return x.name.toLowerCase().includes(search);
+  });
   const pageSize=12;
   const pages=Math.max(1,Math.ceil(list.length/pageSize));
   pickerPage=Math.min(Math.max(1,pickerPage),pages);
   const shown=list.slice((pickerPage-1)*pageSize,pickerPage*pageSize);
   $("pickerGrid").innerHTML=shown.length?shown.map(x=>`<button type="button" class="picker-item" data-pick-id="${x.id}"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><span style="min-width:0"><b title="${escapeHtml(x.name)}">${escapeHtml(inventoryDisplayName(x))}</b><small>N${x.r||1} · ×${x.qty}</small></span></button>`).join(""):'<div class="empty" style="grid-column:1/-1">No hay objetos base disponibles.</div>';
+  // Barra de cantidad
+  let qtyBar=$("pickerQtyBar");
+  if(!qtyBar){
+    qtyBar=document.createElement("div");
+    qtyBar.id="pickerQtyBar";
+    qtyBar.className="picker-qty-bar hidden";
+    qtyBar.innerHTML=`<button type="button" class="qty-btn" id="pickerQtyMinus">‹</button><span class="qty-val" id="pickerQtyVal">×1</span><button type="button" class="qty-btn" id="pickerQtyPlus">›</button>`;
+    const conf=document.createElement("div");
+    conf.id="pickerQtyConfirm";
+    conf.className="picker-confirm-row hidden";
+    conf.innerHTML=`<button type="button" class="primary" id="pickerQtyOk">Añadir a la caja</button><button type="button" class="tiny" id="pickerQtyCancel">Cancelar</button>`;
+    const grid=$("pickerGrid");
+    if(grid&&grid.parentNode){grid.parentNode.insertBefore(qtyBar,grid.nextSibling);grid.parentNode.insertBefore(conf,qtyBar.nextSibling);}
+  }
+  let pendingId=null,pendingQty=1,pendingMax=1;
+  const hideQty=()=>{pendingId=null;qtyBar.classList.add("hidden");$("pickerQtyConfirm").classList.add("hidden");};
+  hideQty();
+  const syncQty=()=>{if($("pickerQtyVal"))$("pickerQtyVal").textContent="×"+pendingQty};
+  if($("pickerQtyMinus"))$("pickerQtyMinus").onclick=()=>{pendingQty=Math.max(1,pendingQty-1);syncQty()};
+  if($("pickerQtyPlus"))$("pickerQtyPlus").onclick=()=>{pendingQty=Math.min(pendingMax,pendingQty+1);syncQty()};
+  if($("pickerQtyCancel"))$("pickerQtyCancel").onclick=hideQty;
+  if($("pickerQtyOk"))$("pickerQtyOk").onclick=()=>{
+    if(!pendingId)return;
+    const x=state.inventory.find(i=>i.id===pendingId);if(!x)return;
+    const used=exchangeBoxCount();
+    const already=Number(exchangeBox[x.id]||0);
+    const room=10-used;
+    const add=Math.min(pendingQty,x.qty-already,room);
+    if(add<=0){toast("No cabe más en la caja.",true);return}
+    exchangeBox[x.id]=already+add;
+    hideQty();
+    $("inventoryPicker").classList.add("hidden");
+    renderExchangeModule();sound(500);
+  };
   if($("pickerPageInfo"))$("pickerPageInfo").textContent=`Página ${pickerPage} / ${pages}`;
   if($("pickerPrev")){$("pickerPrev").disabled=pickerPage<=1;$("pickerPrev").onclick=()=>{pickerPage=Math.max(1,pickerPage-1);renderPicker()};}
   if($("pickerNext")){$("pickerNext").disabled=pickerPage>=pages;$("pickerNext").onclick=()=>{pickerPage++;renderPicker()};}
@@ -2306,11 +2363,15 @@ function renderPicker(){
     if(isSynthesisItem(x)){toast("Solo objetos base.",true);return}
     const used=exchangeBoxCount();
     const already=Number(exchangeBox[x.id]||0);
-    if(used>=10){toast("Máximo 10 unidades en la caja.",true);return}
-    const add=Math.min(1,x.qty-already,10-used);
-    if(add<=0){toast("No puedes añadir más de este objeto.",true);return}
-    exchangeBox[x.id]=(already||0)+add;
-    $("inventoryPicker").classList.add("hidden");renderExchangeModule();sound(500);
+    const room=10-used;
+    const can=Math.min(x.qty-already,room);
+    if(can<=0){toast("Máximo 10 unidades en la caja.",true);return}
+    if(can===1){
+      exchangeBox[x.id]=already+1;
+      $("inventoryPicker").classList.add("hidden");renderExchangeModule();sound(500);return;
+    }
+    pendingId=x.id;pendingMax=can;pendingQty=1;syncQty();
+    qtyBar.classList.remove("hidden");$("pickerQtyConfirm").classList.remove("hidden");
   });
   return;
  }
