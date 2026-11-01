@@ -3211,7 +3211,6 @@ function renderDismantleTable(){
   if(label)label.textContent="Sin unidad";
   host.classList.remove('has-choices');if($('dismantleUnitArea'))$('dismantleUnitArea').classList.remove('has-choices');host.classList.remove('has-choices');if($('dismantleUnitArea'))$('dismantleUnitArea').classList.remove('has-choices');host.style.width='280px';host.style.display='block';host.innerHTML='<div class="empty" style="width:100%;box-sizing:border-box;margin:0;text-align:center;">Elige una criatura robótica del inventario.</div>';
   if(btn)btn.disabled=true;
-  if($("dismantlePiecesPager"))$("dismantlePiecesPager").classList.add("hidden");
   return;
  }
  if(icon)icon.innerHTML=itemIconMarkup(x.name,x.icon||info(x.name).icon);
@@ -3225,14 +3224,8 @@ function renderDismantleTable(){
  const selectedNames=Object.keys(dismantleSelected);
  const maxR=Math.max(1,Math.min(5,Number(x.r)||1));
  const globalChance=dismantleSuccessChance(selectedNames.length||1,maxR);
- const pageSize=6;
- const pages=Math.max(1,Math.ceil(opts.length/pageSize));
- dismantlePiecesPage=Math.min(Math.max(1,dismantlePiecesPage||1),pages);
- const shown=opts.slice((dismantlePiecesPage-1)*pageSize,dismantlePiecesPage*pageSize);
- if($("dismantlePiecesPager")){if(pages<=1)$("dismantlePiecesPager").classList.add("hidden");else{$("dismantlePiecesPager").classList.remove("hidden");$("dismantlePiecesPager").classList.toggle("is-single",opts.length<=pageSize);}}
- if($("dismantlePiecesPageInfo"))$("dismantlePiecesPageInfo").textContent=`Página ${dismantlePiecesPage} / ${pages}`;
- if($("dismantlePiecesPrev"))$("dismantlePiecesPrev").disabled=dismantlePiecesPage<=1;
- if($("dismantlePiecesNext"))$("dismantlePiecesNext").disabled=dismantlePiecesPage>=pages;
+ const shown=opts; // sin paginación en la mesa
+ 
  host.innerHTML=shown.map(name=>{
   const on=!!dismantleSelected[name];
   const ic=itemIconMarkup(name,info(name).icon||"⚙️");
@@ -4367,22 +4360,18 @@ function renderExtractTable(){
   if(label)label.textContent="Sin criatura";
   host.classList.remove('has-choices');if($('extractUnitArea'))$('extractUnitArea').classList.remove('has-choices');host.classList.remove('has-choices');if($('extractUnitArea'))$('extractUnitArea').classList.remove('has-choices');host.style.width='280px';host.style.display='block';host.innerHTML='<div class="empty" style="width:100%;box-sizing:border-box;margin:0;text-align:center;">Elige una criatura orgánica del inventario.</div>';
   if(btn)btn.disabled=true;
-  if($("extractOrgansPager"))$("extractOrgansPager").classList.add("hidden");
   return;
  }
  if(icon)icon.innerHTML=itemIconMarkup(x.name,x.icon||info(x.name).icon);
  if(label)label.textContent=inventoryDisplayName(x)+" · N"+(x.r||1);
  if(isRoboticCreature(x)){
-  host.classList.remove('has-choices');host.innerHTML='<div class="empty" style="width:100%;text-align:center;box-sizing:border-box">Esta unidad es mecánica/robótica: no tiene órganos extraíbles.</div>';if($("extractOrgansPager"))$("extractOrgansPager").classList.add("hidden");
-  if(btn)btn.disabled=true;
-  if($("extractOrgansPager"))$("extractOrgansPager").classList.add("hidden");
+  host.classList.remove('has-choices');host.innerHTML='<div class="empty" style="width:100%;text-align:center;box-sizing:border-box">Esta unidad es mecánica/robótica: no tiene órganos extraíbles.</div>';if(btn)btn.disabled=true;
   return;
  }
  const opts=organCandidatesForCreature(x);
  if(!opts.length){
   host.classList.remove('has-choices');host.innerHTML='<div class="empty">No se detectan órganos extraíbles en esta criatura.</div>';
   if(btn)btn.disabled=true;
-  if($("extractOrgansPager"))$("extractOrgansPager").classList.add("hidden");
   return;
  }
  Object.keys(extractSelected).forEach(k=>{if(!opts.includes(k))delete extractSelected[k]});
@@ -4390,14 +4379,8 @@ function renderExtractTable(){
  const bonus=equippedExtractBonus();
  const maxR=Math.max(1,Math.min(5,Number(x.r)||1));
  const globalChance=extractionSuccessChance(selectedNames.length||1,maxR);
- const pageSize=6;
- const pages=Math.max(1,Math.ceil(opts.length/pageSize));
- extractOrgansPage=Math.min(Math.max(1,extractOrgansPage||1),pages);
- const shown=opts.slice((extractOrgansPage-1)*pageSize,extractOrgansPage*pageSize);
- if($("extractOrgansPager")){if(pages<=1)$("extractOrgansPager").classList.add("hidden");else{$("extractOrgansPager").classList.remove("hidden");$("extractOrgansPager").classList.toggle("is-single",opts.length<=pageSize);}}
- if($("extractOrgansPageInfo"))$("extractOrgansPageInfo").textContent=`Página ${extractOrgansPage} / ${pages}`;
- if($("extractOrgansPrev"))$("extractOrgansPrev").disabled=extractOrgansPage<=1;
- if($("extractOrgansNext"))$("extractOrgansNext").disabled=extractOrgansPage>=pages;
+ const shown=opts; // sin paginación en la mesa; el picker de criatura sí pagina
+ 
  host.classList.add('has-choices');if($('extractUnitArea'))$('extractUnitArea').classList.add('has-choices');host.style.width='min(720px,100%)';host.style.display='grid';
 host.innerHTML=shown.map(name=>{
   const on=!!extractSelected[name];
@@ -4578,8 +4561,6 @@ document.querySelectorAll("[data-market-bbuy-filter]").forEach(b=>b.onclick=()=>
 
 
 if($("clearExtractCreature"))$("clearExtractCreature").onclick=()=>{extractCreatureId=null;extractSelected={};extractOrgansPage=1;renderExtractTable();sound(400,.05,"sine")};
-if($("extractOrgansPrev"))$("extractOrgansPrev").onclick=()=>{extractOrgansPage=Math.max(1,(extractOrgansPage||1)-1);renderExtractTable()};
-if($("extractOrgansNext"))$("extractOrgansNext").onclick=()=>{extractOrgansPage=(extractOrgansPage||1)+1;renderExtractTable()};
 for(let i=0;i<5;i++){
  const ii=i;
  if($("chooseSpawn"+ii))$("chooseSpawn"+ii).onclick=()=>openPicker("spawn",ii);
@@ -4652,10 +4633,8 @@ if($("chooseDismantleRobot"))$("chooseDismantleRobot").onclick=()=>{
   if($("pickerDescription"))$("pickerDescription").textContent="Solo criaturas robóticas.";
   $("inventoryPicker").classList.remove("hidden");renderPicker();
 };
-if($("clearDismantleRobot"))$("clearDismantleRobot").onclick=()=>{dismantleRobotId=null;dismantleSelected={};renderDismantleTable()};
+if($("clearDismantleRobot"))$("clearDismantleRobot").onclick=()=>{dismantleRobotId=null;dismantleSelected={};dismantlePiecesPage=1;renderDismantleTable();sound(400,.05,"sine")};
 if($("dismantleStartBtn"))$("dismantleStartBtn").onclick=startDismantle;
-if($("dismantlePiecesPrev"))$("dismantlePiecesPrev").onclick=()=>{dismantlePiecesPage=Math.max(1,dismantlePiecesPage-1);renderDismantleTable()};
-if($("dismantlePiecesNext"))$("dismantlePiecesNext").onclick=()=>{dismantlePiecesPage++;renderDismantleTable()};
 for(let i=0;i<5;i++){
   const ii=i;
   if($("chooseAsm"+ii))$("chooseAsm"+ii).onclick=()=>{
