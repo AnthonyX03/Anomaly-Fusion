@@ -996,10 +996,11 @@ function isLegalMarketItem(name,data){
  return false;
 }
 
+itemDB["Polvo de Refinita"]={icon:"✧",cat:"Otro",r:1,val:1,desc:"Residuo de un refinamiento fallido. Material común de la Refinadora. Cada unidad suma +5% de éxito y se consume al refinar.",name:"Polvo de Refinita",refineDust:true};
 function isRefineDust(x){
   const n=typeof x==="string"?x:(x&&x.name)||"";
   const d=typeof x==="object"&&x?x:info(n);
-  return n==="Polvo de refinadora"||!!(d&&d.refineDust);
+  return n==="Polvo de Refinita"||!!(d&&d.refineDust);
 }
 function isContrabandItem(x){
   const d=typeof x==="object"&&x?{...info(x.name),...x}:info(x);
@@ -1027,7 +1028,7 @@ function isOtroOnlyItem(x){
   // Categoría Otro (no contrabando): origen fijo, no entra en mejora/intercambio/suministros
   if(!d)return false;
   if(d.cat==="Contrabando"||d.contraband)return false;
-  if(n==="Polvo de refinadora"||d.refineDust)return true;
+  if(n==="Polvo de Refinita"||d.refineDust)return true;
   return d.cat==="Otro";
 }
 
@@ -1596,7 +1597,7 @@ function addItem(name,qty=1,opts={}){
  }
  applyIllegalPolicy(resolved);
   // Objetos base (Material/Lingote/Consumible no-síntesis): apilan por nombre + nivel, sin importar origen
-  const baseStack=["Material","Lingote","Consumible"].includes(cat||d.cat)&&!resolved.unique&&!isSynthesisItem(resolved)&&!resolved.procedural;
+  const baseStack=(["Material","Lingote","Consumible"].includes(cat||d.cat)||isRefineDust(name)||isRefineDust(resolved))&&!resolved.unique&&!isSynthesisItem(resolved)&&!resolved.procedural;
   let existing=null;
   if(baseStack){
     existing=state.inventory.find(x=>x.name===name&&!isSynthesisItem(x)&&!x.unique&&!x.procedural&&(x.cat||d.cat)===(cat||d.cat)&&Math.max(1,Number(x.r)||1)===r);
@@ -1802,7 +1803,7 @@ function setSortMenu(target,value){const options={inventory:{rarity:"Nivel: mayo
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function inventoryDisplayName(x){const raw=String(x?.name||"Objeto desconocido");const cleaned=raw.replace(/\s*·\s*.+$/,"").trim()||raw;return cleaned.replace(/\s+N[1-5]$/,"").trim()||cleaned;}
 function objectTypeLabel(x){const name=String(x?.name||"");const m=name.match(/\s*·\s*(.+)$/);if(m&&m[1].trim())return m[1].trim();return x?.cat||info(x?.name||"").cat||"Otro"}
-function itemCard(x,opts={}){const r=x.r||info(x.name).r||1;if(opts.compact){const fused=isSynthesisItem(x),desc=x.desc||info(x.name).desc||"Objeto sin descripción.";return `<button type="button" class="item-card inventory-tile rarity-${r}" data-inventory-detail="${escapeHtml(x.id)}" aria-label="Ver detalles de ${escapeHtml(x.name)}"><div class="item-top"><div class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</div><div class="inventory-tile-main"><h4 title="${escapeHtml(inventoryDisplayName(x))}">${escapeHtml(inventoryDisplayName(x))} ${x.qty>1?`<span class="muted">×${x.qty}</span>`:""}</h4><div class="rarity r${r}">${escapeHtml(rarityNames[r]||"COMÚN")} · N${r}</div></div></div><div class="inventory-tile-description">${escapeHtml(desc)}</div>${fused?`<div class="inventory-tile-trait">✦ Síntesis de convergencia</div>`:""}<div class="inventory-tile-meta"><span>${escapeHtml(x.cat||info(x.name).cat||"Otro")}</span><b>${Number(x.val||info(x.name).val||1)} cr.</b></div><span class="inventory-tile-open">Ver detalles ↗</span></button>`}const skills=Array.isArray(x.abilities)?x.abilities:(x.ability?[x.ability]:[]);
+function itemCard(x,opts={}){const r=x.r||info(x.name).r||1;if(opts.compact){const fused=isSynthesisItem(x),desc=x.desc||info(x.name).desc||"Objeto sin descripción.";return `<button type="button" class="item-card inventory-tile rarity-${r}" data-inventory-detail="${escapeHtml(x.id)}" aria-label="Ver detalles de ${escapeHtml(x.name)}"><div class="item-top"><div class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</div><div class="inventory-tile-main"><h4 title="${escapeHtml(inventoryDisplayName(x))}">${escapeHtml(inventoryDisplayName(x))} ${x.qty>1?`<span class="muted">×${x.qty}</span>`:""}</h4><div class="rarity r${r}">${escapeHtml(rarityNames[r]||"COMÚN")} · N${r}</div></div></div><div class="inventory-tile-description">${escapeHtml(desc)}</div>${fused?`<div class="inventory-tile-trait">✦ Síntesis de convergencia</div>`:""}<div class="inventory-tile-meta"><span>${escapeHtml(x.cat||info(x.name).cat||"Otro")}</span><b>${formatCredits(Number(x.val||info(x.name).val||1),13)}</b></div><span class="inventory-tile-open">Ver detalles ↗</span></button>`}const skills=Array.isArray(x.abilities)?x.abilities:(x.ability?[x.ability]:[]);
 const skillLines=[];
 if(skills.length)skills.forEach(a=>skillLines.push(`${a.name}${a.desc?" · "+a.desc:""}`));
 else if(x.secondaryTrait)skillLines.push(String(x.secondaryTrait));
@@ -1931,12 +1932,20 @@ function spinUpgradeRoulette(){
   if(!removed){upgradeSpinning=false;renderUpgradeMachine();return toast("Error al consumir la entrada.",true)}
   const needle=$("upgradeNeedle");
   const roulette=$("upgradeRoulette");
-  const successSpan=pct/100*360;
+  const successSpan=pct/100*360; // grados amarillos (éxito)
+  const failSpan=Math.max(0,360-successSpan); // grados grises (fallo)
   const win=Math.random()*100<pct;
   const spins=7+Math.floor(Math.random()*3); // 7-9 vueltas
+  // Anillo: desde las 12, sentido horario → primero GRIS (fallo) failSpan°, luego AMARILLO (éxito) successSpan°
+  // Amarillo = zona [(failSpan) .. 360] en rotación de la aguja (0° = arriba, CW+)
   let finalDeg;
-  if(win)finalDeg=360*spins + Math.random()*Math.max(6,successSpan-3);
-  else finalDeg=360*spins + successSpan + 6 + Math.random()*Math.max(6,360-successSpan-12);
+  if(win){
+    const pad=Math.min(4,Math.max(1,successSpan*0.04));
+    finalDeg=360*spins + failSpan + pad + Math.random()*Math.max(2,successSpan-2*pad);
+  }else{
+    const pad=Math.min(4,Math.max(1,failSpan*0.04));
+    finalDeg=360*spins + pad + Math.random()*Math.max(2,failSpan-2*pad);
+  }
   // Reiniciar aguja sin transición, luego animar en el siguiente frame
   if(needle){
     needle.classList.remove("is-spinning");
@@ -2213,7 +2222,7 @@ function claimExchangeResult(){
 
 
 function refineChancePct(){return Math.min(100,20+Math.max(0,refineDustQty)*5)}
-function countDust(){return count("Polvo de refinadora")}
+function countDust(){return count("Polvo de Refinita")}
 function renderRefineMachine(){
   const inItem=refineInputId?state.inventory.find(i=>i.id===refineInputId):null;
   if(refineInputId&&!inItem){refineInputId=null}
@@ -2243,7 +2252,7 @@ function renderRefineMachine(){
   if(refinePending){
     const p=refinePending;
     if(out)out.innerHTML=`<span class="item-icon">${itemIconMarkup(p.name,info(p.name).icon)}</span> ${escapeHtml(p.name)}${p.qty>1?" ×"+p.qty:""}`;
-    if(tInfo)tInfo.textContent=p.ok?`Éxito · ${Math.max(1,Number(info(p.name).val)||1)} cr.`:`Fallo · Polvo de refinadora`;
+    if(tInfo)tInfo.textContent=p.ok?`Éxito · ${Math.max(1,Number(info(p.name).val)||1)} cr.`:`Fallo · Polvo de Refinita`;
     if(claim)claim.classList.remove("hidden");
   }else{
     if(out)out.textContent="— Esperando resultado —";
@@ -2277,11 +2286,11 @@ function startRefine(){
   if(isSynthesisItem(item)||isRefineDust(item))return toast("Objeto no válido para refinar.",true);
   const inVal=Math.max(1,Number(item.val)||Number(info(item.name).val)||1);
   const dustNeed=refineDustQty;
-  if(dustNeed>countDust())return toast("No tienes suficiente Polvo de refinadora.",true);
+  if(dustNeed>countDust())return toast("No tienes suficiente Polvo de Refinita.",true);
   const pct=refineChancePct();
   refineChanceLocked=pct;
   if(!removeItemById(item.id,1)){refineChanceLocked=null;return toast("Error al consumir la entrada.",true);}
-  if(dustNeed>0)take("Polvo de refinadora",dustNeed);
+  if(dustNeed>0)take("Polvo de Refinita",dustNeed);
   refineBusy=true;refineInputId=null;
   if($("refineBarFill"))$("refineBarFill").style.width="0%";
   if($("refineStatus"))$("refineStatus").textContent="Refinando…";
@@ -2303,8 +2312,8 @@ function startRefine(){
       const name=pool.length?pool[Math.floor(Math.random()*pool.length)].name:null;
       if(!name){
         // Si no existe un candidato registrado de mayor valor, se considera fallo:
-        // la recompensa es Polvo de refinadora, nunca un objeto no descubierto.
-        refinePending={ok:false,name:"Polvo de refinadora",qty:1};
+        // la recompensa es Polvo de Refinita, nunca un objeto no descubierto.
+        refinePending={ok:false,name:"Polvo de Refinita",qty:1};
       }else{
         state.achievements=state.achievements||{};state.achievements.refine_success=true;
         refinePending={ok:true,name,qty:1,sourceVal:inVal};
@@ -2313,9 +2322,9 @@ function startRefine(){
       if($("refineResult"))$("refineResult").innerHTML=refinePending.ok?`<span class="cyan">Éxito (${pct}%).</span> Reclama el resultado.`:`<span class="red">Sin objeto superior.</span> Polvo listo.`;
       sound(720,.15,"triangle");
     }else{
-      refinePending={ok:false,name:"Polvo de refinadora",qty:1};
+      refinePending={ok:false,name:"Polvo de Refinita",qty:1};
       if($("refineStatus"))$("refineStatus").textContent="Fallo · polvo listo";
-      if($("refineResult"))$("refineResult").innerHTML=`<span class="red">Fallo (${100-pct}%).</span> Obtienes <b>Polvo de refinadora</b>.`;
+      if($("refineResult"))$("refineResult").innerHTML=`<span class="red">Fallo (${100-pct}%).</span> Obtienes <b>Polvo de Refinita</b>.`;
       sound(140,.2,"sawtooth");
     }
     refineBusy=false;
@@ -2331,10 +2340,10 @@ function claimRefine(){
   // en Registro Base y conservar un valor superior al objeto consumido.
   if(p.ok){
     const allowed=getRefineryRegistryCandidates(p.sourceVal);
-    if(!allowed.some(item=>item.name===p.name))p={ok:false,name:"Polvo de refinadora",qty:1};
+    if(!allowed.some(item=>item.name===p.name))p={ok:false,name:"Polvo de Refinita",qty:1};
   }
   addItem(p.name,p.qty,{origin:"refinadora"});
-  toast(p.ok?`Refinado: ${p.name}`:`+${p.qty}× Polvo de refinadora`);
+  toast(p.ok?`Refinado: ${p.name}`:`+${p.qty}× Polvo de Refinita`);
   log(`Refinadora: ${p.ok?"éxito":"fallo"} → <b>${escapeHtml(p.name)}</b>.`);
   refinePending=null;refineTargetName=null;
   refineDustQty=0;refineChanceLocked=null;
@@ -2364,7 +2373,7 @@ const ASSISTANT_TEXT={
  explorar:"En Exploración eliges una zona desbloqueada según tu nivel de Operador. Gastas tiempo de expedición y obtienes botín del listado de esa zona. A veces hay combate: si ganas conservas el botín; si caes, lo pierdes. Sube de nivel para abrir zonas más peligrosas y rentables.",
  central:"La Central concentra la Mesa de creación (recetas con nivel), el Horno (lingotes), Solicitar suministros y el Envío de suministro. Fabrica solo lo que tengas desbloqueado. Los suministros dan un empujón diario de recursos básicos.",
  fusion:"La Máquina de fusión combina dos objetos propios. Puede crear materiales nuevos, equipos o, en el caso clave, anomalías. Es experimental: el resultado depende de lo que combines. Crear tu primera anomalía es un logro del operador.",
- nexus:"El Centro de máquinas tiene tres módulos activos: Máquina de Mejora (ruleta de riesgo entre objetos base), Intercambio (caja 1–10 unidades por un lote del registro) y Refinadora (subir de valor con riesgo y Polvo de refinadora). Usa solo objetos base descubiertos.",
+ nexus:"El Centro de máquinas tiene tres módulos activos: Máquina de Mejora (ruleta de riesgo entre objetos base), Intercambio (caja 1–10 unidades por un lote del registro) y Refinadora (subir de valor con riesgo y Polvo de Refinita). Usa solo objetos base descubiertos.",
  mercado:"El Mercado legal vende materiales, lingotes y recetas sensatas por nivel. El Mercado negro trafica órganos sueltos, armas balísticas y contrabando. El diario rota stock; el catálogo exige nivel de Operador.",
  clinica:"En la Clínica extraes órganos de criaturas orgánicas (riesgo de fallo) y puedes sintetizar engendros. Todo lo orgánico lleva rasgo ilegal y se mueve en el mercado negro.",
  equipo:"El inventario muestra todo lo que posees. Las armas, herramientas y equipos equipados quedan marcados y no puedes gastarlos hasta desequiparlos. Mira el origen de los materiales: si salen de una zona, verás su nombre.",
@@ -2479,7 +2488,7 @@ const ACHIEVEMENTS=[
  {id:"missions_25",name:"Logística del Colapso",desc:"Completa 25 misiones de entrega.",reward:200,check:s=>(s.missionHistory||[]).length>=25},
  {id:"smelt_5",name:"Fundidor",desc:"Funde 5 lingotes en el horno.",reward:60,check:s=>(s.stats?.smelted||0)>=5},
  {id:"craft_10",name:"Artesano de campo",desc:"Fabrica 10 objetos en la mesa de creación.",reward:90,check:s=>(s.stats?.crafted||0)>=10},
- {id:"refine_success",name:"Refinador",desc:"Completa un refinamiento exitoso en el Nexo.",reward:70,check:s=>!!s.achievements?.refine_success},
+ {id:"refine_success",name:"Refinador",desc:"Completa un refinamiento exitoso en el Centro.",reward:70,check:s=>!!s.achievements?.refine_success},
  {id:"upgrade_success",name:"Mejora arriesgada",desc:"Gana una tirada en la Máquina de Mejora.",reward:70,check:s=>!!s.achievements?.upgrade_success},
  {id:"black_buy",name:"Contrabando",desc:"Compra un objeto en el mercado negro.",reward:50,check:s=>!!s.achievements?.black_buy},
  {id:"full_equip",name:"Operador armado",desc:"Equipa arma, herramienta y equipo a la vez.",reward:110,check:s=>{const e=s.equipped||{};return !!(e.weapon&&e.tool&&e.armor)}}
@@ -2522,7 +2531,7 @@ function renderMissionsUI(){
    const prog=missionProgress(m);
    const can=prog.every(r=>r.ok);
    const reqHtml=prog.map(r=>`<span class="chip ${r.ok?"common":""}">${itemIconMarkup(r.name,info(r.name).icon)} ${escapeHtml(r.name)} ${r.have}/${r.qty}</span>`).join(" ");
-   return `<div class="mission-card"><h4>${escapeHtml(m.title)}</h4><div class="loot-chips">${reqHtml}</div><div class="statline" style="margin-top:8px"><span>Recompensa</span><span class="mission-reward">${m.reward} cr.</span></div><button class="primary" style="width:100%;margin-top:10px" data-mission-complete="${m.id}" ${can?"":"disabled"}>Entregar</button></div>`;
+   return `<div class="mission-card"><h4>${escapeHtml(m.title)}</h4><div class="loot-chips">${reqHtml}</div><div class="statline" style="margin-top:8px"><span>Recompensa</span><span class="mission-reward">${formatCredits(m.reward,14)}</span></div><button class="primary" style="width:100%;margin-top:10px" data-mission-complete="${m.id}" ${can?"":"disabled"}>Entregar</button></div>`;
  }).join("")||'<div class="empty">No hay misiones disponibles aún. Desbloquea zonas o recetas.</div>';
  box.querySelectorAll("[data-mission-complete]").forEach(b=>b.onclick=()=>completeMission(b.dataset.missionComplete));
  if($("missionsBadge"))$("missionsBadge").textContent=String(state.missions.length);
@@ -2534,7 +2543,7 @@ function renderAchievementsUI(){
  box.innerHTML=ACHIEVEMENTS.map(a=>{
    let ok=false;try{ok=a.check(state)}catch(_){}
    const claimed=!!state.achievements[a.id+"_claimed"];
-   return `<div class="ach-card ${claimed||ok?"done":""}"><h4>${escapeHtml(a.name)} ${claimed?"✓":ok?"●":""}</h4><p class="small-note">${escapeHtml(a.desc)}</p><div class="statline"><span>Recompensa</span><span class="ach-reward">${a.reward} cr.</span></div><button class="tiny" style="margin-top:8px" data-ach-claim="${a.id}" ${ok&&!claimed?"":"disabled"}>${claimed?"Reclamado":ok?"Reclamar":"Bloqueado"}</button></div>`;
+   return `<div class="ach-card ${claimed||ok?"done":""}"><h4>${escapeHtml(a.name)} ${claimed?"✓":ok?"●":""}</h4><p class="small-note">${escapeHtml(a.desc)}</p><div class="statline"><span>Recompensa</span><span class="ach-reward">${formatCredits(a.reward,14)}</span></div><button class="tiny" style="margin-top:8px" data-ach-claim="${a.id}" ${ok&&!claimed?"":"disabled"}>${claimed?"Reclamado":ok?"Reclamar":"Bloqueado"}</button></div>`;
  }).join("");
  box.querySelectorAll("[data-ach-claim]").forEach(b=>b.onclick=()=>claimAchievement(b.dataset.achClaim));
 }
@@ -2957,18 +2966,18 @@ function fusionOutcome(a,b){
  const weapon=[da.cat,db.cat].includes("Arma")||/espada|cuchillo|cañón|\bbate\b|colmillo|lanza|rifle/.test(text),tool=[da.cat,db.cat].includes("Herramienta"),gear=[da.cat,db.cat].includes("Equipo"),consumable=[da.cat,db.cat].includes("Consumible"),sameCat=da.cat===db.cat;let name,icon,cat,slot=null;
  const pools={
   plant:["Raíz prismática","Brote acorazado","Fibra viva","Coraza de savia","Jardín de espinas","Micelio soberano","Semilla de eclipse","Flor de ferrita","Enredadera cuántica","Espora de cristal","Corteza espectral","Pétalo de titanio","Núcleo fotosintético","Musgo abisal","Loto de plasma","Raíz de gravedad","Brote de obsidiana","Savia del vacío","Hiedra magnética","Coral terrestre","Trama micelar","Crisálida vegetal","Flor de tormenta","Médula botánica","Espina de neón","Polen dimensional","Rizoma errante","Copa de ceniza","Fronda reactiva","Semilla imposible"],
-  metal:["Aleación de impacto","Nexo de ferrita","Módulo calibrado","Placa de titanio","Acero de eclipse","Engranaje abisal","Armazón de obsidiana","Malla gravitatoria","Núcleo de tungsteno","Lámina espectral","Pistón de vacío","Aleación fantasma","Chasis de neón","Crisol de cobalto","Cerámica cinética","Bobina de iridio","Yunque dimensional","Blindaje de osmio","Trama de mercurio","Relé de titanio","Placa metamórfica","Armadura de ferrita","Matriz de aleación","Cobre de tormenta","Estructura singular","Nervio mecánico","Perno de eclipse","Bastidor cuántico","Carcasa de plasma","Metal de frontera"],
+  metal:["Aleación de impacto","Centro de ferrita","Módulo calibrado","Placa de titanio","Acero de eclipse","Engranaje abisal","Armazón de obsidiana","Malla gravitatoria","Núcleo de tungsteno","Lámina espectral","Pistón de vacío","Aleación fantasma","Chasis de neón","Crisol de cobalto","Cerámica cinética","Bobina de iridio","Yunque dimensional","Blindaje de osmio","Trama de mercurio","Relé de titanio","Placa metamórfica","Armadura de ferrita","Matriz de aleación","Cobre de tormenta","Estructura singular","Nervio mecánico","Perno de eclipse","Bastidor cuántico","Carcasa de plasma","Metal de frontera"],
   energy:["Núcleo resonante","Prisma de fase","Celda espectral","Bobina voltaica","Corazón de antimateria","Batería de eclipse","Condensador abisal","Orbe de taquiones","Cápsula de vacío","Cristal gravitatorio","Reactor de bolsillo","Pulso de neón","Geoda temporal","Dínamo fantasma","Matriz de plasma","Prisma de tormenta","Núcleo de singularidad","Célula de fotones","Bobina de horizonte","Cuarzo imposible","Acumulador cuántico","Esfera de entropía","Batería dimensional","Lente de radiancia","Cápsula de aurora","Cristal de marea","Reactor espectral","Nodo de energía oscura","Vórtice encapsulado","Fulgor mineral"],
-  creature:["Quimera errante","Vástago anómalo","Bestia sintética","Simbionte mutado","Acechador de fase","Coloso micelar","Cérbero espectral","Parásito soberano","Devorador de ecos","Híbrido de ceniza","Lince de neón","Hidra de ferrita","Centinela orgánico","Nómada abisal","Quimera de eclipse","Larva gravitatoria","Depredador fractal","Vigía parasitario","Gólem biológico","Mímico de vacío","Rastreador cuántico","Titán de esporas","Espectro carnívoro","Bestia de frontera","Nexo viviente","Mutante de cristal","Corredor dimensional","Simbionte de plasma","Cosechador silente","Aberración coronada"],
+  creature:["Quimera errante","Vástago anómalo","Bestia sintética","Simbionte mutado","Acechador de fase","Coloso micelar","Cérbero espectral","Parásito soberano","Devorador de ecos","Híbrido de ceniza","Lince de neón","Hidra de ferrita","Centinela orgánico","Nómada abisal","Quimera de eclipse","Larva gravitatoria","Depredador fractal","Vigía parasitario","Gólem biológico","Mímico de vacío","Rastreador cuántico","Titán de esporas","Espectro carnívoro","Bestia de frontera","Centro viviente","Mutante de cristal","Corredor dimensional","Simbionte de plasma","Cosechador silente","Aberración coronada"],
   weapon:["Cortavacío","Filo de resonancia","Impactador cinético","Disruptor de fase","Sable de eclipse","Lanza gravitatoria","Martillo de singularidad","Rifle espectral","Guadaña de neón","Cañón de tormenta","Púa dimensional","Hacha de plasma","Filo de obsidiana","Perforador cuántico","Arco de fotones","Espada de entropía","Látigo magnético","Punzón de vacío","Lanza de ferrita","Cortador abisal","Fusil de taquiones","Maza de horizonte","Hoja de antimateria","Bastón de tormenta","Aguja de eclipse","Disyuntor cinético","Filo parasitario","Cañón de aurora","Sable fractal","Martillo del umbral"],
   tool:["Extractor adaptativo","Sonda de prospección","Taladro resonante","Recolector de precisión","Pico de horizonte","Cortador de fase","Analizador abisal","Sifón de plasma","Broca gravitatoria","Lector de anomalías","Perforador de titanio","Sonda espectral","Cosechador micelar","Llave dimensional","Taladro de eclipse","Pinza magnética","Extractor fantasma","Módulo cartográfico","Cortador cuántico","Recolector de vacío","Bastón de sondeo","Sonda de entropía","Separador de isótopos","Rastreador mineral","Matriz de prospección","Cizalla de neón","Compás gravitatorio","Núcleo perforador","Escáner de frontera","Herramienta imposible"],
   gear:["Blindaje reactivo","Bastión adaptable","Manto de dispersión","Escudo de fase","Coraza de eclipse","Visor espectral","Traje de vacío","Égida gravitatoria","Peto de obsidiana","Capa de neón","Arnés dimensional","Malla de plasma","Yelmo de taquiones","Escudo de horizonte","Blindaje micelar","Manto de entropía","Cúpula cinética","Traje abisal","Visor de singularidad","Coraza fantasma","Bastión de ferrita","Escudo parasitario","Malla de antimateria","Capa de tormenta","Peto cuántico","Sello de frontera","Égida de cristal","Traje de eclipse","Blindaje de aurora","Armadura imposible"],
   consumable:["Catalizador de pulso","Inyector estabilizado","Carga de sobrepresión","Baliza reactiva","Suero de eclipse","Ampolla gravitatoria","Dosis de neón","Elixir de fase","Carga de taquiones","Antídoto espectral","Estimulante abisal","Vial de plasma","Catalizador micelar","Inyector de vacío","Baliza dimensional","Cápsula de entropía","Suero de frontera","Carga de antimateria","Ampolla de aurora","Dosis cuántica","Antídoto de esporas","Elixir de singularidad","Vial de tormenta","Estimulante de eclipse","Carga de horizonte","Catalizador fantasma","Inyector de fotones","Baliza de obsidiana","Suero imposible","Ampolla de cristal"],
   organ:["Corazón de convergencia","Hígado del umbral","Pulmón de fase","Riñón espectral","Cerebro de tráfico","Ojo del mercado","Médula ilegal","Glándula de contrabando","Nervio clandestino","Vesícula prohibida","Bazo de subasta","Tejido negro","Ganglio de calle","Cartílago de precio","Plasma de soborno","Retina del tratante","Timo de silencio","Páncreas de deuda","Tráquea de fuga","Intestino de red","Piel de camuflaje","Cuerno de amenaza","Saco de botín","Núcleo carnal","Membrana de trato","Fibras de lealtad","Médula de imperio","Glándula de miedo","Saco de oro negro","Adrenalina de caza","Corazón de cuartel","Hígado de ruta","Pulmón de sótano","Riñón de puerto","Cerebro de cartel","Ojo de vigía","Médula de cámara","Glándula de tortura","Nervio de interrogatorio","Vesícula de amenaza"],
-  other:["Artefacto de convergencia","Componente singular","Módulo de resonancia","Relé transmutador","Fragmento de eclipse","Ídolo de fase","Nexo de frontera","Reliquia de vacío","Prisma errante","Sello de entropía","Matriz imposible","Esquirla de horizonte","Cubo de taquiones","Orbe parasitario","Cifra dimensional","Eco mineral","Nódulo espectral","Cápsula de singularidad","Vestigio de plasma","Ancla gravitatoria","Fragmento de aurora","Dispositivo de obsidiana","Relicario cuántico","Pieza de antimateria","Símbolo abisal","Módulo de eclipse","Artefacto fractal","Nexo silente","Componente de tormenta","Vestigio imposible"]};
+  other:["Artefacto de convergencia","Componente singular","Módulo de resonancia","Relé transmutador","Fragmento de eclipse","Ídolo de fase","Centro de frontera","Reliquia de vacío","Prisma errante","Sello de entropía","Matriz imposible","Esquirla de horizonte","Cubo de taquiones","Orbe parasitario","Cifra dimensional","Eco mineral","Nódulo espectral","Cápsula de singularidad","Vestigio de plasma","Ancla gravitatoria","Fragmento de aurora","Dispositivo de obsidiana","Relicario cuántico","Pieza de antimateria","Símbolo abisal","Módulo de eclipse","Artefacto fractal","Centro silente","Componente de tormenta","Vestigio imposible"]};
  const choose=list=>list[Math.floor(Math.random()*list.length)];
  const epithets=["del Umbral","de la Aurora Negra","del Horizonte Roto","de Entropía","del Vacío Vivo","de la Marea Cuántica","del Eclipse","de la Frontera","de los Ecos","de Plasma Frío","de la Tormenta Silente","del Abismo","de la Última Luz","de Fase Inversa","de la Singularidad","de la Noche Magnética","del Jardín Muerto","de la Corona Rota","de la Gravedad","del Tiempo Quieto","de Cristal Oscuro","de la Aurora Roja","de la Dimensión Ciega","del Pulso Eterno","de la Ceniza Viva","del Laberinto","de la Estrella Muerta","de la Resonancia","del Parpadeo","de la Marea Negra","del Eco Perdido","de la Ruptura"];
- const prefixes=["Proto","Neo","Ultra","Hiper","Meta","Cero","Omega","Alfa","Delta","Sigma","Épsilon","Nexo","Vórtice","Umbral","Fase","Nómada","Soberano","Errante","Silente","Fractal","Fantasma","Radiante","Abisal","Parásito"];
+ const prefixes=["Proto","Neo","Ultra","Hiper","Meta","Cero","Omega","Alfa","Delta","Sigma","Épsilon","Centro","Vórtice","Umbral","Fase","Nómada","Soberano","Errante","Silente","Fractal","Fantasma","Radiante","Abisal","Parásito"];
  if(organish&&!(creature&&Math.random()<0.35)){name=choose(pools.organ);icon="🫀";cat="Órgano";}
  else if(creature){name=choose(pools.creature);icon=metal?"🤖":plant?"🧬":"🧟";cat="Criatura";}
  else if(weapon){name=choose(pools.weapon);icon=energy?"⚡":"⚔️";cat="Arma";slot="weapon";}
@@ -3008,9 +3017,9 @@ function fusionOutcome(a,b){
  const themes=[...new Set([...themesA,...themesB])];
  const namingFamilies={
   vegetal:{nouns:["Brote","Raíz","Savia","Micelio","Rizoma","Flor","Espora","Fronda","Semilla","Enredadera"],adjs:["Umbrío","Cristalino","Voltaico","Espectral","Simbiótico","Prismático","Abisal","Mutante","Radiante"]},
-  mineral:{nouns:["Prisma","Ferrita","Geoda","Cuarzo","Nexo","Aleación","Matriz","Fragmento","Nódulo","Cristal"],adjs:["Voltaico","Umbrío","Resonante","Fractal","Espectral","Gravitatorio","Prismático","Inestable"]},
+  mineral:{nouns:["Prisma","Ferrita","Geoda","Cuarzo","Centro","Aleación","Matriz","Fragmento","Nódulo","Cristal"],adjs:["Voltaico","Umbrío","Resonante","Fractal","Espectral","Gravitatorio","Prismático","Inestable"]},
   energia:{nouns:["Núcleo","Pulso","Bobina","Celda","Reactor","Prisma","Condensador","Matriz","Emisor","Lente"],adjs:["Voltaico","Cuántico","Espectral","Solar","Abisal","Resonante","Inestable","Singular"]},
-  anomalia:{nouns:["Eco","Umbral","Nexo","Paradoja","Vórtice","Singularidad","Distorsión","Vestigio","Eclipse","Ancla"],adjs:["Temporal","Fractal","Viviente","Espectral","Inverso","Abisal","Errante","Inestable"]},
+  anomalia:{nouns:["Eco","Umbral","Centro","Paradoja","Vórtice","Singularidad","Distorsión","Vestigio","Eclipse","Ancla"],adjs:["Temporal","Fractal","Viviente","Espectral","Inverso","Abisal","Errante","Inestable"]},
   biologico:{nouns:["Quimera","Simbionte","Vástago","Mímico","Crisálida","Coloso","Larva","Centinela","Híbrido","Acechador"],adjs:["Cristalino","Voltaico","Umbrío","Simbiótico","Espectral","Abisal","Mutante","Fractal"]},
   organico:{nouns:["Corazón","Hígado","Pulmón","Riñón","Cerebro","Ojo","Médula","Glándula","Nervio","Vesícula","Bazo","Tejido","Ganglio","Cartílago","Plasma","Retina","Saco","Membrana","Fibra","Núcleo"],adjs:["Ilegal","Clandestino","Prohibido","Anómalo","Irradiado","Umbrío","Mutante","Abisal","Espectral","Toxicado","Crimson","Viviente","Residual","Oscuro","Corruptido","Sintético","Primario","Secreto","Negro","Sangriento"]},
   combate:{nouns:["Filo","Sable","Lanza","Martillo","Cortavacío","Disruptor","Guadaña","Impactador","Cañón","Ruptor"],adjs:["Resonante","Voltaico","Cuántico","Espectral","Gravitatorio","Umbrío","Fractal","Singular"]},
@@ -3128,7 +3137,7 @@ function fusionOutcome(a,b){
  const fusionDepth=Math.max(Number(a.fusionDepth)||0,Number(b.fusionDepth)||0)+(isSynthesisItem(a)||isSynthesisItem(b)?1:0);
  let proceduralName=name;
  if(fusionDepth>0){
-  const cores=["Eco","Nexo","Vórtice","Prisma","Matriz","Quimera","Umbral","Singularidad","Rizoma","Fulgor","Esquirla","Paradoja","Crisálida","Fragmento","Simbionte","Ancla","Mímico","Reactor","Trama","Eclipse","Nódulo","Espectro","Horizonte","Cifra","Loto","Cortavacío"];
+  const cores=["Eco","Centro","Vórtice","Prisma","Matriz","Quimera","Umbral","Singularidad","Rizoma","Fulgor","Esquirla","Paradoja","Crisálida","Fragmento","Simbionte","Ancla","Mímico","Reactor","Trama","Eclipse","Nódulo","Espectro","Horizonte","Cifra","Loto","Cortavacío"];
   const modifiers=["Errante","Fractal","Inverso","Soberano","Mutante","Resonante","Inestable","Espectral","Abisal","Cuántico","Viviente","Radiante","Silente","Imposible","de Fase","del Umbral","de Entropía","del Vacío"];
   const seedText=[a.name,b.name,Date.now(),Math.random(),fusionDepth].join("|");
   let hash=2166136261;for(const ch of seedText){hash^=ch.charCodeAt(0);hash=Math.imul(hash,16777619)}hash>>>=0;
@@ -3159,7 +3168,7 @@ function fusionOutcome(a,b){
  if(cat==="Herramienta"){out.gather=Math.max(5,Math.round(r*7+(Number(a.gather)||0)*.2+(Number(b.gather)||0)*.2+Math.random()*r*2));out.damage=Math.round(r*2+Math.random()*r);out.secondaryTrait=choose(["Extracción fina","Agarre adaptativo","Lectura mineral","Corte limpio"]);}
  if(cat==="Equipo"){out.defense=Math.max(3,Math.round(r*6+(Number(a.defense)||0)*.25+(Number(b.defense)||0)*.25+Math.random()*r*2));out.secondaryTrait=choose(["Blindaje reactivo","Disipación térmica","Sello hermético","Malla cinética"]);}
  if(cat==="Criatura"){out.abilities=rollCompanionAbilities(r);out.ability=out.abilities[0];out.companion=true;}
- if(r>=3&&Math.random()<Math.min(.42,.12+r*.055)){cat="Anomalía";out.cat=cat;out.name=["Nexo de Singularidad","Umbral Espectral","Eco Temporal","Vórtice Fractal","Paradoja Cuántica","Eclipse Viviente","Marea Anómala","Prisma del Vacío"][stableHash(sourceKey+"::anomaly")%8];out.icon="🧬";const passives=[["Daño",`+${2+r*2} daño pasivo`],["Defensa",`+${r*2} defensa pasiva`],["Recolección",`+${r*5}% de recolección`],["Suerte",`+${r*3}% de hallazgos`],["Créditos",`+${r*2}% de créditos`],["Captura",`+${r*2}% de captura`]];const passive=passives[Math.floor(Math.random()*passives.length)];out.passive={type:passive[0],value:passive[1]};out.slot=null;out.desc=synthesisDescription("Anomalía");out.val+=20;}
+ if(r>=3&&Math.random()<Math.min(.42,.12+r*.055)){cat="Anomalía";out.cat=cat;out.name=["Centro de Singularidad","Umbral Espectral","Eco Temporal","Vórtice Fractal","Paradoja Cuántica","Eclipse Viviente","Marea Anómala","Prisma del Vacío"][stableHash(sourceKey+"::anomaly")%8];out.icon="🧬";const passives=[["Daño",`+${2+r*2} daño pasivo`],["Defensa",`+${r*2} defensa pasiva`],["Recolección",`+${r*5}% de recolección`],["Suerte",`+${r*3}% de hallazgos`],["Créditos",`+${r*2}% de créditos`],["Captura",`+${r*2}% de captura`]];const passive=passives[Math.floor(Math.random()*passives.length)];out.passive={type:passive[0],value:passive[1]};out.slot=null;out.desc=synthesisDescription("Anomalía");out.val+=20;}
  return out;
 }
 function doFuse(){if(activeTask||state.pendingFusion)return;if(!state.fusionSlots)return;const a=state.inventory.find(x=>x.id===state.fusionSlots?.A),b=state.inventory.find(x=>x.id===state.fusionSlots?.B);if(!a||!b)return toast("Selecciona dos objetos antes de fusionar.",true);if(a.id===b.id&&a.qty<2)return toast("Necesitas dos unidades si eliges el mismo objeto.",true);const aa={...a},bb={...b};beginTask("fusion",10000,()=>{if(aa.id===bb.id){takeById(aa.id,2)}else{takeById(aa.id,1);takeById(bb.id,1)}const out={...fusionOutcome(aa,bb),sourceA:aa.name,sourceB:bb.name,origin:"síntesis",trait:"Síntesis de convergencia",affix:"Síntesis de convergencia",unique:true};saveSynthesisVariant(out);/* No reemplazar el valor de esta fusión por el de una variante anterior con el mismo nombre: cada resultado conserva su propio valor calculado. */itemDB[out.name]=out;state.discovered=state.discovered||{};state.discovered[out.name]={...out,name:out.name};if(!state.seen.includes(out.name))state.seen.push(out.name);state.fusions++;xp(20);state.pendingFusion={a:aa.name,b:bb.name,out,createdAt:Date.now()};state.history.unshift({a:aa.name,b:bb.name,out:out.name,r:out.r,icon:out.icon});state.history=state.history.slice(0,3);log(`Fusión lista para reclamar: <b>${aa.name}</b> + <b>${bb.name}</b>.`);toast("Fusión terminada. Reclama el objeto para guardarlo.");render();save()}, {panel:$('fusionProgress'),bar:$('fusionBar'),percent:$('fusionPercent'),status:null,button:$('fuseBtn')});renderFusionSelects()}
@@ -3178,7 +3187,7 @@ function makeProceduralLoot(packId){
   {cat:"Arma",heads:["Filo","Lanza","Disruptor","Maza","Cañón","Sable"],tails:["de neón","de fase","resonante","de obsidiana","compacto","de plasma"],icons:["⚔️","🔫","🗡️"]},
   {cat:"Equipo",heads:["Blindaje","Visor","Peto","Escudo","Traje","Manto"],tails:["reactivo","de titanio","de fase","aislante","de esporas","de neón"],icons:["🛡️","🪖","🧥"]},
   {cat:"Consumible",heads:["Inyector","Catalizador","Baliza","Carga","Antídoto","Estimulante"],tails:["de campo","reforzado","anómalo","compacto","industrial","de fase"],icons:["🧪","🔋","📡"]},
-  {cat:"Anomalía",heads:["Eco","Umbral","Vórtice","Nexo","Latido","Paradoja"],tails:["errante","resonante","fracturado","parasitario","silente","inverso"],icons:["🧬","🔮","⚡"]}
+  {cat:"Anomalía",heads:["Eco","Umbral","Vórtice","Centro","Latido","Paradoja"],tails:["errante","resonante","fracturado","parasitario","silente","inverso"],icons:["🧬","🔮","⚡"]}
  ];
  const available=packId==="field"?families.filter(f=>["Material","Herramienta","Consumible"].includes(f.cat)):packId==="black"?families.filter(f=>f.cat!=="Consumible"):families;
  const f=available[Math.floor(Math.random()*available.length)],name=`${f.heads[Math.floor(Math.random()*f.heads.length)]} ${f.tails[Math.floor(Math.random()*f.tails.length)]}`;
@@ -3504,7 +3513,7 @@ if($("blackSaleSelectAll"))$("blackSaleSelectAll").onclick=()=>{const equipped=n
 if($("blackSaleClear"))$("blackSaleClear").onclick=()=>{blackSaleSelection={};renderBlackMarket()};
 if($("blackSaleSubmit"))$("blackSaleSubmit").onclick=sellBlackSelection;
 $("pickerPrev").onclick=()=>{pickerPage--;renderPicker()};$("pickerNext").onclick=()=>{pickerPage++;renderPicker()};
-// Nexo / Máquina de Mejora
+// Centro / Máquina de Mejora
 document.querySelectorAll("[data-nexus-tab]").forEach(b=>b.onclick=()=>{
   if(b.disabled)return;
   document.querySelectorAll("[data-nexus-tab]").forEach(x=>x.classList.toggle("active",x===b));

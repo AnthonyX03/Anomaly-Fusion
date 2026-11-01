@@ -719,8 +719,8 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 .upgrade-roulette-success{position:absolute;inset:0;border-radius:50%;background:
   conic-gradient(from -90deg,
     #2a3d48 0deg,
-    #2a3d48 calc(360deg - var(--success-deg,0deg)),
-    #ffe14a calc(360deg - var(--success-deg,0deg)),
+    #2a3d48 calc(360deg - var(--success-deg, 0deg)),
+    #ffe14a calc(360deg - var(--success-deg, 0deg)),
     #ffe14a 360deg
   );
   -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 14px),#000 calc(100% - 13px));
@@ -730,6 +730,21 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 .upgrade-roulette-needle{position:absolute;left:50%;top:50%;width:4px;height:38%;margin-left:-2px;margin-top:-38%;background:#f5c542;border-radius:1px;transform-origin:50% 100%;transform:rotate(0deg);box-shadow:none;z-index:2;will-change:transform;transition:none}
 .upgrade-roulette-needle.is-spinning{}
 .upgrade-roulette-needle::before{content:"";position:absolute;left:50%;top:-7px;width:0;height:0;margin-left:-6px;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:10px solid #f5c542;box-shadow:none}
+.exchange-summary-box{margin:12px 0;padding:14px;border:1px solid #2a3d48;border-radius:12px;background:linear-gradient(180deg,#101820,#0c1218);box-shadow:inset 0 0 0 1px #1a283022}
+.exchange-summary-box .statline{margin:0;padding:6px 0}
+.exchange-summary-box .statline+ .statline{border-top:1px solid var(--line)}
+/* Scrollbars estilo HUD */
+.hud-scroll,.assistant-chat,#missionsList,#achievementsList,#exchangeResultBody,.exchange-result-list,.sort-options,#pickerFilterOptions{
+  scrollbar-width:thin;scrollbar-color:#2a4a52 #0c1218}
+.hud-scroll::-webkit-scrollbar,.assistant-chat::-webkit-scrollbar,#missionsList::-webkit-scrollbar,#achievementsList::-webkit-scrollbar,#pickerFilterOptions::-webkit-scrollbar,.sort-options::-webkit-scrollbar{
+  width:8px;height:8px}
+.hud-scroll::-webkit-scrollbar-track,.assistant-chat::-webkit-scrollbar-track,#missionsList::-webkit-scrollbar-track,#achievementsList::-webkit-scrollbar-track,#pickerFilterOptions::-webkit-scrollbar-track,.sort-options::-webkit-scrollbar-track{
+  background:#0c1218;border-radius:8px}
+.hud-scroll::-webkit-scrollbar-thumb,.assistant-chat::-webkit-scrollbar-thumb,#missionsList::-webkit-scrollbar-thumb,#achievementsList::-webkit-scrollbar-thumb,#pickerFilterOptions::-webkit-scrollbar-thumb,.sort-options::-webkit-scrollbar-thumb{
+  background:#2a4a52;border-radius:8px;border:2px solid #0c1218}
+.hud-scroll::-webkit-scrollbar-thumb:hover,.assistant-chat::-webkit-scrollbar-thumb:hover,#missionsList::-webkit-scrollbar-thumb:hover,#achievementsList::-webkit-scrollbar-thumb:hover,#pickerFilterOptions::-webkit-scrollbar-thumb:hover,.sort-options::-webkit-scrollbar-thumb:hover{
+  background:#3a6a72}
+#pickerFilterOptions{max-height:min(50vh,280px);overflow:auto}
 .exchange-box-list{display:flex;flex-direction:column;gap:8px;max-height:280px;overflow:auto;margin-top:10px}
 .exchange-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:#0c1117}
 .exchange-row small{display:block;color:var(--muted);margin-top:2px}
@@ -1170,8 +1185,10 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   <div class="panel">
    <h3>▦ MÁQUINA DE INTERCAMBIO</h3>
    <p class="small-note">Introduce entre <b>1 y 10</b> objetos base (iguales o distintos) en la caja. Al cerrarla recibes un lote aleatorio del <b>Registro Base</b> cuyo valor ronda el 50%, el 100% o el 150% de lo entregado. Animación y reclamación obligatoria.</p>
-   <div class="statline"><span>Unidades en caja</span><b id="exchangeBoxCount">0/10</b></div>
-   <div class="statline"><span>Valor de la caja</span><b class="gold" id="exchangeBoxValue">0</b></div>
+   <div class="exchange-summary-box">
+    <div class="statline"><span>Unidades en caja</span><b id="exchangeBoxCount">0/10</b></div>
+    <div class="statline"><span>Valor de la caja</span><b class="gold" id="exchangeBoxValue">0</b></div>
+   </div>
    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
     <button type="button" class="primary" id="exchangeAddBtn">＋ Añadir objeto</button>
     <button type="button" class="tiny" id="exchangeClearBtn">Vaciar caja</button>
@@ -1184,7 +1201,7 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
  <div class="nexus-section" id="nexus-mod3">
   <div class="panel">
    <h3>⚗ MÁQUINA REFINADORA</h3>
-   <p class="small-note">Entrega un objeto base. El proceso dura 5 s y puede devolver un objeto aleatorio del Registro Base de mayor valor, o fallar y generar <b>Polvo de refinadora</b> (1 cr.). Éxito base 20%. Cada unidad de polvo suma +5% (hasta 100%) y se consume al refinar.</p>
+   <p class="small-note">Entrega un objeto base. El proceso dura 5 s y puede devolver un objeto aleatorio del Registro Base de mayor valor, o fallar y generar <b>Polvo de Refinita</b> (1 cr.). Éxito base 20%. Cada unidad de polvo suma +5% (hasta 100%) y se consume al refinar.</p>
    <div class="refine-layout">
     <div>
      <div class="eyebrow">ENTRADA</div>
@@ -1208,7 +1225,7 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
     </div>
    </div>
    <div class="refine-dust-box">
-    <div class="eyebrow">POLVO DE REFINADORA · +5% por unidad</div>
+    <div class="eyebrow">POLVO DE REFINITA · +5% por unidad</div>
     <div class="statline"><span>En inventario</span><b id="refineDustInv">0</b></div>
     <div class="statline"><span>Unidades a usar</span><b id="refineDustUse">0</b></div>
     <div class="qty-stepper" style="margin-top:10px">
@@ -1362,7 +1379,7 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 <div class="modal-backdrop hidden assistant-modal" id="assistantModal" role="dialog" aria-modal="true">
  <div class="modal">
   <div class="modal-head"><div style="display:flex;align-items:center;gap:12px"><div class="assistant-avatar" id="assistantAvatar">◈</div><div><h3>ASISTENTE AF</h3><small class="muted">Guía del operador</small></div></div><button class="tiny" id="closeAssistant">✕</button></div>
-  <div class="assistant-chat" id="assistantChat"></div>
+  <div class="assistant-chat" id="assistantChat" class="hud-scroll"></div>
   <div class="assistant-topics" id="assistantTopics"></div>
  </div>
 </div>
@@ -1370,14 +1387,14 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
  <div class="modal" style="max-width:480px">
   <div class="modal-head"><h3>▣ MISIONES</h3><button class="tiny" id="closeMissions">✕</button></div>
   <p class="small-note">Entregas procedurales. Solo piden objetos de zonas y recetas que ya tienes desbloqueadas. Recompensa: valor de los objetos + 25%.</p>
-  <div id="missionsList"></div>
+  <div id="missionsList" class="hud-scroll"></div>
  </div>
 </div>
 <div class="modal-backdrop hidden achievements-modal" id="achievementsModal" role="dialog" aria-modal="true">
  <div class="modal" style="max-width:480px">
   <div class="modal-head"><h3>★ LOGROS</h3><button class="tiny" id="closeAchievements">✕</button></div>
   <p class="small-note">Hitos difíciles. Cada uno otorga créditos al completarlo.</p>
-  <div id="achievementsList"></div>
+  <div id="achievementsList" class="hud-scroll"></div>
  </div>
 </div>
 
