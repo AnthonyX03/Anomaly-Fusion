@@ -1359,7 +1359,7 @@ body.layout-mobile .sidebar{
    <div id="extractUnitArea" style="margin-top:16px;display:flex;flex-direction:column;align-items:center;gap:16px;width:100%;">
     <div class="slot" id="extractSlot" style="width:280px;max-width:calc(100% - 8px);min-height:120px;margin:0;box-sizing:border-box;"><div class="slot-icon" id="extractSlotIcon">＋</div><b id="extractSlotLabel">Sin criatura</b><div class="slot-actions"><button class="tiny" id="chooseExtractCreature">Elegir criatura</button><button class="tiny hidden" id="clearExtractCreature">Retirar</button></div></div>
     <div id="extractOrganChoices" style="width:280px;max-width:calc(100% - 8px);box-sizing:border-box;"></div>
-   </div><div class="pagination" id="extractOrgansPager" style="margin-top:10px"><button class="tiny" id="extractOrgansPrev">← Anterior</button><span class="muted" id="extractOrgansPageInfo">Página 1</span><button class="tiny" id="extractOrgansNext">Siguiente →</button></div>
+   </div><div class="pagination hidden" id="extractOrgansPager" style="margin-top:10px"><button class="tiny" id="extractOrgansPrev">← Anterior</button><span class="muted" id="extractOrgansPageInfo">Página 1</span><button class="tiny" id="extractOrgansNext">Siguiente →</button></div>
    <div class="bar-wrap hidden" id="extractProgress" style="margin-top:12px"><div class="bar-label"><b class="cyan">Extrayendo...</b><span id="extractPercent">0%</span></div><div class="meter progress"><span id="extractBar"></span></div></div>
    <button class="danger" id="extractStartBtn" style="width:100%;margin-top:12px" disabled>⚗ Iniciar extracción · 10 s</button>
    <p class="small-note" id="extractMessage" style="margin-top:10px">Cada órgano tiene un <b>% de éxito</b> según su nivel y cuántos intentes a la vez. Las <b>Pinzas</b> equipadas mejoran la tasa. La criatura se consume siempre. Los órganos llevan rasgo <b>Ilegal</b>.</p>
@@ -1399,7 +1399,7 @@ body.layout-mobile .sidebar{
     <div class="slot" id="dismantleSlot" style="width:280px;max-width:calc(100% - 8px);min-height:120px;margin:0;box-sizing:border-box;"><div class="slot-icon" id="dismantleSlotIcon">＋</div><b id="dismantleSlotLabel">Sin unidad</b><div class="slot-actions"><button class="tiny" id="chooseDismantleRobot">Elegir robot</button><button class="tiny hidden" id="clearDismantleRobot">Retirar</button></div></div>
     <div id="dismantlePieceChoices" style="width:280px;max-width:calc(100% - 8px);box-sizing:border-box;"></div>
    </div>
-   <div class="pagination" id="dismantlePiecesPager" style="margin-top:10px"><button class="tiny" id="dismantlePiecesPrev">← Anterior</button><span class="muted" id="dismantlePiecesPageInfo">Página 1</span><button class="tiny" id="dismantlePiecesNext">Siguiente →</button></div>
+   <div class="pagination hidden" id="dismantlePiecesPager" style="margin-top:10px"><button class="tiny" id="dismantlePiecesPrev">← Anterior</button><span class="muted" id="dismantlePiecesPageInfo">Página 1</span><button class="tiny" id="dismantlePiecesNext">Siguiente →</button></div>
    <div class="bar-wrap hidden" id="dismantleProgress" style="margin-top:12px"><div class="bar-label"><b class="cyan">Desmontando...</b><span id="dismantlePercent">0%</span></div><div class="meter progress"><span id="dismantleBar"></span></div></div>
    <button class="primary" id="dismantleStartBtn" style="width:100%;margin-top:12px" disabled>Iniciar desmontaje · 10 s</button>
    <p class="small-note" id="dismantleMessage" style="margin-top:10px">Cada pieza tiene un <b>% de éxito</b> según nivel y cantidad. El destornillador mejora la tasa. La unidad se consume siempre.</p>
@@ -1469,7 +1469,7 @@ body.layout-mobile .sidebar{
    </div>
    <div class="inventory-controls" id="marketBlackBuyFilters" style="margin-top:10px">
     <button class="active" data-market-bbuy-filter="Todos">Todos</button>
-    <button data-market-bbuy-filter="Órgano">Órganos</button><button type="button" data-inv-filter="Pieza">Piezas</button><button type="button" data-inv-filter="Pieza">Piezas</button>
+    <button data-market-bbuy-filter="Órgano">Órganos</button>
     <button data-market-bbuy-filter="Arma">Armas balísticas</button>
     <button data-market-bbuy-filter="Contrabando">Contrabando</button>
    </div>
@@ -1518,7 +1518,7 @@ body.layout-mobile .sidebar{
 
 <section class="page" id="page-inventory">
  <div class="page-head"><div><div class="eyebrow">SISTEMA 09 / ARCHIVO</div><h2>Inventario</h2><p>Consulta, filtra y ordena tus objetos por categoría, nivel, procedencia y valor base. Las pilas de distinta procedencia se mantienen separadas y la lista se divide en páginas.</p></div><span class="tag" id="inventoryCountTag">0 OBJETOS</span></div>
- <div class="panel"><div class="inventory-controls" id="categoryFilters"><button class="active" data-filter="Todos">Todos</button><button data-filter="Material">Materiales</button><button data-filter="Lingote">Lingotes</button><button data-filter="Herramienta">Herramientas</button><button data-filter="Arma">Armas</button><button data-filter="Equipo">Equipo</button><button data-filter="Consumible">Consumibles</button><button data-filter="Criatura">Criaturas</button><button data-filter="Órgano">Órganos</button><button type="button" data-inv-filter="Pieza">Piezas</button><button type="button" data-inv-filter="Pieza">Piezas</button><button data-filter="Anomalía">Anomalías</button><button data-filter="Contrabando">Contrabando</button><button data-filter="Otro">Otros</button><button data-filter="Síntesis">Síntesis</button></div>
+ <div class="panel"><div class="inventory-controls" id="categoryFilters"><button class="active" data-filter="Todos">Todos</button><button data-filter="Material">Materiales</button><button data-filter="Lingote">Lingotes</button><button data-filter="Herramienta">Herramientas</button><button data-filter="Arma">Armas</button><button data-filter="Equipo">Equipo</button><button data-filter="Consumible">Consumibles</button><button data-filter="Criatura">Criaturas</button><button data-filter="Órgano">Órganos</button><button data-filter="Pieza">Piezas</button><button data-filter="Anomalía">Anomalías</button><button data-filter="Contrabando">Contrabando</button><button data-filter="Otro">Otros</button><button data-filter="Síntesis">Síntesis</button></div>
  <div class="toolbar" style="margin-bottom:14px"><input id="inventorySearch" placeholder="Buscar en el inventario..." aria-label="Buscar"><div class="sort-menu" data-sort-menu="inventory"><button class="sort-trigger" id="sortInventoryTrigger" aria-haspopup="listbox" aria-expanded="false"><span>Ordenar: <span class="sort-current" id="sortInventoryLabel">Nivel: mayor primero</span></span><span aria-hidden="true">⌄</span></button><div class="sort-options hidden" id="sortInventoryOptions" role="listbox" aria-label="Orden del inventario"><button type="button" data-sort-target="inventory" data-sort-value="rarity" aria-selected="true">Nivel: mayor primero</button><button type="button" data-sort-target="inventory" data-sort-value="name" aria-selected="false">Nombre A-Z</button><button type="button" data-sort-target="inventory" data-sort-value="value" aria-selected="false">Valor: mayor primero</button></div></div></div>
  <div class="grid four" id="inventoryGrid"></div><div class="pagination"><button class="tiny" id="prevPage">← Anterior</button><span id="pageInfo">Página 1</span><button class="tiny" id="nextPage">Siguiente →</button></div></div>
 </section>
@@ -1538,7 +1538,8 @@ body.layout-mobile .sidebar{
    <button data-registry-filter="Equipo">Equipo</button>
    <button data-registry-filter="Consumible">Consumibles</button>
    <button data-registry-filter="Criatura">Criaturas</button>
-   <button data-registry-filter="Órgano">Órganos</button><button type="button" data-inv-filter="Pieza">Piezas</button><button type="button" data-inv-filter="Pieza">Piezas</button>
+   <button data-registry-filter="Órgano">Órganos</button>
+   <button data-registry-filter="Pieza">Piezas</button>
    <button data-registry-filter="Anomalía">Anomalías</button>
    <button data-registry-filter="Contrabando">Contrabando</button>
    <button data-registry-filter="Otro">Otros</button>
@@ -1733,7 +1734,6 @@ body.layout-mobile .sidebar{
   </div>
  </div>
 </section>
-<div class="footer-note">ANOMALY FUSION // NOTHING IS EVER JUST ONE THING</div>
 
 <section class="page" id="page-nexus">
  <div class="page-head"><div><div class="eyebrow">SISTEMA 07 / CONVERSIÓN</div><h2>Centro</h2><p>Centro de máquinas. Mejora, Intercambio, Refinadora, Recicladora, Desguazadora y módulos en construcción.</p></div><span class="tag">8 MÓDULOS</span></div>
@@ -1921,6 +1921,8 @@ body.layout-mobile .sidebar{
 
 </section>
 
+
+<div class="footer-note">ANOMALY FUSION // NOTHING IS EVER JUST ONE THING</div>
 </main></div>
 <nav class="mobile-nav">
  <div class="mobile-nav-groups">
@@ -1947,7 +1949,7 @@ body.layout-mobile .sidebar{
  </div>
 </nav>
 <div class="toast-area" id="toastArea"></div>
-<div class="modal-backdrop hidden" id="inventoryPicker"><div class="modal"><div class="modal-head"><h3 id="pickerTitle">▤ INVENTARIO</h3><button class="tiny" id="closePicker">✕</button></div><p class="small-note" id="pickerDescription">Selecciona un objeto.</p><div class="toolbar"><input id="pickerSearch" placeholder="Buscar objeto..." aria-label="Buscar objeto"><div class="sort-menu hidden" id="pickerFilterMenu"><button type="button" class="sort-trigger" id="pickerFilterTrigger" aria-haspopup="listbox" aria-expanded="false"><span>Filtro: <span class="sort-current" id="pickerFilterLabel">Todos</span></span><span aria-hidden="true">⌄</span></button><div class="sort-options hidden" id="pickerFilterOptions" role="listbox" aria-label="Filtrar objetos de fusión"><button type="button" data-picker-filter="Todos" aria-selected="true">Todos</button><button type="button" data-picker-filter="Material" aria-selected="false">Materiales</button><button type="button" data-picker-filter="Lingote" aria-selected="false">Lingotes</button><button type="button" data-picker-filter="Herramienta" aria-selected="false">Herramientas</button><button type="button" data-picker-filter="Arma" aria-selected="false">Armas</button><button type="button" data-picker-filter="Equipo" aria-selected="false">Equipo</button><button type="button" data-picker-filter="Consumible" aria-selected="false">Consumibles</button><button type="button" data-picker-filter="Criatura" aria-selected="false">Criaturas</button><button type="button" data-picker-filter="Órgano" aria-selected="false">Órganos</button><button type="button" data-inv-filter="Pieza">Piezas</button><button type="button" data-picker-filter="Anomalía" aria-selected="false">Anomalías</button><button type="button" data-picker-filter="Contrabando" aria-selected="false">Contrabando</button><button type="button" data-picker-filter="Otro" aria-selected="false">Otros</button><button type="button" data-picker-filter="Síntesis" aria-selected="false">Síntesis</button></div></div></div><div class="picker-grid" id="pickerGrid"></div><div class="pagination"><button class="tiny" id="pickerPrev">← Anterior</button><span id="pickerPageInfo">Página 1</span><button class="tiny" id="pickerNext">Siguiente →</button></div></div></div>
+<div class="modal-backdrop hidden" id="inventoryPicker"><div class="modal"><div class="modal-head"><h3 id="pickerTitle">▤ INVENTARIO</h3><button class="tiny" id="closePicker">✕</button></div><p class="small-note" id="pickerDescription">Selecciona un objeto.</p><div class="toolbar"><input id="pickerSearch" placeholder="Buscar objeto..." aria-label="Buscar objeto"><div class="sort-menu hidden" id="pickerFilterMenu"><button type="button" class="sort-trigger" id="pickerFilterTrigger" aria-haspopup="listbox" aria-expanded="false"><span>Filtro: <span class="sort-current" id="pickerFilterLabel">Todos</span></span><span aria-hidden="true">⌄</span></button><div class="sort-options hidden" id="pickerFilterOptions" role="listbox" aria-label="Filtrar objetos de fusión"><button type="button" data-picker-filter="Todos" aria-selected="true">Todos</button><button type="button" data-picker-filter="Material" aria-selected="false">Materiales</button><button type="button" data-picker-filter="Lingote" aria-selected="false">Lingotes</button><button type="button" data-picker-filter="Herramienta" aria-selected="false">Herramientas</button><button type="button" data-picker-filter="Arma" aria-selected="false">Armas</button><button type="button" data-picker-filter="Equipo" aria-selected="false">Equipo</button><button type="button" data-picker-filter="Consumible" aria-selected="false">Consumibles</button><button type="button" data-picker-filter="Criatura" aria-selected="false">Criaturas</button><button type="button" data-picker-filter="Órgano" aria-selected="false">Órganos</button><button type="button" data-picker-filter="Pieza" aria-selected="false">Piezas</button><button type="button" data-picker-filter="Anomalía" aria-selected="false">Anomalías</button><button type="button" data-picker-filter="Contrabando" aria-selected="false">Contrabando</button><button type="button" data-picker-filter="Otro" aria-selected="false">Otros</button><button type="button" data-picker-filter="Síntesis" aria-selected="false">Síntesis</button></div></div></div><div class="picker-grid" id="pickerGrid"></div><div class="pagination"><button class="tiny" id="pickerPrev">← Anterior</button><span id="pickerPageInfo">Página 1</span><button class="tiny" id="pickerNext">Siguiente →</button></div></div></div>
 <div class="modal-backdrop hidden" id="inventoryDetailModal"><div class="modal inventory-detail-modal"><div class="modal-head"><h3 id="inventoryDetailTitle">DETALLES DEL OBJETO</h3><button class="tiny" id="closeInventoryDetail" aria-label="Cerrar detalles">✕</button></div><div id="inventoryDetailBody"></div></div></div>
 <div class="modal-backdrop hidden" id="registryModal"><div class="modal"><div class="modal-head"><h3 id="registryModalTitle">REGISTRO DE OBJETO</h3><button class="tiny" id="closeRegistry">✕</button></div><div id="registryModalBody"></div></div></div>
 <div class="modal-backdrop hidden" id="settingsModal"><div class="modal"><div class="modal-head"><h3>⚙ AJUSTES DEL SISTEMA</h3><button class="tiny" id="closeSettings">✕</button></div>

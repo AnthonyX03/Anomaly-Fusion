@@ -3229,7 +3229,7 @@ function renderDismantleTable(){
  const pages=Math.max(1,Math.ceil(opts.length/pageSize));
  dismantlePiecesPage=Math.min(Math.max(1,dismantlePiecesPage||1),pages);
  const shown=opts.slice((dismantlePiecesPage-1)*pageSize,dismantlePiecesPage*pageSize);
- if($("dismantlePiecesPager")){$("dismantlePiecesPager").classList.toggle("is-single",opts.length<=pageSize);$("dismantlePiecesPager").classList.remove("hidden");}
+ if($("dismantlePiecesPager")){if(pages<=1)$("dismantlePiecesPager").classList.add("hidden");else{$("dismantlePiecesPager").classList.remove("hidden");$("dismantlePiecesPager").classList.toggle("is-single",opts.length<=pageSize);}}
  if($("dismantlePiecesPageInfo"))$("dismantlePiecesPageInfo").textContent=`Página ${dismantlePiecesPage} / ${pages}`;
  if($("dismantlePiecesPrev"))$("dismantlePiecesPrev").disabled=dismantlePiecesPage<=1;
  if($("dismantlePiecesNext"))$("dismantlePiecesNext").disabled=dismantlePiecesPage>=pages;
@@ -4373,7 +4373,7 @@ function renderExtractTable(){
  if(icon)icon.innerHTML=itemIconMarkup(x.name,x.icon||info(x.name).icon);
  if(label)label.textContent=inventoryDisplayName(x)+" · N"+(x.r||1);
  if(isRoboticCreature(x)){
-  host.classList.remove('has-choices');host.innerHTML='<div class="empty">Esta unidad es mecánica/robótica: no tiene órganos extraíbles.</div>';
+  host.classList.remove('has-choices');host.innerHTML='<div class="empty" style="width:100%;text-align:center;box-sizing:border-box">Esta unidad es mecánica/robótica: no tiene órganos extraíbles.</div>';if($("extractOrgansPager"))$("extractOrgansPager").classList.add("hidden");
   if(btn)btn.disabled=true;
   if($("extractOrgansPager"))$("extractOrgansPager").classList.add("hidden");
   return;
@@ -4394,7 +4394,7 @@ function renderExtractTable(){
  const pages=Math.max(1,Math.ceil(opts.length/pageSize));
  extractOrgansPage=Math.min(Math.max(1,extractOrgansPage||1),pages);
  const shown=opts.slice((extractOrgansPage-1)*pageSize,extractOrgansPage*pageSize);
- if($("extractOrgansPager")){$("extractOrgansPager").classList.toggle("is-single",opts.length<=pageSize);$("extractOrgansPager").classList.remove("hidden");}
+ if($("extractOrgansPager")){if(pages<=1)$("extractOrgansPager").classList.add("hidden");else{$("extractOrgansPager").classList.remove("hidden");$("extractOrgansPager").classList.toggle("is-single",opts.length<=pageSize);}}
  if($("extractOrgansPageInfo"))$("extractOrgansPageInfo").textContent=`Página ${extractOrgansPage} / ${pages}`;
  if($("extractOrgansPrev"))$("extractOrgansPrev").disabled=extractOrgansPage<=1;
  if($("extractOrgansNext"))$("extractOrgansNext").disabled=extractOrgansPage>=pages;
