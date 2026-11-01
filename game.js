@@ -3209,7 +3209,7 @@ function renderDismantleTable(){
  if(!x){
   if(icon)icon.innerHTML="＋";
   if(label)label.textContent="Sin unidad";
-  host.classList.remove('has-choices');if($('dismantleStack'))$('dismantleStack').classList.remove('has-choices');host.innerHTML='<div class="empty">Elige una criatura robótica del inventario.</div>';
+  host.classList.remove('has-choices');if($('dismantleUnitArea'))$('dismantleUnitArea').classList.remove('has-choices');host.classList.remove('has-choices');if($('dismantleUnitArea'))$('dismantleUnitArea').classList.remove('has-choices');host.style.width='280px';host.style.display='block';host.innerHTML='<div class="empty" style="width:100%;box-sizing:border-box;margin:0;text-align:center;">Elige una criatura robótica del inventario.</div>';
   if(btn)btn.disabled=true;
   if($("dismantlePiecesPager"))$("dismantlePiecesPager").classList.add("hidden");
   return;
@@ -3447,6 +3447,24 @@ function claimScrap(){
 
 
 
+
+function applyHudCursors(){
+  try{
+    const finger='url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'32\' height=\'32\' viewBox=\'0 0 32 32\'%3E%3Cpath d=\'M12 28V14.5c0-1 .8-1.8 1.8-1.8s1.8.8 1.8 1.8V18h1.2V11c0-1 .8-1.8 1.8-1.8s1.8.8 1.8 1.8v5.5h1.2V12c0-1 .8-1.8 1.8-1.8s1.8.8 1.8 1.8v8.2c0 4.2-2.4 7.8-7.2 7.8H14c-1.1 0-2-.9-2-2z\' fill=\'%230d1a22\' stroke=\'%2353f2d1\' stroke-width=\'1.6\' stroke-linejoin=\'round\'/%3E%3Cpath d=\'M12 14.2V8.5c0-1.1.9-2 2-2s2 .9 2 2v5.7\' fill=\'none\' stroke=\'%2353f2d1\' stroke-width=\'1.6\'/%3E%3C/svg%3E") 10 4, pointer';
+    document.querySelectorAll("input[type=range],#soundVolume,.settings-volume,.sidebar-scroll,aside.sidebar .sidebar-scroll").forEach(el=>{
+      el.style.setProperty("cursor", finger, "important");
+    });
+    // WebKit range thumb
+    const st=document.getElementById("hud-cursor-style");
+    if(!st){
+      const s=document.createElement("style");
+      s.id="hud-cursor-style";
+      s.textContent=`input[type=range],input[type=range]::-webkit-slider-thumb,input[type=range]::-moz-range-thumb,.sidebar-scroll{cursor:${finger} !important;}`;
+      document.head.appendChild(s);
+    }
+  }catch(e){}
+}
+
 function fixSidebarScroll(){
   try{
     const sb=document.querySelector("aside.sidebar");
@@ -3472,6 +3490,7 @@ function fixSidebarScroll(){
     sc.style.setProperty("scrollbar-width", "thin", "important");
     sc.style.setProperty("scrollbar-color", "#2ec4b0 #0a1218", "important");
     sc.style.colorScheme = "dark";
+    try{applyHudCursors()}catch(e){}
   }catch(e){console.warn("fixSidebarScroll",e)}
 }
 
@@ -4344,7 +4363,7 @@ function renderExtractTable(){
  if(!x){
   if(icon)icon.innerHTML="＋";
   if(label)label.textContent="Sin criatura";
-  host.classList.remove('has-choices');($('extractStack')||{}).classList&&$('extractStack').classList.remove('has-choices');host.innerHTML='<div class="empty">Elige una criatura orgánica del inventario.</div>';
+  host.classList.remove('has-choices');if($('extractUnitArea'))$('extractUnitArea').classList.remove('has-choices');host.classList.remove('has-choices');if($('extractUnitArea'))$('extractUnitArea').classList.remove('has-choices');host.style.width='280px';host.style.display='block';host.innerHTML='<div class="empty" style="width:100%;box-sizing:border-box;margin:0;text-align:center;">Elige una criatura orgánica del inventario.</div>';
   if(btn)btn.disabled=true;
   if($("extractOrgansPager"))$("extractOrgansPager").classList.add("hidden");
   return;
@@ -4377,7 +4396,7 @@ function renderExtractTable(){
  if($("extractOrgansPageInfo"))$("extractOrgansPageInfo").textContent=`Página ${extractOrgansPage} / ${pages}`;
  if($("extractOrgansPrev"))$("extractOrgansPrev").disabled=extractOrgansPage<=1;
  if($("extractOrgansNext"))$("extractOrgansNext").disabled=extractOrgansPage>=pages;
- host.classList.add('has-choices');if($('extractStack'))$('extractStack').classList.add('has-choices');
+ host.classList.add('has-choices');if($('extractUnitArea'))$('extractUnitArea').classList.add('has-choices');host.style.width='min(720px,100%)';host.style.display='grid';
 host.innerHTML=shown.map(name=>{
   const on=!!extractSelected[name];
   const ic=itemIconMarkup(name,info(name).icon||"🫀");
@@ -4769,7 +4788,7 @@ function migrateOrganVariants(){
  Object.values(state.discovered||{}).forEach(it=>{if(it&&it.cat==="Órgano")saveOrganVariant(it)});
 }
 function init(){ensureSkillPointsFromLevel();
- try{fixSidebarScroll();window.addEventListener("resize",fixSidebarScroll);window.addEventListener("orientationchange",fixSidebarScroll);}catch(e){}
+ try{applyHudCursors();fixSidebarScroll();window.addEventListener("resize",()=>{fixSidebarScroll();applyHudCursors()});window.addEventListener("orientationchange",fixSidebarScroll);}catch(e){}
 
  try{bindCasinoUI()}catch(e){console.warn(e)}
 
