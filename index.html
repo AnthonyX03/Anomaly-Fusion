@@ -879,6 +879,16 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 .paytable-row .sym{font-size:1.3rem;width:2rem;text-align:center}
 .paytable-row b{color:#ffe14a}
 .prize-box-list{display:flex;flex-direction:column;gap:8px;max-height:280px;overflow:a
+
+.hud-icon{display:inline-block;vertical-align:middle;flex-shrink:0}
+.skill-title{display:flex;align-items:center;gap:8px;margin:0;font-size:.92rem}
+.skill-req{display:flex;align-items:center;gap:6px}
+.place-ico{display:flex;align-items:center;justify-content:flex-start;min-height:32px}
+.slot-cell .hud-icon{width:1.6em;height:1.6em}
+.slot-result-icons{display:inline-flex;gap:4px;vertical-align:middle}
+.paytable-row .sym{display:flex;width:2rem;justify-content:center}
+.paytable-row .sym .hud-icon{width:24px;height:24px}
+.lock-tag{display:inline-flex;align-items:center;gap:4px}
 </style>
 </head>
 <body>
@@ -1236,15 +1246,15 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
     <div class="panel casino-machine">
      <h3>SLOT · CRÉDITOS</h3>
      <div class="slot-grid" id="slotMoneyGrid" aria-label="Rodillos de crédito">
-      <div class="slot-cell" data-r="0" data-c="0">❓</div>
-      <div class="slot-cell" data-r="0" data-c="1">❓</div>
-      <div class="slot-cell" data-r="0" data-c="2">❓</div>
-      <div class="slot-cell payline" data-r="1" data-c="0">❓</div>
-      <div class="slot-cell payline" data-r="1" data-c="1">❓</div>
-      <div class="slot-cell payline" data-r="1" data-c="2">❓</div>
-      <div class="slot-cell" data-r="2" data-c="0">❓</div>
-      <div class="slot-cell" data-r="2" data-c="1">❓</div>
-      <div class="slot-cell" data-r="2" data-c="2">❓</div>
+      <div class="slot-cell" data-r="0" data-c="0"></div>
+      <div class="slot-cell" data-r="0" data-c="1"></div>
+      <div class="slot-cell" data-r="0" data-c="2"></div>
+      <div class="slot-cell payline" data-r="1" data-c="0"></div>
+      <div class="slot-cell payline" data-r="1" data-c="1"></div>
+      <div class="slot-cell payline" data-r="1" data-c="2"></div>
+      <div class="slot-cell" data-r="2" data-c="0"></div>
+      <div class="slot-cell" data-r="2" data-c="1"></div>
+      <div class="slot-cell" data-r="2" data-c="2"></div>
      </div>
      <div class="slot-bet-box">
       <div class="eyebrow">APUESTA</div>
@@ -1279,15 +1289,15 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
     <div class="panel casino-machine">
      <h3>SLOT · OBJETOS</h3>
      <div class="slot-grid" id="slotItemGrid" aria-label="Rodillos de objetos">
-      <div class="slot-cell" data-r="0" data-c="0">❓</div>
-      <div class="slot-cell" data-r="0" data-c="1">❓</div>
-      <div class="slot-cell" data-r="0" data-c="2">❓</div>
-      <div class="slot-cell payline" data-r="1" data-c="0">❓</div>
-      <div class="slot-cell payline" data-r="1" data-c="1">❓</div>
-      <div class="slot-cell payline" data-r="1" data-c="2">❓</div>
-      <div class="slot-cell" data-r="2" data-c="0">❓</div>
-      <div class="slot-cell" data-r="2" data-c="1">❓</div>
-      <div class="slot-cell" data-r="2" data-c="2">❓</div>
+      <div class="slot-cell" data-r="0" data-c="0"></div>
+      <div class="slot-cell" data-r="0" data-c="1"></div>
+      <div class="slot-cell" data-r="0" data-c="2"></div>
+      <div class="slot-cell payline" data-r="1" data-c="0"></div>
+      <div class="slot-cell payline" data-r="1" data-c="1"></div>
+      <div class="slot-cell payline" data-r="1" data-c="2"></div>
+      <div class="slot-cell" data-r="2" data-c="0"></div>
+      <div class="slot-cell" data-r="2" data-c="1"></div>
+      <div class="slot-cell" data-r="2" data-c="2"></div>
      </div>
      <div class="slot-bet-box">
       <div class="eyebrow">APUESTA (CRÉDITOS)</div>

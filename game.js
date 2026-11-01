@@ -1089,6 +1089,44 @@ function marketRequiredLevel(item){
 }
 
 function formatCredits(amount,size=14){return `${creditsIconMarkup(size)}<span class="credits-amount">${Number(amount||0).toLocaleString("es-ES")}</span>`;}
+
+function hudIconMarkup(kind,size=22){
+ const s=Number(size)||22;
+ const common=`class="hud-icon" width="${s}" height="${s}" viewBox="0 0 64 64" aria-hidden="true" focusable="false"`;
+ const stroke='#53f2d1', mute='#7a9aa8', gold='#f5c542', red='#ff6b7a', blue='#6ec8ff', purple='#c18bff';
+ const icons={
+  // skills
+  explore_speed:`<svg ${common}><circle cx="32" cy="32" r="22" fill="none" stroke="${stroke}" stroke-width="3"/><path d="M32 18v16l10 6" fill="none" stroke="${gold}" stroke-width="3.5" stroke-linecap="round"/></svg>`,
+  base_damage:`<svg ${common}><path d="M38 8l10 10-22 30-12 4 4-12z" fill="none" stroke="${red}" stroke-width="3" stroke-linejoin="round"/><path d="M14 50l8-8" stroke="${mute}" stroke-width="3" stroke-linecap="round"/></svg>`,
+  base_defense:`<svg ${common}><path d="M32 8l20 8v14c0 14-8 22-20 26C20 52 12 44 12 30V16z" fill="none" stroke="${blue}" stroke-width="3"/><path d="M24 32l6 6 12-14" fill="none" stroke="${stroke}" stroke-width="3" stroke-linecap="round"/></svg>`,
+  loot_boost:`<svg ${common}><rect x="14" y="22" width="36" height="28" rx="4" fill="none" stroke="${gold}" stroke-width="3"/><path d="M14 30h36M26 22v-4h12v4" fill="none" stroke="${mute}" stroke-width="3"/></svg>`,
+  findings:`<svg ${common}><circle cx="28" cy="28" r="14" fill="none" stroke="${stroke}" stroke-width="3"/><path d="M38 38l12 12" stroke="${gold}" stroke-width="4" stroke-linecap="round"/><circle cx="28" cy="28" r="4" fill="${stroke}"/></svg>`,
+  extract_skill:`<svg ${common}><path d="M20 12h8l4 12 8-8 6 6-12 10 4 18h-8l-2-12-10 6z" fill="none" stroke="${stroke}" stroke-width="2.8" stroke-linejoin="round"/></svg>`,
+  iron_lungs:`<svg ${common}><path d="M18 28c0-8 6-14 14-14s14 6 14 14c0 12-8 20-14 28-6-8-14-16-14-28z" fill="none" stroke="${red}" stroke-width="3"/><path d="M26 30h12M28 36h8" stroke="${mute}" stroke-width="2.5" stroke-linecap="round"/></svg>`,
+  combat_endurance:`<svg ${common}><path d="M20 40c4-16 8-24 12-28 4 4 8 12 12 28" fill="none" stroke="${gold}" stroke-width="3" stroke-linecap="round"/><path d="M16 40h32" stroke="${mute}" stroke-width="3" stroke-linecap="round"/></svg>`,
+  anomaly_affinity:`<svg ${common}><circle cx="32" cy="32" r="10" fill="none" stroke="${purple}" stroke-width="3"/><path d="M32 8v10M32 46v10M8 32h10M46 32h10M14 14l8 8M42 42l8 8M50 14l-8 8M22 42l-8 8" stroke="${stroke}" stroke-width="2.5" stroke-linecap="round"/></svg>`,
+  steady_hands:`<svg ${common}><circle cx="32" cy="32" r="20" fill="none" stroke="${mute}" stroke-width="2"/><circle cx="32" cy="32" r="12" fill="none" stroke="${stroke}" stroke-width="2"/><circle cx="32" cy="32" r="3" fill="${gold}"/><path d="M32 8v6M32 50v6M8 32h6M50 32h6" stroke="${gold}" stroke-width="2.5"/></svg>`,
+  pack_mule:`<svg ${common}><path d="M16 28h32l4 24H12z" fill="none" stroke="${gold}" stroke-width="3" stroke-linejoin="round"/><path d="M24 28v-6c0-4 4-8 8-8s8 4 8 8v6" fill="none" stroke="${mute}" stroke-width="3"/></svg>`,
+  scout:`<svg ${common}><path d="M8 40c8-16 16-24 24-24s16 8 24 24" fill="none" stroke="${stroke}" stroke-width="3"/><circle cx="32" cy="28" r="6" fill="none" stroke="${gold}" stroke-width="2.5"/><path d="M12 48h40" stroke="${mute}" stroke-width="3" stroke-linecap="round"/></svg>`,
+  survivor:`<svg ${common}><path d="M32 52s-18-10-18-24c0-8 6-12 12-12 4 0 6 2 6 2s2-2 6-2c6 0 12 4 12 12 0 14-18 24-18 24z" fill="none" stroke="${red}" stroke-width="3"/></svg>`,
+  craft_speed:`<svg ${common}><path d="M12 40l12-20h16l12 20z" fill="none" stroke="${gold}" stroke-width="3"/><path d="M32 20v28M24 36h16" stroke="${stroke}" stroke-width="2.5" stroke-linecap="round"/></svg>`,
+  smelt_master:`<svg ${common}><rect x="18" y="28" width="28" height="22" rx="2" fill="none" stroke="${mute}" stroke-width="3"/><path d="M24 28v-8h16v8M28 40h8" stroke="${gold}" stroke-width="3" stroke-linecap="round"/></svg>`,
+  // city / casino
+  casino:`<svg ${common}><rect x="12" y="16" width="40" height="32" rx="4" fill="none" stroke="${gold}" stroke-width="3"/><circle cx="24" cy="32" r="5" fill="${stroke}"/><circle cx="40" cy="32" r="5" fill="${red}"/><path d="M20 48h24" stroke="${mute}" stroke-width="3"/></svg>`,
+  lock:`<svg ${common}><rect x="18" y="28" width="28" height="22" rx="3" fill="none" stroke="${mute}" stroke-width="3"/><path d="M24 28v-6c0-5 3-10 8-10s8 5 8 10v6" fill="none" stroke="${stroke}" stroke-width="3"/><circle cx="32" cy="40" r="3" fill="${gold}"/></svg>`,
+  chip:`<svg ${common}><circle cx="32" cy="32" r="22" fill="none" stroke="${gold}" stroke-width="3"/><circle cx="32" cy="32" r="14" fill="none" stroke="${stroke}" stroke-width="2"/><path d="M32 12v6M32 46v6M12 32h6M46 32h6" stroke="${gold}" stroke-width="3"/></svg>`,
+  coin:`<svg ${common}><circle cx="32" cy="32" r="20" fill="none" stroke="${gold}" stroke-width="3"/><path d="M32 18v28M24 24h12c4 0 6 2 6 5s-2 5-6 5H24" fill="none" stroke="${gold}" stroke-width="3"/></svg>`,
+  gem:`<svg ${common}><path d="M32 8l16 16-16 32L16 24z" fill="none" stroke="${blue}" stroke-width="3" stroke-linejoin="round"/><path d="M16 24h32" stroke="${stroke}" stroke-width="2"/></svg>`,
+  crown:`<svg ${common}><path d="M10 44h44L48 22l-10 8-6-14-6 14-10-8z" fill="none" stroke="${gold}" stroke-width="3" stroke-linejoin="round"/><path d="M14 44h36" stroke="${mute}" stroke-width="3"/></svg>`,
+  seven:`<svg ${common}><path d="M18 16h28l-16 36" fill="none" stroke="${red}" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  star:`<svg ${common}><path d="M32 8l5 16h17l-14 10 5 17-13-9-13 9 5-17-14-10h17z" fill="none" stroke="${gold}" stroke-width="2.8" stroke-linejoin="round"/></svg>`,
+  jackpot:`<svg ${common}><circle cx="32" cy="32" r="20" fill="none" stroke="${gold}" stroke-width="3"/><path d="M32 14v36M14 32h36M20 20l24 24M44 20L20 44" stroke="${stroke}" stroke-width="2.5"/></svg>`,
+  fail:`<svg ${common}><path d="M18 18l28 28M46 18L18 46" stroke="${red}" stroke-width="5" stroke-linecap="round"/></svg>`,
+  question:`<svg ${common}><circle cx="32" cy="32" r="22" fill="none" stroke="${mute}" stroke-width="3"/><path d="M24 24c0-6 4-10 8-10s8 4 8 10c0 4-3 6-6 8-2 1-2 2-2 4" fill="none" stroke="${stroke}" stroke-width="3" stroke-linecap="round"/><circle cx="32" cy="46" r="2.5" fill="${stroke}"/></svg>`
+ };
+ return icons[kind]||icons.question;
+}
+
 function creditsIconMarkup(size=18){
  return `<svg class="credits-icon" width="${size}" height="${size}" viewBox="0 0 64 64" aria-hidden="true" focusable="false"><circle cx="32" cy="32" r="28" fill="#f5c542" stroke="#c49212" stroke-width="3"/><circle cx="32" cy="32" r="20" fill="none" stroke="#ffe08a" stroke-width="2"/><path d="M32 16v32M24 24h12c4 0 7 2.5 7 6s-3 6-7 6H24" fill="none" stroke="#8a6410" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 }
@@ -1640,21 +1678,21 @@ const zoneUnlockLevels={forest:1,mine:1,scrapyard:1,swamp:4,quarry:6,bunker:8,gl
 function operatorRank(level=state.level){if(level>=50)return "Singularidad viviente";if(level>=47)return "Nexo trascendente";if(level>=43)return "Arquitecto de convergencia";if(level>=39)return "Soberano de anomalías";if(level>=35)return "Custodio del umbral";if(level>=31)return "Estratega del vacío";if(level>=27)return "Maestro de expedición";if(level>=20)return "Vanguardia anómala";if(level>=16)return "Comandante de campo";if(level>=12)return "Especialista de ruptura";if(level>=9)return "Veterano de expedición";if(level>=6)return "Técnico de anomalías";if(level>=4)return "Explorador avanzado";if(level>=2)return "Operador de campo";return "Recluta de campo"}
 
 const OPERATOR_SKILLS=[
- {id:"explore_speed",name:"Paso ligero",icon:"⏱",desc:"Reduce el tiempo de cada exploración.",max:5,unlockLevel:1,effect:"−1 s por nivel (mín. 5 s)",perLevel:{exploreTime:-1}},
- {id:"base_damage",name:"Golpe firme",icon:"⚔",desc:"Aumenta el daño base del operador.",max:5,unlockLevel:1,effect:"+2 daño por nivel",perLevel:{damage:2}},
- {id:"base_defense",name:"Piel dura",icon:"🛡",desc:"Aumenta la defensa base del operador.",max:5,unlockLevel:2,effect:"+1 defensa por nivel",perLevel:{defense:1}},
- {id:"loot_boost",name:"Ojo de carroñero",icon:"📦",desc:"Más potencia de recolección en expediciones.",max:5,unlockLevel:3,effect:"+6% recolección por nivel",perLevel:{gather:6}},
- {id:"findings",name:"Sensor anómalo",icon:"📡",desc:"Mejora la bonificación de hallazgos.",max:4,unlockLevel:4,effect:"+4% hallazgos por nivel",perLevel:{luck:4}},
- {id:"xp_boost",name:"Aprendizaje rápido",icon:"📈",desc:"Ganas más experiencia en todas las acciones.",max:3,unlockLevel:5,effect:"+8% XP por nivel",perLevel:{experience:8}},
- {id:"extract_skill",name:"Mano firme",icon:"⚕",desc:"Mejora el éxito de extracción de órganos.",max:3,unlockLevel:6,effect:"+5% extracción por nivel",perLevel:{extract:5}},
- {id:"iron_lungs",name:"Pulmón de campo",icon:"🫁",desc:"Más integridad máxima en combates de exploración.",max:4,unlockLevel:7,effect:"+4 HP de combate por nivel",perLevel:{combatHp:4}},
- {id:"combat_endurance",name:"Resistencia de campo",icon:"💪",desc:"Impulso de combate de élite.",max:2,unlockLevel:9,effect:"+3 defensa y +2 daño por nivel",perLevel:{defense:3,damage:2}},
- {id:"anomaly_affinity",name:"Afinidad anómala",icon:"🧬",desc:"Más probabilidades de hallar anomalías en campo.",max:3,unlockLevel:10,effect:"+3% anomalía por nivel",perLevel:{anomalyFind:3}},
- {id:"steady_hands",name:"Manos firmes",icon:"🎯",desc:"Mejor precisión: más daño crítico en combate.",max:3,unlockLevel:11,effect:"+3% crítico por nivel",perLevel:{crit:3}},
- {id:"pack_mule",name:"Mula de carga",icon:"🎒",desc:"Más botín secundario en expediciones.",max:3,unlockLevel:12,effect:"+5% chance de botín extra por nivel",perLevel:{loot:5}},
- {id:"scout",name:"Explorador nato",icon:"🗺",desc:"Desbloquea visión de riesgo: menos encuentros hostiles.",max:2,unlockLevel:14,effect:"−4% contacto hostil por nivel",perLevel:{enemyAvoid:4}},
- {id:"fusion_insight",name:"Insight de fusión",icon:"⟁",desc:"Más XP al completar fusiones.",max:2,unlockLevel:15,effect:"+10% XP de fusión por nivel",perLevel:{fusionXp:10}},
- {id:"survivor",name:"Superviviente",icon:"❤",desc:"Último recurso: bonus único de defensa y recolección.",max:1,unlockLevel:18,effect:"+6 defensa y +8% recolección",perLevel:{defense:6,gather:8}}
+ {id:"explore_speed",name:"Paso ligero",iconKey:"explore_speed",desc:"Reduce el tiempo de cada exploración.",max:5,unlockLevel:1,effect:"−1 s por nivel (mín. 5 s)",perLevel:{exploreTime:-1}},
+ {id:"base_damage",name:"Golpe firme",iconKey:"base_damage",desc:"Aumenta el daño base del operador.",max:5,unlockLevel:1,effect:"+2 daño por nivel",perLevel:{damage:2}},
+ {id:"base_defense",name:"Piel dura",iconKey:"base_defense",desc:"Aumenta la defensa base del operador.",max:5,unlockLevel:2,effect:"+1 defensa por nivel",perLevel:{defense:1}},
+ {id:"loot_boost",name:"Ojo de carroñero",iconKey:"loot_boost",desc:"Más potencia de recolección en expediciones.",max:5,unlockLevel:3,effect:"+6% recolección por nivel",perLevel:{gather:6}},
+ {id:"findings",name:"Sensor anómalo",iconKey:"findings",desc:"Mejora la bonificación de hallazgos.",max:4,unlockLevel:4,effect:"+4% hallazgos por nivel",perLevel:{luck:4}},
+ {id:"craft_speed",name:"Taller ágil",iconKey:"craft_speed",desc:"Reduce el tiempo de fabricación en la mesa.",max:3,unlockLevel:5,effect:"−1 s de craft por nivel (mín. 5 s)",perLevel:{craftTime:-1}},
+ {id:"extract_skill",name:"Mano firme",iconKey:"extract_skill",desc:"Mejora el éxito de extracción de órganos.",max:3,unlockLevel:6,effect:"+5% extracción por nivel",perLevel:{extract:5}},
+ {id:"iron_lungs",name:"Pulmón de campo",iconKey:"iron_lungs",desc:"Más integridad máxima en combates de exploración.",max:4,unlockLevel:7,effect:"+4 HP de combate por nivel",perLevel:{combatHp:4}},
+ {id:"smelt_master",name:"Maestro del crisol",iconKey:"smelt_master",desc:"Reduce el tiempo de fundición en el horno.",max:2,unlockLevel:8,effect:"−2 s de fundición por nivel (mín. 4 s)",perLevel:{smeltTime:-2}},
+ {id:"combat_endurance",name:"Resistencia de campo",iconKey:"combat_endurance",desc:"Impulso de combate de élite.",max:2,unlockLevel:9,effect:"+3 defensa y +2 daño por nivel",perLevel:{defense:3,damage:2}},
+ {id:"anomaly_affinity",name:"Afinidad anómala",iconKey:"anomaly_affinity",desc:"Más probabilidades de hallar anomalías en campo.",max:3,unlockLevel:10,effect:"+3% anomalía por nivel",perLevel:{anomalyFind:3}},
+ {id:"steady_hands",name:"Manos firmes",iconKey:"steady_hands",desc:"Mejor precisión: más daño crítico en combate.",max:3,unlockLevel:11,effect:"+3% crítico por nivel",perLevel:{crit:3}},
+ {id:"pack_mule",name:"Mula de carga",iconKey:"pack_mule",desc:"Más botín secundario en expediciones.",max:3,unlockLevel:12,effect:"+5% chance de botín extra por nivel",perLevel:{loot:5}},
+ {id:"scout",name:"Explorador nato",iconKey:"scout",desc:"Menos encuentros hostiles en expediciones.",max:2,unlockLevel:14,effect:"−4% contacto hostil por nivel",perLevel:{enemyAvoid:4}},
+ {id:"survivor",name:"Superviviente",iconKey:"survivor",desc:"Último recurso: bonus único de defensa y recolección.",max:1,unlockLevel:18,effect:"+6 defensa y +8% recolección",perLevel:{defense:6,gather:8}}
 ];
 
 function ensureSkillPointsFromLevel(){
@@ -1714,10 +1752,10 @@ function renderSkills(){
   const maxed=cur>=sk.max;
   const can=(!locked)&&(!maxed)&&(state.skillPoints>0);
   return `<div class="skill-card ${locked?"locked":""}">
-   <div class="skill-head"><h4>${sk.icon||""} ${escapeHtml(sk.name)}</h4><span class="skill-lvl">N${cur}/${sk.max}</span></div>
+   <div class="skill-head"><h4 class="skill-title">${hudIconMarkup(sk.iconKey||sk.id,20)}<span>${escapeHtml(sk.name)}</span></h4><span class="skill-lvl">N${cur}/${sk.max}</span></div>
    <p>${escapeHtml(sk.desc)}</p>
    <div class="skill-effect">${escapeHtml(sk.effect||"")}</div>
-   ${locked?`<div class="skill-req">🔒 Requiere Operador N${sk.unlockLevel}</div>`:""}
+   ${locked?`<div class="skill-req">${hudIconMarkup("lock",12)} Requiere Operador N${sk.unlockLevel}</div>`:""}
    <div class="skill-actions">
     <button type="button" class="tiny primary" data-skill-up="${sk.id}" ${can?"":"disabled"}>${maxed?"Máximo":"Mejorar · 1 pt"}</button>
    </div>
@@ -2683,30 +2721,30 @@ function removeItemById(id,qty){
 
 // === CIUDAD · CASINO ===
 const CITY_PLACES=[
- {id:"casino",name:"El Casino",icon:"🎰",desc:"Mesas de azar y slots. Créditos y objetos en juego.",unlocked:true},
- {id:"lugar_b",name:"Lugar B",icon:"🔒",desc:"Distrito sellado. Acceso restringido.",unlocked:false,req:"Bloqueado"},
- {id:"lugar_c",name:"Lugar C",icon:"🔒",desc:"Distrito sellado. Acceso restringido.",unlocked:false,req:"Bloqueado"},
- {id:"lugar_d",name:"Lugar D",icon:"🔒",desc:"Distrito sellado. Acceso restringido.",unlocked:false,req:"Bloqueado"},
- {id:"lugar_e",name:"Lugar E",icon:"🔒",desc:"Distrito sellado. Acceso restringido.",unlocked:false,req:"Bloqueado"}
+ {id:"casino",name:"El Casino",iconKey:"casino",desc:"Mesas de azar y slots. Créditos y objetos en juego.",unlocked:true},
+ {id:"lugar_b",name:"Lugar B",iconKey:"lock",desc:"Distrito sellado. Acceso restringido.",unlocked:false,req:"Bloqueado"},
+ {id:"lugar_c",name:"Lugar C",iconKey:"lock",desc:"Distrito sellado. Acceso restringido.",unlocked:false,req:"Bloqueado"},
+ {id:"lugar_d",name:"Lugar D",iconKey:"lock",desc:"Distrito sellado. Acceso restringido.",unlocked:false,req:"Bloqueado"},
+ {id:"lugar_e",name:"Lugar E",iconKey:"lock",desc:"Distrito sellado. Acceso restringido.",unlocked:false,req:"Bloqueado"}
 ];
 const SLOT_MONEY_SYMBOLS=[
- {id:"chip",icon:"🪙",name:"Ficha",mult:2,weight:28},
- {id:"coin",icon:"💰",name:"Bolsa",mult:3,weight:22},
- {id:"gem",icon:"💎",name:"Gema",mult:5,weight:16},
- {id:"crown",icon:"👑",name:"Corona",mult:8,weight:10},
- {id:"seven",icon:"7️⃣",name:"Siete",mult:12,weight:7},
- {id:"star",icon:"⭐",name:"Estrella",mult:20,weight:4},
- {id:"jackpot",icon:"🌟",name:"Jackpot",mult:50,weight:1}
+ {id:"chip",iconKey:"chip",name:"Ficha",mult:2,weight:28},
+ {id:"coin",iconKey:"coin",name:"Bolsa",mult:3,weight:22},
+ {id:"gem",iconKey:"gem",name:"Gema",mult:5,weight:16},
+ {id:"crown",iconKey:"crown",name:"Corona",mult:8,weight:10},
+ {id:"seven",iconKey:"seven",name:"Siete",mult:12,weight:7},
+ {id:"star",iconKey:"star",name:"Estrella",mult:20,weight:4},
+ {id:"jackpot",iconKey:"jackpot",name:"Jackpot",mult:50,weight:1}
 ];
 function renderCityPlaces(){
  const host=$("cityPlaces");
  if(!host)return;
  host.innerHTML=CITY_PLACES.map(p=>`
   <button type="button" class="city-place ${p.unlocked?"":"locked"}" data-city-place="${p.id}" ${p.unlocked?"":"disabled"}>
-   <div class="place-ico">${p.icon}</div>
+   <div class="place-ico">${hudIconMarkup(p.iconKey||"lock",28)}</div>
    <h4>${escapeHtml(p.name)}</h4>
    <p>${escapeHtml(p.desc)}</p>
-   ${p.unlocked?"":`<span class="lock-tag">🔒 ${escapeHtml(p.req||"Bloqueado")}</span>`}
+   ${p.unlocked?"":`<span class="lock-tag">${hudIconMarkup("lock",12)} ${escapeHtml(p.req||"Bloqueado")}</span>`}
   </button>`).join("");
  host.querySelectorAll("[data-city-place]").forEach(b=>b.onclick=()=>{
   const id=b.dataset.cityPlace;
@@ -2721,6 +2759,10 @@ function openCasino(){
  renderSlotMoneyPaytable();
  renderSlotPrizeBox();
  updateSlotBetsUI();
+ ["slotMoneyGrid","slotItemGrid"].forEach(id=>{
+  const grid=$(id); if(!grid)return;
+  grid.querySelectorAll(".slot-cell").forEach(c=>{c.innerHTML=hudIconMarkup("question",28);c.classList.remove("spinning","win")});
+ });
 }
 function closeCasino(){
  if($("cityCasino"))$("cityCasino").classList.add("hidden");
@@ -2730,7 +2772,7 @@ function renderSlotMoneyPaytable(){
  const host=$("slotMoneyPaytable");
  if(!host)return;
  host.innerHTML=SLOT_MONEY_SYMBOLS.slice().sort((a,b)=>a.mult-b.mult).map(s=>`
-  <div class="paytable-row"><span class="sym">${s.icon}</span><span>${escapeHtml(s.name)}</span><b>×${s.mult}</b></div>
+  <div class="paytable-row"><span class="sym">${hudIconMarkup(s.iconKey||s.id,24)}</span><span>${escapeHtml(s.name)}</span><b>×${s.mult}</b></div>
  `).join("");
 }
 function updateSlotBetsUI(){
@@ -2788,19 +2830,19 @@ function spinMoneySlot(){
  sound(220,.06,"square");
  // House edge: slightly bias toward low mult
  const pool=SLOT_MONEY_SYMBOLS;
- animateSlot("slotMoneyGrid",1600,()=>fillSlotGrid("slotMoneyGrid",pool.map(s=>s.icon),true),()=>{
+ animateSlot("slotMoneyGrid",1600,()=>fillSlotGrid("slotMoneyGrid",pool.map(s=>hudIconMarkup(s.iconKey||s.id,28)),true),()=>{
   const line=[pickWeighted(pool),pickWeighted(pool),pickWeighted(pool)];
   // Extra house: 35% force mismatch if would have been triple high
   if(line[0].id===line[1].id&&line[1].id===line[2].id&&line[0].mult>=8&&Math.random()<0.35){
    line[2]=pickWeighted(pool.filter(s=>s.id!==line[0].id));
   }
-  setSlotPayline("slotMoneyGrid", line);
+  setSlotPayline("slotMoneyGrid", line.map(s=>({html:hudIconMarkup(s.iconKey||s.id,28)})));
   // Fill other rows random
   const grid=$("slotMoneyGrid");
   if(grid){
    grid.querySelectorAll(".slot-cell:not(.payline)").forEach(cell=>{
     const s=pickWeighted(pool);
-    cell.textContent=s.icon;
+    cell.innerHTML=hudIconMarkup(s.iconKey||s.id,28);
     cell.classList.remove("spinning");
    });
   }
@@ -2817,11 +2859,11 @@ function spinMoneySlot(){
    state.credits+=payout;
    ensureSkillsState();
    state.creditsEarned=(Number(state.creditsEarned)||0)+payout;
-   if(resultEl)resultEl.innerHTML=`<span class="cyan">Premio:</span> ${formatCredits(payout,14)} (${a.icon}${b.icon}${c.icon})`;
+   if(resultEl)resultEl.innerHTML=`<span class="cyan">Premio:</span> ${formatCredits(payout,14)} <span class="slot-result-icons">${hudIconMarkup(a.iconKey,18)}${hudIconMarkup(b.iconKey,18)}${hudIconMarkup(c.iconKey,18)}</span>`;
    toast(`+${payout} créditos`);
    sound(720,.12,"triangle");
   }else{
-   if(resultEl)resultEl.innerHTML=`Sin premio. ${a.icon}${b.icon}${c.icon}`;
+   if(resultEl)resultEl.innerHTML=`Sin premio. <span class="slot-result-icons">${hudIconMarkup(a.iconKey,18)}${hudIconMarkup(b.iconKey,18)}${hudIconMarkup(c.iconKey,18)}</span>`;
    toast("Sin premio",true);
    sound(140,.12,"sawtooth");
   }
@@ -2902,9 +2944,9 @@ function spinItemSlot(){
    renderSlotPrizeBox();
   }else{
    // XXX lose
-   line=[{html:"❌"},{html:"❌"},{html:"❌"}];
+   line=[{html:hudIconMarkup("fail",28)},{html:hudIconMarkup("fail",28)},{html:hudIconMarkup("fail",28)}];
    setSlotPayline("slotItemGrid", line);
-   if(resultEl)resultEl.innerHTML=`Sin premio. <b>XXX</b>`;
+   if(resultEl)resultEl.innerHTML=`Sin premio. <span class="slot-result-icons">${hudIconMarkup("fail",16)}${hudIconMarkup("fail",16)}${hudIconMarkup("fail",16)}</span>`;
    toast("Sin premio",true);
    sound(140,.12,"sawtooth");
   }
@@ -3605,9 +3647,9 @@ function claimFusion(){if(!state.pendingFusion)return;const out=state.pendingFus
 function recipePageSize(){const desktop=window.matchMedia("(min-width: 901px)").matches&&!document.body.classList.contains("layout-mobile");return desktop?6:4}
 function renderRecipes(){const pageSize=recipePageSize();let filtered=recipes.filter(r=>recipeCategory==="Todos"||(r.category||info(r.out).cat)===recipeCategory).sort((a,b)=>info(a.out).r-info(b.out).r||a.name.localeCompare(b.name,"es"));const pages=Math.max(1,Math.ceil(filtered.length/pageSize));recipePage=Math.min(Math.max(1,recipePage),pages);const shown=filtered.slice((recipePage-1)*pageSize,(recipePage-1)*pageSize+pageSize);const canCraft=r=>recipeUnlocked(r)&&Object.entries(r.cost).every(([n,q])=>count(n)>=q);$("recipesGrid").innerHTML=shown.length?shown.map(r=>{const need=recipeRequiredLevel(r);const unlocked=recipeUnlocked(r);const can=canCraft(r);return `<div class="recipe-card ${unlocked?"":"recipe-locked"}"><div style="display:flex;gap:9px;align-items:center"><span class="recipe-icon">${itemIconMarkup(r.out,r.icon)}</span><div><h4>${escapeHtml(r.name)}</h4><div class="rarity r${info(r.out).r}">NIVEL ${info(r.out).r} · ${escapeHtml(r.category||info(r.out).cat)}</div></div></div><p>${escapeHtml(r.desc)}</p>${unlocked?`<div class="loot-chips">${Object.entries(r.cost).map(([n,q])=>`<span class="chip ${count(n)>=q?"common":""}">${itemIconMarkup(n,info(n).icon)} ${escapeHtml(n)} ${count(n)}/${q}</span>`).join("")}</div><button data-craft="${r.id}" ${can&&!activeTask?"":"disabled"}>Fabricar · 10 s</button>`:`<div class="small-note" style="color:#ff8098;margin-top:8px">🔒 Requiere Operador nivel ${need}. Tu nivel: ${state.level}.</div><button disabled>Bloqueada</button>`}</div>`}).join(""):'<div class="empty" style="grid-column:1/-1">No hay recetas en esta categoría.</div>';$("recipesPageInfo").textContent=`Página ${recipePage} / ${pages}`;$("recipesPrev").disabled=recipePage<=1;$("recipesNext").disabled=recipePage>=pages;document.querySelectorAll("[data-craft]").forEach(b=>b.onclick=()=>craft(b.dataset.craft))}
 
-function craft(id){const r=recipes.find(x=>x.id===id);if(activeTask)return;if(!recipeUnlocked(r))return toast(`Receta bloqueada. Necesitas nivel de Operador ${recipeRequiredLevel(r)}.`,true);if(!Object.entries(r.cost).every(([n,q])=>count(n)>=q))return toast("Faltan materiales para esa receta.",true);beginTask("craft",10000,()=>{Object.entries(r.cost).forEach(([n,q])=>take(n,q));addItem(r.out,1,{origin:"fabricación"});ensureSkillsState();state.stats.crafted=(state.stats.crafted||0)+1;xp(8);log(`Fabricación completada: <b>${r.out}</b>.`);$("craftMessage").textContent=`Fabricado: ${r.out}. Ya está en el inventario.`;toast(`Objeto fabricado: <b>${r.out}</b>`);render();save()}, {panel:$("craftProgress"),bar:$("craftBar"),percent:$("craftPercent"),button:null})}
+function craft(id){const r=recipes.find(x=>x.id===id);if(activeTask)return;if(!recipeUnlocked(r))return toast(`Receta bloqueada. Necesitas nivel de Operador ${recipeRequiredLevel(r)}.`,true);if(!Object.entries(r.cost).every(([n,q])=>count(n)>=q))return toast("Faltan materiales para esa receta.",true);beginTask("craft",Math.max(5000,10000+skillBonus("craftTime")*1000),()=>{Object.entries(r.cost).forEach(([n,q])=>take(n,q));addItem(r.out,1,{origin:"fabricación"});ensureSkillsState();state.stats.crafted=(state.stats.crafted||0)+1;xp(8);log(`Fabricación completada: <b>${r.out}</b>.`);$("craftMessage").textContent=`Fabricado: ${r.out}. Ya está en el inventario.`;toast(`Objeto fabricado: <b>${r.out}</b>`);render();save()}, {panel:$("craftProgress"),bar:$("craftBar"),percent:$("craftPercent"),button:null})}
 function renderSmelt(){const ores=Object.keys(itemDB).filter(n=>/^Mena de /.test(n)).sort((a,b)=>info(a.replace(/^Mena de /,"Lingote de ")).r-info(b.replace(/^Mena de /,"Lingote de ")).r||a.localeCompare(b,"es"));const pages=Math.max(1,Math.ceil(ores.length/3));smeltPage=Math.min(Math.max(1,smeltPage),pages);const shown=ores.slice((smeltPage-1)*3,smeltPage*3);$('smeltOptions').innerHTML=shown.map(ore=>{const bar=ore.replace(/^Mena de /,"Lingote de ");const qty=2,coal=1;return `<div class="equip-slot"><div><b>${itemIconMarkup(bar,info(bar).icon)} ${escapeHtml(bar)}</b><br><span>Fundir ${qty} ${escapeHtml(ore)} + ${coal} carbón → 1 lingote</span><br><small class="muted">Mena disponible: ${count(ore)} / Carbón: ${count("Carbón")}</small></div><button class="tiny" data-smelt="${escapeHtml(ore)}" ${count(ore)>=qty&&count("Carbón")>=coal&&!activeTask?"":"disabled"}>Fundir · 10 s</button></div>`}).join('');$('smeltPageInfo').textContent=`Página ${smeltPage} / ${pages}`;$('smeltPrev').disabled=smeltPage<=1;$('smeltNext').disabled=smeltPage>=pages;document.querySelectorAll('[data-smelt]').forEach(b=>b.onclick=()=>smelt(b.dataset.smelt))}
-function smelt(ore){const bar=ore.replace(/^Mena de /,"Lingote de "),n=2;if(!itemDB[bar])return toast("Esta mena aún no tiene un proceso de refinado registrado.",true);if(activeTask||count(ore)<n||count("Carbón")<1)return toast("No hay suficiente mena o carbón.",true);beginTask("smelt",10000,()=>{take(ore,n);take("Carbón",1);addItem(bar,1,{origin:"fundición"});ensureSkillsState();state.stats.smelted=(state.stats.smelted||0)+1;xp(6);log(`Horno industrial: ${ore} fundida y convertida en ${bar}.`);$('smeltMessage').textContent=`Proceso terminado: ${n} ${ore} + 1 carbón → ${bar}.`;toast(`Horno: <b>${bar}</b>`);render();save()}, {panel:$('smeltProgress'),bar:$('smeltBar'),percent:$('smeltPercent'),button:null})}
+function smelt(ore){const bar=ore.replace(/^Mena de /,"Lingote de "),n=2;if(!itemDB[bar])return toast("Esta mena aún no tiene un proceso de refinado registrado.",true);if(activeTask||count(ore)<n||count("Carbón")<1)return toast("No hay suficiente mena o carbón.",true);beginTask("smelt",Math.max(4000,10000+skillBonus("smeltTime")*1000),()=>{take(ore,n);take("Carbón",1);addItem(bar,1,{origin:"fundición"});ensureSkillsState();state.stats.smelted=(state.stats.smelted||0)+1;xp(6);log(`Horno industrial: ${ore} fundida y convertida en ${bar}.`);$('smeltMessage').textContent=`Proceso terminado: ${n} ${ore} + 1 carbón → ${bar}.`;toast(`Horno: <b>${bar}</b>`);render();save()}, {panel:$('smeltProgress'),bar:$('smeltBar'),percent:$('smeltPercent'),button:null})}
 function renderBonus(){$("bonusPanel").innerHTML=`<div class="statline"><span>Bonificación de recolección equipada</span><b class="cyan">+${stat("gather")}%</b></div><div class="statline"><span>Probabilidad de botín adicional</span><b class="cyan">${Math.min(82,Math.max(0,stat("gather")+stat("loot")))}%</b></div><div class="statline"><span>Experiencia adicional</span><b class="cyan">+${stat("experience")}%</b></div><div class="statline"><span>Daño total de combate</span><b>${damage()}</b></div><div class="statline"><span>Defensa total</span><b>${defense()}</b></div><p class="small-note">Las herramientas aumentan los hallazgos. Las armas elevan el daño durante los encuentros. Las piezas fusionadas pueden tener efectos inesperados.</p>`}
 function makeProceduralLoot(packId){
  const families=[
