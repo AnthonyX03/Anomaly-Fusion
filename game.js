@@ -14,6 +14,7 @@ let audioCtx=null,masterGain=null,lastSoundAt=0,fusionHum=null;
 let zoneHudOpen=false,activeTask=null,currentEnemy=null;
 let upgradeInputId=null,upgradeInputQty=1,upgradeTargetName=null,upgradeTargetQty=1,upgradeSpinning=false;
 let exchangeBox={},exchangeBusy=false,exchangePending=null;
+let refineInputId=null,refineTargetName=null,refineDustQty=0,refineBusy=false,refinePending=null;
 let pickerMode=null,pickerSlot=null,pickerFilter="Todos",pickerPage=1;
 let centralSaleFilter="Todos",centralSaleSelection={};
 
@@ -1004,6 +1005,9 @@ function isContrabandItem(x){
   const d=typeof x==="object"&&x?{...info(x.name),...x}:info(x);
   return !!(d&&(d.contraband||d.cat==="Contrabando"));
 }
+function itemOriginZones(name){
+  try{return (zones||[]).filter(z=>Array.isArray(z.loot)&&z.loot.includes(name)).map(z=>z.name);}catch(_){return []}
+}
 function isItemEquipped(id){
   return Object.values(state.equipped||{}).includes(id);
 }
@@ -1872,26 +1876,34 @@ function renderUpgradeMachine(){
 }
 function openUpgradeTargetPicker(){
   if(upgradeSpinning)return;
-  pickerMode="upgradeTarget";pickerSlot=null;pickerFilter="Todos";pickerPage=1;
-  if($("pickerSearch"))$("pickerSearch").value="";
-  if($("pickerTitle"))$("pickerTitle").textContent="▤ REGISTRO BASE · OBJETIVO";
-  if($("pickerDescription"))$("pickerDescription").textContent="Solo objetos base descubiertos (sin síntesis ni criaturas). Elige lo que quieres obtener.";
-  if($("pickerFilterMenu"))$("pickerFilterMenu").classList.remove("hidden");
-  if($("pickerFilterLabel"))$("pickerFilterLabel").textContent=pickerFilter;
-  $("inventoryPicker").classList.remove("hidden");
-  renderPicker();
+  try{
+    pickerMode="upgradeTarget";pickerSlot=null;pickerFilter="Todos";pickerPage=1;
+    if($("pickerSearch"))$("pickerSearch").value="";
+    if($("pickerTitle"))$("pickerTitle").textContent="▤ REGISTRO BASE · OBJETIVO";
+    if($("pickerDescription"))$("pickerDescription").textContent="Solo objetos base descubiertos (sin síntesis ni criaturas). Elige lo que quieres obtener.";
+    if($("pickerFilterMenu"))$("pickerFilterMenu").classList.remove("hidden");
+    if($("pickerFilterLabel"))$("pickerFilterLabel").textContent=pickerFilter;
+    const modal=$("inventoryPicker");
+    if(modal)modal.classList.remove("hidden");
+    renderPicker();
+  }catch(err){console.error(err);toast("Error al abrir registro: "+err.message,true)}
 }
+
 function openUpgradeInputPicker(){
   if(upgradeSpinning)return;
-  pickerMode="upgradeInput";pickerSlot=null;pickerFilter="Todos";pickerPage=1;
-  if($("pickerSearch"))$("pickerSearch").value="";
-  if($("pickerTitle"))$("pickerTitle").textContent="▤ INVENTARIO · ENTRADA";
-  if($("pickerDescription"))$("pickerDescription").textContent="Elige un objeto base de tu inventario (no síntesis) para entregar.";
-  if($("pickerFilterMenu"))$("pickerFilterMenu").classList.remove("hidden");
-  if($("pickerFilterLabel"))$("pickerFilterLabel").textContent=pickerFilter;
-  $("inventoryPicker").classList.remove("hidden");
-  renderPicker();
+  try{
+    pickerMode="upgradeInput";pickerSlot=null;pickerFilter="Todos";pickerPage=1;
+    if($("pickerSearch"))$("pickerSearch").value="";
+    if($("pickerTitle"))$("pickerTitle").textContent="▤ INVENTARIO · ENTRADA";
+    if($("pickerDescription"))$("pickerDescription").textContent="Elige un objeto base de tu inventario (no síntesis) para entregar.";
+    if($("pickerFilterMenu"))$("pickerFilterMenu").classList.remove("hidden");
+    if($("pickerFilterLabel"))$("pickerFilterLabel").textContent=pickerFilter;
+    const modal=$("inventoryPicker");
+    if(modal)modal.classList.remove("hidden");
+    renderPicker();
+  }catch(err){console.error(err);toast("Error al abrir selector: "+err.message,true)}
 }
+
 function spinUpgradeRoulette(){
   if(upgradeSpinning||!upgradeInputId||!upgradeTargetName)return;
   const item=state.inventory.find(i=>i.id===upgradeInputId);
@@ -1992,15 +2004,19 @@ function renderExchangeModule(){
 function openExchangePicker(){
   if(exchangeBusy)return;
   if(exchangeBoxCount()>=10)return toast("La caja ya tiene 10 unidades.",true);
-  pickerMode="exchangeInput";pickerSlot=null;pickerFilter="Todos";pickerPage=1;
-  if($("pickerSearch"))$("pickerSearch").value="";
-  if($("pickerTitle"))$("pickerTitle").textContent="▤ CAJA DE INTERCAMBIO";
-  if($("pickerDescription"))$("pickerDescription").textContent="Elige objetos base para la caja (máx. 10 unidades en total).";
-  if($("pickerFilterMenu"))$("pickerFilterMenu").classList.remove("hidden");
-  if($("pickerFilterLabel"))$("pickerFilterLabel").textContent=pickerFilter;
-  $("inventoryPicker").classList.remove("hidden");
-  renderPicker();
+  try{
+    pickerMode="exchangeInput";pickerSlot=null;pickerFilter="Todos";pickerPage=1;
+    if($("pickerSearch"))$("pickerSearch").value="";
+    if($("pickerTitle"))$("pickerTitle").textContent="▤ CAJA DE INTERCAMBIO";
+    if($("pickerDescription"))$("pickerDescription").textContent="Elige objetos base para la caja (máx. 10 unidades en total).";
+    if($("pickerFilterMenu"))$("pickerFilterMenu").classList.remove("hidden");
+    if($("pickerFilterLabel"))$("pickerFilterLabel").textContent=pickerFilter;
+    const modal=$("inventoryPicker");
+    if(modal)modal.classList.remove("hidden");
+    renderPicker();
+  }catch(err){console.error(err);toast("Error al abrir caja: "+err.message,true)}
 }
+
 
 function openExchangeQtyModal(itemId,maxQty){
   const x=state.inventory.find(i=>i.id===itemId);
@@ -2218,15 +2234,21 @@ function renderRefineMachine(){
   if($("refineStatus")&&!refineBusy&&!refinePending)$("refineStatus").textContent="En espera";
 }
 function openRefineInputPicker(){
-  if(refineBusy||refinePending)return;
-  pickerMode="refineInput";pickerSlot=null;pickerFilter="Todos";pickerPage=1;
-  if($("pickerSearch"))$("pickerSearch").value="";
-  if($("pickerTitle"))$("pickerTitle").textContent="▤ REFINADORA · ENTRADA";
-  if($("pickerDescription"))$("pickerDescription").textContent="Objeto a refinar (no equipado, no síntesis, no polvo).";
-  if($("pickerFilterMenu"))$("pickerFilterMenu").classList.remove("hidden");
-  if($("pickerFilterLabel"))$("pickerFilterLabel").textContent=pickerFilter;
-  $("inventoryPicker").classList.remove("hidden");renderPicker();
+  if(refineBusy)return;
+  if(refinePending)return toast("Reclama el resultado pendiente primero.",true);
+  try{
+    pickerMode="refineInput";pickerSlot=null;pickerFilter="Todos";pickerPage=1;
+    if($("pickerSearch"))$("pickerSearch").value="";
+    if($("pickerTitle"))$("pickerTitle").textContent="▤ REFINADORA · ENTRADA";
+    if($("pickerDescription"))$("pickerDescription").textContent="Objeto a refinar (no equipado, no síntesis, no polvo).";
+    if($("pickerFilterMenu"))$("pickerFilterMenu").classList.remove("hidden");
+    if($("pickerFilterLabel"))$("pickerFilterLabel").textContent=pickerFilter;
+    const modal=$("inventoryPicker");
+    if(modal)modal.classList.remove("hidden");
+    renderPicker();
+  }catch(err){console.error(err);toast("Error al abrir selector: "+err.message,true)}
 }
+
 function openRefineTargetPicker(){/* salida automática — sin selector */}
 function startRefine(){
   if(refineBusy||refinePending)return;
@@ -2732,7 +2754,8 @@ function renderPicker(){
      if(!["Material","Lingote","Herramienta","Arma","Equipo","Consumible","Anomalía","Contrabando","Órgano"].includes(d.cat))return false;
      if(isOtroOnlyItem(n))return false;
      // Objetivo de mejora: solo base descubierta o catálogo conocido no síntesis
-     if(!(state.seen||[]).includes(n)&&!((state.discovered||{})[n]))return false;
+     const known=(state.seen||[]).includes(n)||!!((state.discovered||{})[n])||state.inventory.some(i=>i.name===n);
+     if(!known)return false;
      if(pickerFilter&&pickerFilter!=="Todos"){
        if(pickerFilter==="Síntesis")return false;
        if(d.cat!==pickerFilter)return false;
@@ -3639,5 +3662,19 @@ function init(){
   }).catch(()=>{});
  }
 }
+
+// Delegación de clics Centro (por si el onclick directo falla)
+document.addEventListener("click",function(ev){
+  const t=ev.target.closest("#upgradeInputPick,#upgradeTargetPick,#exchangeAddBtn,#refineInputPick,#upgradeInputClear,#upgradeTargetClear,#refineInputClear");
+  if(!t)return;
+  if(t.id==="upgradeInputPick"){ev.preventDefault();if(!upgradeSpinning)openUpgradeInputPicker()}
+  else if(t.id==="upgradeTargetPick"){ev.preventDefault();if(!upgradeSpinning)openUpgradeTargetPicker()}
+  else if(t.id==="exchangeAddBtn"){ev.preventDefault();openExchangePicker()}
+  else if(t.id==="refineInputPick"){ev.preventDefault();openRefineInputPicker()}
+  else if(t.id==="upgradeInputClear"){ev.preventDefault();if(upgradeSpinning)return;upgradeInputId=null;upgradeInputQty=1;renderUpgradeMachine()}
+  else if(t.id==="upgradeTargetClear"){ev.preventDefault();if(upgradeSpinning)return;upgradeTargetName=null;upgradeTargetQty=1;renderUpgradeMachine()}
+  else if(t.id==="refineInputClear"){ev.preventDefault();if(refineBusy)return;refineInputId=null;renderRefineMachine()}
+});
+
 init();
 })();
