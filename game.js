@@ -15,6 +15,8 @@ let zoneHudOpen=false,activeTask=null,currentEnemy=null;
 let upgradeInputId=null,upgradeInputQty=1,upgradeTargetName=null,upgradeTargetQty=1,upgradeSpinning=false;
 let exchangeBox={},exchangeBusy=false,exchangePending=null;
 let refineInputId=null,refineTargetName=null,refineDustQty=0,refineBusy=false,refinePending=null,refineChanceLocked=null;
+let slotMoneyBet=0,slotItemBet=0,slotSpinning=false,slotPrizeBox=[];
+
 let pickerMode=null,pickerSlot=null,pickerFilter="Todos",pickerPage=1;
 let centralSaleFilter="Todos",centralSaleSelection={};
 
@@ -821,11 +823,11 @@ const baseOrganNames=[];
 
 
 function equippedExtractBonus(){
+ const skillEx=skillBonus("extract");
  const id=state.equipped&&state.equipped.tongs;
- if(!id)return 0;
- const x=state.inventory.find(i=>i.id===id);
- if(!x)return 0;
- return Math.max(0,Number(x.extractBonus)||Number(info(x.name).extractBonus)||0);
+ const x=id?state.inventory.find(i=>i.id===id):null;
+ const tongs=x?Math.max(0,Number(x.extractBonus)||Number(info(x.name).extractBonus)||0):0;
+ return tongs+skillEx;
 }
 function organExtractChance(organName,selectedCount){return extractionSuccessChance(selectedCount,1);}
 
@@ -1236,7 +1238,7 @@ function marketSellUnitPrice(x,isBlack){
  ensureMarketDay();
  const base=Math.max(1,Number(x.val)||Number(info(x.name).val)||1);
  const rate=(isBlack?state.market.blackSellRate:state.market.sellRate)||100;
- return Math.max(1,Math.ceil(base*(rate/100)*(1+stat("credits")/100)));
+ return Math.max(1,Math.ceil(base*(rate/100)*(1+(stat("credits")+skillBonus("credits"))/100)));
 }
 function renderMarketSell(isBlack){
  ensureMarketDay();
@@ -1397,7 +1399,12 @@ const stateDefault=()=>({
  history:[],pendingFusion:null,pendingSupply:null,activity:[],seen:[],discovered:{},synthesisVariants:{},valueRanges:{},organVariants:{},
  settings:{sound:true,soundVolume:75,soundMuted:false,musicVolume:40,musicMuted:false,scale:"1",motion:false,layoutMode:"auto"},
  market:null,
- version:10
+ skills:{},
+ skillPoints:0,
+ creditsEarned:0,
+ stats:{crafted:0,smelted:0,anomalies:0},
+ missionHistory:[],
+ version:11
 });
 function loadState(){try{const s=JSON.parse(localStorage.getItem("anomalyFusionSave")||localStorage.getItem("joyaCeroSave"));if(s&&(s.version===2||s.version===3||s.version===4||s.version===5||s.version===6||s.version===7||s.version===8||s.version===9||s.version===10)&&s.inventory&&s.equipped)return Object.assign(stateDefault(),s,{version:10,equipped:{...stateDefault().equipped,...s.equipped},history:(s.history||[]).slice(0,3),pendingFusion:s.pendingFusion||null,pendingSupply:s.pendingSupply||null,seen:[...new Set([...(s.seen||[]),...(s.inventory||[]).map(x=>x.name)])],discovered:{...(s.discovered||{}),...Object.fromEntries((s.inventory||[]).map(x=>[x.name,x]))},synthesisVariants:{...(s.synthesisVariants||{})},valueRanges:{...(s.valueRanges||{})},organVariants:{...(s.organVariants||{})}})}catch(e){}return stateDefault()}
 function save(){try{localStorage.setItem("anomalyFusionSave",JSON.stringify(state))}catch(e){toast("No se pudo guardar la partida. Comprueba el espacio disponible del navegador.",true)}}
@@ -1608,7 +1615,7 @@ function addItem(name,qty=1,opts={}){
  else state.inventory.push({...resolved,id:uid(),name,qty,cat:cat||d.cat,r:resolved.r||d.r||1,val:resolved.val||d.val||5,desc:resolved.desc||d.desc||"",icon:resolved.icon||d.icon||"❔",slot});
  state.discovered=state.discovered||{};state.discovered[name]={...d,...resolved,name,cat:cat||d.cat,r:resolved.r||d.r||1,val:resolved.val||d.val||5,desc:resolved.desc||d.desc||"",icon:resolved.icon||d.icon||"❔"};
  if(!state.seen.includes(name))state.seen.push(name);
- if((cat||d.cat)==="Anomalía"||(resolved.cat==="Anomalía")){state.achievements=state.achievements||{};state.achievements.anomaly_fusion=true;trackAchievement("anomaly_fusion")}
+ if((cat||d.cat)==="Anomalía"||(resolved.cat==="Anomalía")){state.achievements=state.achievements||{};state.achievements.anomaly_fusion=true;ensureSkillsState();state.stats.anomalies=(state.stats.anomalies||0)+1;trackAchievement("anomaly_fusion")}
  recordObservedValue({...resolved,name,cat:cat||d.cat,r:resolved.r||d.r||1,val:resolved.val||d.val||5});
 }
 function takeById(id,n=1){const x=state.inventory.find(i=>i.id===id);if(!x||x.qty<n)return false;x.qty-=n;if(x.qty<=0){state.inventory=state.inventory.filter(i=>i.id!==id);for(const k of Object.keys(state.equipped||{}))if(state.equipped[k]===id)state.equipped[k]=null;}return true}
@@ -1627,13 +1634,96 @@ function stat(key){
  });
  return total;
 }
-function damage(){return 5+stat("damage")}
-function defense(){return stat("defense")}
+function damage(){return 5+stat("damage")+skillBonus("damage")}
+function defense(){return stat("defense")+skillBonus("defense")}
 const zoneUnlockLevels={forest:1,mine:1,scrapyard:1,swamp:4,quarry:6,bunker:8,glacier:10,volcano:12,neoncity:14,reef:16,dunes:18,rift:20,lab:22,silica:24,station:26,cryo:29,vault:32,root:35,foundry:38,observatory:46,nullshore:50};
 function operatorRank(level=state.level){if(level>=50)return "Singularidad viviente";if(level>=47)return "Nexo trascendente";if(level>=43)return "Arquitecto de convergencia";if(level>=39)return "Soberano de anomalías";if(level>=35)return "Custodio del umbral";if(level>=31)return "Estratega del vacío";if(level>=27)return "Maestro de expedición";if(level>=20)return "Vanguardia anómala";if(level>=16)return "Comandante de campo";if(level>=12)return "Especialista de ruptura";if(level>=9)return "Veterano de expedición";if(level>=6)return "Técnico de anomalías";if(level>=4)return "Explorador avanzado";if(level>=2)return "Operador de campo";return "Recluta de campo"}
+
+const OPERATOR_SKILLS=[
+ {id:"explore_speed",name:"Paso ligero",icon:"⏱",desc:"Reduce el tiempo de cada exploración.",max:5,unlockLevel:1,effect:"−1 s por nivel (mín. 5 s)",perLevel:{exploreTime:-1}},
+ {id:"base_damage",name:"Golpe firme",icon:"⚔",desc:"Aumenta el daño base del operador.",max:5,unlockLevel:1,effect:"+2 daño por nivel",perLevel:{damage:2}},
+ {id:"base_defense",name:"Piel dura",icon:"🛡",desc:"Aumenta la defensa base del operador.",max:5,unlockLevel:2,effect:"+1 defensa por nivel",perLevel:{defense:1}},
+ {id:"loot_boost",name:"Ojo de carroñero",icon:"📦",desc:"Más potencia de recolección en expediciones.",max:5,unlockLevel:3,effect:"+6% recolección por nivel",perLevel:{gather:6}},
+ {id:"findings",name:"Sensor anómalo",icon:"📡",desc:"Mejora la bonificación de hallazgos.",max:4,unlockLevel:4,effect:"+4% hallazgos por nivel",perLevel:{luck:4}},
+ {id:"xp_boost",name:"Aprendizaje rápido",icon:"📈",desc:"Ganas más experiencia en todas las acciones.",max:3,unlockLevel:5,effect:"+8% XP por nivel",perLevel:{experience:8}},
+ {id:"extract_skill",name:"Mano firme",icon:"⚕",desc:"Mejora el éxito de extracción de órganos.",max:3,unlockLevel:6,effect:"+5% extracción por nivel",perLevel:{extract:5}},
+ {id:"credit_sense",name:"Olfato de crédito",icon:"🪙",desc:"Mejor pago al vender objetos.",max:3,unlockLevel:8,effect:"+5% créditos de venta por nivel",perLevel:{credits:5}},
+ {id:"combat_endurance",name:"Resistencia de campo",icon:"💪",desc:"Impulso único de combate de élite.",max:1,unlockLevel:10,effect:"+5 defensa y +4 daño (único)",perLevel:{defense:5,damage:4}},
+ {id:"anomaly_affinity",name:"Afinidad anómala",icon:"🧬",desc:"Más probabilidades de hallar anomalías en campo.",max:2,unlockLevel:12,effect:"+4% anomalía por nivel",perLevel:{anomalyFind:4}}
+];
+
+function ensureSkillPointsFromLevel(){
+ ensureSkillsState();
+ const spent=Object.values(state.skills||{}).reduce((a,n)=>a+(Number(n)||0),0);
+ const expected=Math.max(0,(state.level||1)-1);
+ // If player has fewer total points than levels-1, top up available (not spent)
+ const total=spent+(Number(state.skillPoints)||0);
+ if(total<expected)state.skillPoints=(Number(state.skillPoints)||0)+(expected-total);
+}
+function ensureSkillsState(){
+ state.skills=state.skills||{};
+ state.skillPoints=Math.max(0,Number(state.skillPoints)||0);
+ state.creditsEarned=Math.max(Number(state.creditsEarned)||0,Number(state.credits)||0);
+ state.stats=state.stats||{crafted:0,smelted:0,anomalies:0};
+ state.missionHistory=state.missionHistory||[];
+}
+function skillLevel(id){ensureSkillsState();return Math.max(0,Number(state.skills[id])||0)}
+function skillBonus(key){
+ ensureSkillsState();
+ let t=0;
+ OPERATOR_SKILLS.forEach(sk=>{
+  const lv=skillLevel(sk.id);
+  if(lv>0&&sk.perLevel&&sk.perLevel[key]!=null)t+=sk.perLevel[key]*lv;
+ });
+ return t;
+}
+function exploreDurationMs(){
+ const base=10; // segundos
+ const red=Math.abs(Math.min(0,skillBonus("exploreTime"))); // perLevel is negative
+ const sec=Math.max(5,base-red);
+ return sec*1000;
+}
+function assignSkillPoint(id){
+ ensureSkillsState();
+ const sk=OPERATOR_SKILLS.find(s=>s.id===id);
+ if(!sk)return;
+ if(state.level<sk.unlockLevel)return toast(`Requiere nivel de Operador ${sk.unlockLevel}.`,true);
+ const cur=skillLevel(id);
+ if(cur>=sk.max)return toast("Habilidad al máximo.",true);
+ if(state.skillPoints<1)return toast("No tienes puntos de habilidad.",true);
+ state.skillPoints--;
+ state.skills[id]=cur+1;
+ log(`Habilidad mejorada: <b>${sk.name}</b> → N${cur+1}.`);
+ toast(`${sk.name} N${cur+1}`);
+ renderSkills();renderStats();renderEquipment();if(page==="skills")renderSkills();if(page==="stats")renderStats();if(page==="city"){closeCasino();renderCityPlaces();updateSlotBetsUI();}save();sound(620,.08,"triangle");
+}
+function renderSkills(){
+ ensureSkillsState();
+ if($("skillPointsTag"))$("skillPointsTag").textContent=state.skillPoints+" PUNTOS";
+ if($("skillPointsLabel"))$("skillPointsLabel").textContent=String(state.skillPoints);
+ const host=$("skillsGrid");
+ if(!host)return;
+ host.innerHTML=OPERATOR_SKILLS.map(sk=>{
+  const cur=skillLevel(sk.id);
+  const locked=state.level<sk.unlockLevel;
+  const maxed=cur>=sk.max;
+  const can=(!locked)&&(!maxed)&&(state.skillPoints>0);
+  return `<div class="skill-card ${locked?"locked":""}">
+   <div class="skill-head"><h4>${sk.icon||""} ${escapeHtml(sk.name)}</h4><span class="skill-lvl">N${cur}/${sk.max}</span></div>
+   <p>${escapeHtml(sk.desc)}</p>
+   <div class="skill-effect">${escapeHtml(sk.effect||"")}</div>
+   ${locked?`<div class="skill-req">🔒 Requiere Operador N${sk.unlockLevel}</div>`:""}
+   <div class="skill-actions">
+    <button type="button" class="tiny primary" data-skill-up="${sk.id}" ${can?"":"disabled"}>${maxed?"Máximo":"Mejorar · 1 pt"}</button>
+   </div>
+  </div>`;
+ }).join("");
+ host.querySelectorAll("[data-skill-up]").forEach(b=>b.onclick=()=>assignSkillPoint(b.dataset.skillUp));
+}
+
 function zoneRequiredLevel(z){return zoneUnlockLevels[z.id]||1}
 function zoneUnlocked(z){return state.level>=zoneRequiredLevel(z)}
-function xp(n){const baseGain=Math.max(0,Math.floor(Number(n)||0));const gain=baseGain?Math.max(1,Math.floor(baseGain*(1+Math.max(0,stat("experience"))/100))):0;if(!gain)return;if(state.level>=50){state.level=50;state.xp=0;toast("Nivel máximo alcanzado: 50.");return}state.xp+=gain;log(`Experiencia obtenida: <b>+${gain} XP</b>.`);while(state.level<50&&state.xp>=state.level*100){state.xp-=state.level*100;state.level++;const levelReward=20+state.level*5;const rankMilestone=[2,4,6,9,12,16,20,27,31,35,39,43,47,50].includes(state.level);const rankBonus=rankMilestone?state.level*10:0;const reward=levelReward+rankBonus;state.credits+=reward;log(`¡Nivel ${state.level} alcanzado! Rango: <b>${operatorRank()}</b>. +${levelReward} créditos${rankBonus?` y +${rankBonus} por rango`:""}.`);toast(`¡Nivel ${state.level}! <b>${operatorRank()}</b> · +${reward} créditos`)}if(state.level>=50)state.xp=0;renderStats();save()}
+function xp(n){const baseGain=Math.max(0,Math.floor(Number(n)||0));const gain=baseGain?Math.max(1,Math.floor(baseGain*(1+Math.max(0,stat("experience")+skillBonus("experience"))/100))):0;if(!gain)return;if(state.level>=50){state.level=50;state.xp=0;toast("Nivel máximo alcanzado: 50.");return}state.xp+=gain;log(`Experiencia obtenida: <b>+${gain} XP</b>.`);while(state.level<50&&state.xp>=state.level*100){state.xp-=state.level*100;state.level++;ensureSkillsState();state.skillPoints=(Number(state.skillPoints)||0)+1;const levelReward=20+state.level*5;const rankMilestone=[2,4,6,9,12,16,20,27,31,35,39,43,47,50].includes(state.level);const rankBonus=rankMilestone?state.level*10:0;const reward=levelReward+rankBonus;state.credits+=reward;ensureSkillsState();state.creditsEarned=(Number(state.creditsEarned)||0)+reward;log(`¡Nivel ${state.level} alcanzado! Rango: <b>${operatorRank()}</b>. +${levelReward} créditos${rankBonus?` y +${rankBonus} por rango`:""}.`);toast(`¡Nivel ${state.level}! <b>${operatorRank()}</b> · +${reward} créditos · +1 pt habilidad`)}if(state.level>=50)state.xp=0;renderStats();save()}
 function log(msg){state.activity.unshift({msg,time:new Date().toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"})});state.activity=state.activity.slice(0,8)}
 function ensureAudio(){
  audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();
@@ -2585,6 +2675,299 @@ function removeItemById(id,qty){
   return true;
 }
 
+
+// === CIUDAD · CASINO ===
+const CITY_PLACES=[
+ {id:"casino",name:"El Casino",icon:"🎰",desc:"Mesas de azar y slots. Créditos y objetos en juego.",unlocked:true},
+ {id:"bazaar",name:"Bazar del Colapso",icon:"🏪",desc:"Comercio informal de piezas y rumores.",unlocked:false,req:"Próximamente"},
+ {id:"clinic_city",name:"Clínica clandestina",icon:"🏥",desc:"Tratamientos fuera del protocolo.",unlocked:false,req:"Próximamente"},
+ {id:"docks",name:"Muelles grises",icon:"⚓",desc:"Cargas ilegales y contrabando naval.",unlocked:false,req:"Próximamente"},
+ {id:"tower",name:"Torre de vigilancia",icon:"🗼",desc:"Control urbano sellado tras el Colapso.",unlocked:false,req:"Próximamente"}
+];
+const SLOT_MONEY_SYMBOLS=[
+ {id:"chip",icon:"🪙",name:"Ficha",mult:2,weight:28},
+ {id:"coin",icon:"💰",name:"Bolsa",mult:3,weight:22},
+ {id:"gem",icon:"💎",name:"Gema",mult:5,weight:16},
+ {id:"crown",icon:"👑",name:"Corona",mult:8,weight:10},
+ {id:"seven",icon:"7️⃣",name:"Siete",mult:12,weight:7},
+ {id:"star",icon:"⭐",name:"Estrella",mult:20,weight:4},
+ {id:"jackpot",icon:"🌟",name:"Jackpot",mult:50,weight:1}
+];
+function renderCityPlaces(){
+ const host=$("cityPlaces");
+ if(!host)return;
+ host.innerHTML=CITY_PLACES.map(p=>`
+  <button type="button" class="city-place ${p.unlocked?"":"locked"}" data-city-place="${p.id}" ${p.unlocked?"":"disabled"}>
+   <div class="place-ico">${p.icon}</div>
+   <h4>${escapeHtml(p.name)}</h4>
+   <p>${escapeHtml(p.desc)}</p>
+   ${p.unlocked?"":`<span class="lock-tag">🔒 ${escapeHtml(p.req||"Bloqueado")}</span>`}
+  </button>`).join("");
+ host.querySelectorAll("[data-city-place]").forEach(b=>b.onclick=()=>{
+  const id=b.dataset.cityPlace;
+  const place=CITY_PLACES.find(x=>x.id===id);
+  if(!place||!place.unlocked)return toast("Lugar bloqueado.",true);
+  if(id==="casino")openCasino();
+ });
+}
+function openCasino(){
+ if($("cityPlaces"))$("cityPlaces").classList.add("hidden");
+ if($("cityCasino"))$("cityCasino").classList.remove("hidden");
+ renderSlotMoneyPaytable();
+ renderSlotPrizeBox();
+ updateSlotBetsUI();
+}
+function closeCasino(){
+ if($("cityCasino"))$("cityCasino").classList.add("hidden");
+ if($("cityPlaces"))$("cityPlaces").classList.remove("hidden");
+}
+function renderSlotMoneyPaytable(){
+ const host=$("slotMoneyPaytable");
+ if(!host)return;
+ host.innerHTML=SLOT_MONEY_SYMBOLS.slice().sort((a,b)=>a.mult-b.mult).map(s=>`
+  <div class="paytable-row"><span class="sym">${s.icon}</span><span>${escapeHtml(s.name)}</span><b>×${s.mult}</b></div>
+ `).join("");
+}
+function updateSlotBetsUI(){
+ if($("slotMoneyBet"))$("slotMoneyBet").textContent=String(slotMoneyBet);
+ if($("slotItemBet"))$("slotItemBet").textContent=String(slotItemBet);
+ if($("slotMoneySpin"))$("slotMoneySpin").disabled=slotSpinning||slotMoneyBet<=0||state.credits<slotMoneyBet;
+ if($("slotItemSpin"))$("slotItemSpin").disabled=slotSpinning||slotItemBet<=0||state.credits<slotItemBet;
+}
+function pickWeighted(list){
+ const total=list.reduce((a,x)=>a+(x.weight||1),0);
+ let r=Math.random()*total;
+ for(const x of list){r-=(x.weight||1);if(r<=0)return x}
+ return list[list.length-1];
+}
+function fillSlotGrid(gridId, symbols, spinning){
+ const grid=$(gridId);
+ if(!grid)return;
+ grid.querySelectorAll(".slot-cell").forEach(cell=>{
+  const s=symbols[Math.floor(Math.random()*symbols.length)];
+  cell.innerHTML=typeof s==="string"?s:(s.icon||"?");
+  cell.classList.toggle("spinning",!!spinning);
+  cell.classList.remove("win");
+ });
+}
+function setSlotPayline(gridId, three){
+ const grid=$(gridId);
+ if(!grid)return;
+ [0,1,2].forEach((c,i)=>{
+  const cell=grid.querySelector(`.slot-cell.payline[data-c="${c}"]`);
+  if(!cell)return;
+  const s=three[i];
+  cell.innerHTML=typeof s==="string"?s:(s.html||s.icon||"?");
+  cell.classList.remove("spinning");
+ });
+}
+function animateSlot(gridId, duration, tickFn, done){
+ const t0=Date.now();
+ const tick=()=>{
+  if(Date.now()-t0>=duration){done();return}
+  tickFn();
+  setTimeout(tick,70);
+ };
+ tick();
+}
+function spinMoneySlot(){
+ if(slotSpinning)return;
+ if(slotMoneyBet<=0)return toast("Elige una apuesta.",true);
+ if(state.credits<slotMoneyBet)return toast("Créditos insuficientes.",true);
+ slotSpinning=true;
+ state.credits-=slotMoneyBet;
+ ensureSkillsState();
+ updateSlotBetsUI();renderStats();
+ const resultEl=$("slotMoneyResult");
+ if(resultEl)resultEl.textContent="Girando…";
+ sound(220,.06,"square");
+ // House edge: slightly bias toward low mult
+ const pool=SLOT_MONEY_SYMBOLS;
+ animateSlot("slotMoneyGrid",1600,()=>fillSlotGrid("slotMoneyGrid",pool.map(s=>s.icon),true),()=>{
+  const line=[pickWeighted(pool),pickWeighted(pool),pickWeighted(pool)];
+  // Extra house: 35% force mismatch if would have been triple high
+  if(line[0].id===line[1].id&&line[1].id===line[2].id&&line[0].mult>=8&&Math.random()<0.35){
+   line[2]=pickWeighted(pool.filter(s=>s.id!==line[0].id));
+  }
+  setSlotPayline("slotMoneyGrid", line);
+  // Fill other rows random
+  const grid=$("slotMoneyGrid");
+  if(grid){
+   grid.querySelectorAll(".slot-cell:not(.payline)").forEach(cell=>{
+    const s=pickWeighted(pool);
+    cell.textContent=s.icon;
+    cell.classList.remove("spinning");
+   });
+  }
+  let payout=0;
+  const a=line[0],b=line[1],c=line[2];
+  if(a.id===b.id&&b.id===c.id){
+   payout=Math.floor(slotMoneyBet*a.mult);
+   grid.querySelectorAll(".slot-cell.payline").forEach(cell=>cell.classList.add("win"));
+  }else if(a.id===b.id||b.id===c.id||a.id===c.id){
+   const pair=a.id===b.id?a:(b.id===c.id?b:a);
+   payout=Math.floor(slotMoneyBet*Math.max(0.5,pair.mult*0.25));
+  }
+  if(payout>0){
+   state.credits+=payout;
+   ensureSkillsState();
+   state.creditsEarned=(Number(state.creditsEarned)||0)+payout;
+   if(resultEl)resultEl.innerHTML=`<span class="cyan">Premio:</span> ${formatCredits(payout,14)} (${a.icon}${b.icon}${c.icon})`;
+   toast(`+${payout} créditos`);
+   sound(720,.12,"triangle");
+  }else{
+   if(resultEl)resultEl.innerHTML=`Sin premio. ${a.icon}${b.icon}${c.icon}`;
+   toast("Sin premio",true);
+   sound(140,.12,"sawtooth");
+  }
+  slotSpinning=false;
+  updateSlotBetsUI();renderStats();save();
+ });
+}
+function slotItemPool(){
+ // Base registry items except Otro / Contrabando dust
+ const names=[...new Set([...(state.seen||[]),...Object.keys(state.discovered||{}),...Object.keys(itemDB||{})])]
+  .filter(n=>{
+   const d=info(n);
+   if(!d||!d.cat)return false;
+   if(isSynthesisItem({name:n,...d}))return false;
+   if(d.cat==="Otro"||d.cat==="Criatura"||d.refineDust)return false;
+   if(["Material","Lingote","Herramienta","Arma","Equipo","Consumible","Anomalía","Órgano","Contrabando"].includes(d.cat))return true;
+   return false;
+  });
+ // Prefer known; if few, use itemDB materials
+ if(names.length<8){
+  Object.keys(itemDB||{}).forEach(n=>{
+   const d=itemDB[n];
+   if(d&&["Material","Lingote","Consumible","Herramienta"].includes(d.cat)&&!names.includes(n))names.push(n);
+  });
+ }
+ return names.map(n=>{
+  const d=info(n);
+  return {name:n,icon:d.icon||"❓",val:Math.max(1,Number(d.val)||1),r:d.r||1,cat:d.cat};
+ });
+}
+function spinItemSlot(){
+ if(slotSpinning)return;
+ if(slotItemBet<=0)return toast("Elige una apuesta.",true);
+ if(state.credits<slotItemBet)return toast("Créditos insuficientes.",true);
+ const pool=slotItemPool();
+ if(pool.length<3)return toast("Necesitas más objetos descubiertos en el registro.",true);
+ slotSpinning=true;
+ state.credits-=slotItemBet;
+ updateSlotBetsUI();renderStats();
+ const resultEl=$("slotItemResult");
+ if(resultEl)resultEl.textContent="Girando…";
+ sound(220,.06,"square");
+ // Win chance scales with bet, house edge strong
+ // bet 1 → ~18% win, bet 50 → ~42%, bet 100+ → ~48% cap
+ const winChance=Math.min(0.48,0.16+Math.log10(slotItemBet+1)*0.14);
+ const icons=pool.map(p=>itemIconMarkup(p.name,p.icon));
+ animateSlot("slotItemGrid",1800,()=>{
+  const grid=$("slotItemGrid");
+  if(!grid)return;
+  grid.querySelectorAll(".slot-cell").forEach(cell=>{
+   const p=pool[Math.floor(Math.random()*pool.length)];
+   cell.innerHTML=itemIconMarkup(p.name,p.icon);
+   cell.classList.add("spinning");
+   cell.classList.remove("win");
+  });
+ },()=>{
+  const win=Math.random()<winChance;
+  const grid=$("slotItemGrid");
+  let line;
+  if(win){
+   // Value bias: higher bet → weight toward higher val items
+   const maxVal=Math.max(...pool.map(p=>p.val));
+   const target=Math.min(maxVal, Math.max(2, slotItemBet*(0.4+Math.random()*1.2)));
+   const sorted=pool.slice().sort((a,b)=>Math.abs(a.val-target)-Math.abs(b.val-target));
+   const pick=sorted[Math.floor(Math.random()*Math.min(6,sorted.length))];
+   // 55% three of a kind visual for clarity, else mixed but still award pick
+   if(Math.random()<0.55)line=[pick,pick,pick];
+   else{
+    const filler=pool[Math.floor(Math.random()*pool.length)];
+    line=[pick,pick,filler];
+   }
+   setSlotPayline("slotItemGrid", line.map(p=>({html:itemIconMarkup(p.name,p.icon)})));
+   grid&&grid.querySelectorAll(".slot-cell.payline").forEach(c=>c.classList.add("win"));
+   slotPrizeBox.push({name:pick.name,qty:1});
+   if(resultEl)resultEl.innerHTML=`<span class="cyan">Premio:</span> ${escapeHtml(pick.name)} (valor ${pick.val} cr.)`;
+   toast(`Premio: ${pick.name}`);
+   sound(720,.12,"triangle");
+   renderSlotPrizeBox();
+  }else{
+   // XXX lose
+   line=[{html:"❌"},{html:"❌"},{html:"❌"}];
+   setSlotPayline("slotItemGrid", line);
+   if(resultEl)resultEl.innerHTML=`Sin premio. <b>XXX</b>`;
+   toast("Sin premio",true);
+   sound(140,.12,"sawtooth");
+  }
+  if(grid){
+   grid.querySelectorAll(".slot-cell:not(.payline)").forEach(cell=>{
+    const p=pool[Math.floor(Math.random()*pool.length)];
+    cell.innerHTML=itemIconMarkup(p.name,p.icon);
+    cell.classList.remove("spinning");
+   });
+  }
+  slotSpinning=false;
+  updateSlotBetsUI();renderStats();save();
+ });
+}
+function renderSlotPrizeBox(){
+ const host=$("slotPrizeBox");
+ const note=$("slotPrizeNote");
+ const btn=$("slotPrizeClaim");
+ if(!host)return;
+ // merge counts
+ const map={};
+ slotPrizeBox.forEach(x=>{map[x.name]=(map[x.name]||0)+(x.qty||1)});
+ const rows=Object.entries(map);
+ host.innerHTML=rows.length?rows.map(([name,qty])=>{
+  const d=info(name);
+  return `<div class="prize-row"><span class="item-icon">${itemIconMarkup(name,d.icon)}</span><div style="flex:1;min-width:0"><b>${escapeHtml(name)}</b><small class="muted"> · ×${qty}</small></div></div>`;
+ }).join(""):'<div class="empty">Sin premios pendientes.</div>';
+ if(note)note.textContent=rows.length?`${rows.length} tipo(s) listos para reclamar.`:"Vacía.";
+ if(btn)btn.disabled=!rows.length||slotSpinning;
+}
+function claimSlotPrizes(){
+ if(!slotPrizeBox.length)return;
+ const map={};
+ slotPrizeBox.forEach(x=>{map[x.name]=(map[x.name]||0)+(x.qty||1)});
+ Object.entries(map).forEach(([name,qty])=>addItem(name,qty,{origin:"casino"}));
+ const names=Object.keys(map);
+ log(`Casino · premios reclamados: <b>${names.join(", ")}</b>.`);
+ toast(`Reclamado: ${names.join(", ")}`);
+ slotPrizeBox=[];
+ renderSlotPrizeBox();
+ render();save();sound(600,.1,"triangle");
+}
+function bindCasinoUI(){
+ if($("cityBackBtn"))$("cityBackBtn").onclick=closeCasino;
+ document.querySelectorAll("[data-casino-tab]").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll("[data-casino-tab]").forEach(x=>x.classList.toggle("active",x===b));
+  document.querySelectorAll(".casino-section").forEach(x=>x.classList.toggle("active",x.id==="casino-"+b.dataset.casinoTab));
+ });
+ if($("slotMoneyBetMinus"))$("slotMoneyBetMinus").onclick=()=>{slotMoneyBet=Math.max(0,slotMoneyBet-1);updateSlotBetsUI()};
+ if($("slotMoneyBetPlus"))$("slotMoneyBetPlus").onclick=()=>{slotMoneyBet=Math.min(state.credits,slotMoneyBet+1);updateSlotBetsUI()};
+ if($("slotItemBetMinus"))$("slotItemBetMinus").onclick=()=>{slotItemBet=Math.max(0,slotItemBet-1);updateSlotBetsUI()};
+ if($("slotItemBetPlus"))$("slotItemBetPlus").onclick=()=>{slotItemBet=Math.min(state.credits,slotItemBet+1);updateSlotBetsUI()};
+ document.querySelectorAll("[data-bet-add]").forEach(b=>b.onclick=()=>{
+  const n=Number(b.dataset.betAdd);
+  if(n===0)slotMoneyBet=0; else slotMoneyBet=Math.min(state.credits,slotMoneyBet+n);
+  updateSlotBetsUI();
+ });
+ document.querySelectorAll("[data-item-bet-add]").forEach(b=>b.onclick=()=>{
+  const n=Number(b.dataset.itemBetAdd);
+  if(n===0)slotItemBet=0; else slotItemBet=Math.min(state.credits,slotItemBet+n);
+  updateSlotBetsUI();
+ });
+ if($("slotMoneySpin"))$("slotMoneySpin").onclick=spinMoneySlot;
+ if($("slotItemSpin"))$("slotItemSpin").onclick=spinItemSlot;
+ if($("slotPrizeClaim"))$("slotPrizeClaim").onclick=claimSlotPrizes;
+}
+
+
 function nav(page){
  // Combate activo: solo se permite volver a Exploración para no quedar atrapado fuera del HUD de combate
  if(currentEnemy){
@@ -2605,10 +2988,50 @@ function nav(page){
  }
  window.scrollTo({top:0,behavior:state.settings.motion?"auto":"smooth"});render()}
 function bindNavigation(){document.querySelectorAll("[data-page]").forEach(b=>b.addEventListener("click",()=>nav(b.dataset.page)));document.querySelectorAll("[data-goto]").forEach(b=>b.addEventListener("click",()=>nav(b.dataset.goto)))}
-function renderStats(){if($("operatorRank"))$("operatorRank").textContent=operatorRank();if($("profileRank"))$("profileRank").textContent=operatorRank();$("credits").innerHTML=creditsIconMarkup(14)+"<span>"+state.credits.toLocaleString("es-ES")+"</span>";$("level").textContent=state.level;const seenNames=[...new Set((state.seen||[]).filter(Boolean))];let baseCount=0,synthCount=0;seenNames.forEach(name=>{const item={name,...knownInfo(name)};if(isSynthesisItem(item))synthCount++;else baseCount++});if($("itemCountBase"))$("itemCountBase").textContent=baseCount;if($("itemCountSynth"))$("itemCountSynth").textContent=synthCount;if($("itemCount"))$("itemCount").textContent=baseCount+synthCount;$("expCount").textContent=state.expeditions;$("fusionCount").textContent=state.fusions;$("activityLog").innerHTML=state.activity.length?state.activity.map(a=>`<div class="activity"><span class="muted">[${a.time}]</span> ${a.msg}</div>`).join(""):'<div class="empty">Sin actividad registrada. Tu historia empieza ahora.</div>';$("profileLevel").textContent=state.level;$("xpText").textContent=`${state.xp} / ${state.level*100} XP`;$("xpBar").style.width=(state.xp/(state.level*100)*100)+"%";$("statDamage").textContent=damage();$("statDefense").textContent=defense();$("statGather").textContent=stat("gather")+"%";$("statLuck").textContent=Math.max(0,(state.level-1)*2+stat("luck"))+"%";$("statCredits").textContent=state.credits}
+function renderStats(){
+ ensureSkillsState();
+ if($("operatorRank"))$("operatorRank").textContent=operatorRank();
+ if($("profileRank"))$("profileRank").textContent=operatorRank();
+ if($("credits"))$("credits").innerHTML=creditsIconMarkup(14)+"<span>"+state.credits.toLocaleString("es-ES")+"</span>";
+ if($("level"))$("level").textContent=state.level;
+ const seenNames=[...new Set((state.seen||[]).filter(Boolean))];
+ let baseCount=0,synthCount=0;
+ seenNames.forEach(name=>{const item={name,...knownInfo(name)};if(isSynthesisItem(item))synthCount++;else baseCount++});
+ if($("itemCountBase"))$("itemCountBase").textContent=baseCount;
+ if($("itemCountSynth"))$("itemCountSynth").textContent=synthCount;
+ if($("itemCount"))$("itemCount").textContent=baseCount+synthCount;
+ if($("expCount"))$("expCount").textContent=state.expeditions;
+ if($("fusionCount"))$("fusionCount").textContent=state.fusions;
+ if($("activityLog"))$("activityLog").innerHTML=state.activity.length?state.activity.map(a=>`<div class="activity"><span class="muted">[${a.time}]</span> ${a.msg}</div>`).join(""):'<div class="empty">Sin actividad registrada. Tu historia empieza ahora.</div>';
+ if($("profileLevel"))$("profileLevel").textContent=state.level;
+ if($("xpText"))$("xpText").textContent=`${state.xp} / ${state.level*100} XP`;
+ if($("xpBar"))$("xpBar").style.width=(state.xp/(state.level*100)*100)+"%";
+ if($("statDamage"))$("statDamage").textContent=damage();
+ if($("statDefense"))$("statDefense").textContent=defense();
+ const gather=stat("gather")+skillBonus("gather");
+ const luck=Math.max(0,(state.level-1)*2+stat("luck")+skillBonus("luck"));
+ if($("statGather"))$("statGather").textContent=gather+"%";
+ if($("statLuck"))$("statLuck").textContent=luck+"%";
+ if($("statExtract"))$("statExtract").textContent=equippedExtractBonus()+"%";
+ if($("statCredits"))$("statCredits").innerHTML=formatCredits(state.credits,14);
+ // Estadísticas page
+ if($("statsLevel"))$("statsLevel").textContent=state.level;
+ if($("statsRank"))$("statsRank").textContent=operatorRank();
+ if($("statsCreditsEarned"))$("statsCreditsEarned").innerHTML=formatCredits(state.creditsEarned||state.credits,14);
+ if($("statsSkillPts"))$("statsSkillPts").textContent=String(state.skillPoints||0);
+ if($("statsExpeditions"))$("statsExpeditions").textContent=state.expeditions||0;
+ if($("statsFusions"))$("statsFusions").textContent=state.fusions||0;
+ if($("statsAnomalies"))$("statsAnomalies").textContent=(state.stats&&state.stats.anomalies)||0;
+ if($("statsMissions"))$("statsMissions").textContent=(state.missionHistory||[]).length;
+ if($("statsCrafted"))$("statsCrafted").textContent=(state.stats&&state.stats.crafted)||0;
+ if($("statsSmelted"))$("statsSmelted").textContent=(state.stats&&state.stats.smelted)||0;
+ if($("statsRegBase"))$("statsRegBase").textContent=baseCount;
+ if($("statsRegSynth"))$("statsRegSynth").textContent=synthCount;
+ renderSkills();
+}
 function openZoneHud(zoneId){const target=zones.find(z=>z.id===zoneId);if(!target)return;if(!zoneUnlocked(target)){toast(`Zona bloqueada. Necesitas nivel ${zoneRequiredLevel(target)} de Operador.`,true);return}selectedZone=zoneId;zoneHudOpen=true;lootHudOpen=false;renderZoneCards();renderZoneDetail();renderZoneLoot();sound(470,.07,"triangle");window.scrollTo({top:0,behavior:state.settings.motion?"auto":"smooth"})}
 function closeZoneHud(){if(activeTask&&activeTask.type==="explore"){toast("La expedición sigue activa. Espera a que termine para salir de la zona.",true);return}if(currentEnemy){toast("Hay un combate en curso. Debes resolver el contacto hostil antes de salir.",true);return}zoneHudOpen=false;lootHudOpen=false;currentEnemy=null;pendingExploreLoot=[];$("combatPanel").classList.add("hidden");renderZoneCards();sound(340,.06,"sine")}
-function renderZoneDetail(){const z=zones.find(x=>x.id===selectedZone)||zones[0];const risk=["BAJO","MODERADO","ALTO","EXTREMO"][z.risk]||"VARIABLE";const host=$("zoneHudDetail");if(!host)return;host.innerHTML=`<div class="eyebrow">DOSSIER DE CAMPO · ${escapeHtml(z.id.toUpperCase())}</div><div style="display:flex;align-items:flex-start;gap:14px;margin:12px 0"><div class="zone-art" style="width:88px;min-width:88px;height:88px">${itemIconMarkup(z.name,z.icon)}</div><div style="flex:1"><h3 style="margin:0 0 8px">${escapeHtml(z.name)}</h3><p class="small-note">${escapeHtml(z.desc)}</p><div class="small-note" style="margin-top:10px">Riesgo: <b>${risk}</b> · Probabilidad de contacto: ${Math.round(z.enemy*100)}% · Duración estimada: 10 s</div></div></div><div class="zone-hud-actions"><button id="zoneBackBtn">← Volver a exploración</button><button id="zoneLootBtn" aria-expanded="${lootHudOpen}" class="${lootHudOpen?"active":""}">▤ Loot de la zona (${z.loot.length})</button><button class="primary" id="exploreBtn" ${activeTask||currentEnemy?"disabled":""}>⌖ INICIAR EXPEDICIÓN · 10 S</button></div>`;const b=$("exploreBtn");if(b)b.onclick=beginExplore;const back=$("zoneBackBtn");if(back)back.onclick=closeZoneHud;const loot=$("zoneLootBtn");if(loot)loot.onclick=()=>{lootHudOpen=!lootHudOpen;renderZoneDetail();renderZoneLoot()}}
+function renderZoneDetail(){const z=zones.find(x=>x.id===selectedZone)||zones[0];const risk=["BAJO","MODERADO","ALTO","EXTREMO"][z.risk]||"VARIABLE";const host=$("zoneHudDetail");if(!host)return;host.innerHTML=`<div class="eyebrow">DOSSIER DE CAMPO · ${escapeHtml(z.id.toUpperCase())}</div><div style="display:flex;align-items:flex-start;gap:14px;margin:12px 0"><div class="zone-art" style="width:88px;min-width:88px;height:88px">${itemIconMarkup(z.name,z.icon)}</div><div style="flex:1"><h3 style="margin:0 0 8px">${escapeHtml(z.name)}</h3><p class="small-note">${escapeHtml(z.desc)}</p><div class="small-note" style="margin-top:10px">Riesgo: <b>${risk}</b> · Probabilidad de contacto: ${Math.round(z.enemy*100)}% · Duración estimada: ${Math.round(exploreDurationMs()/1000)} s</div></div></div><div class="zone-hud-actions"><button id="zoneBackBtn">← Volver a exploración</button><button id="zoneLootBtn" aria-expanded="${lootHudOpen}" class="${lootHudOpen?"active":""}">▤ Loot de la zona (${z.loot.length})</button><button class="primary" id="exploreBtn" ${activeTask||currentEnemy?"disabled":""}>⌖ INICIAR EXPEDICIÓN · ${Math.round(exploreDurationMs()/1000)} S</button></div>`;const b=$("exploreBtn");if(b)b.onclick=beginExplore;const back=$("zoneBackBtn");if(back)back.onclick=closeZoneHud;const loot=$("zoneLootBtn");if(loot)loot.onclick=()=>{lootHudOpen=!lootHudOpen;renderZoneDetail();renderZoneLoot()}}
 function renderZoneLoot(){const host=$("zoneLootPanel");if(!host)return;const z=zones.find(x=>x.id===selectedZone)||zones[0];host.classList.toggle("hidden",!zoneHudOpen||!lootHudOpen);if(!zoneHudOpen||!lootHudOpen)return;host.innerHTML=`<div class="zone-loot-head"><div><h3>▤ LOOT DISPONIBLE</h3><p class="small-note">Objetos que puede revelar el escáner de ${escapeHtml(z.name)}. Desplázate por la lista; no tiene paginación.</p></div><span class="tag">${z.loot.length} OBJETOS</span></div><div class="zone-loot-list">${z.loot.map(n=>{const d=info(n);return `<div class="zone-loot-item"><span class="zone-loot-icon">${itemIconMarkup(n,d.icon)}</span><div><b>${escapeHtml(n)}</b><small>Nivel ${d.r||1} · ${escapeHtml(d.cat||"Otro")} · ${d.val||0} cr.</small><p>${escapeHtml(d.desc||"Objeto recuperable en esta zona.")}</p></div></div>`}).join("")}</div>`}
 function renderZoneCards(){const overview=$("zonesOverview"),hud=$("zoneHud");if(overview)overview.classList.toggle("hidden",zoneHudOpen);if(hud)hud.classList.toggle("hidden",!zoneHudOpen);const start=(zonePage-1)*3,shown=zones.slice(start,start+3);$("zonesGrid").innerHTML=shown.map(z=>{const unlocked=zoneUnlocked(z),required=zoneRequiredLevel(z);return `<div class="zone-card ${selectedZone===z.id?"selected":""} ${unlocked?"":"zone-locked"}" data-zone-card="${z.id}"><div class="zone-art">${unlocked?itemIconMarkup(z.name,z.icon):'<span aria-label="Bloqueada">■</span>'}</div><h4>${escapeHtml(z.name)}</h4><p>${escapeHtml(z.desc)}</p><div class="loot-chips">${z.loot.slice(0,3).map(n=>`<span class="chip">${itemIconMarkup(n,info(n).icon)} ${escapeHtml(n)}</span>`).join("")}</div><div class="small-note">Riesgo: ${["BAJO","MODERADO","ALTO","EXTREMO"][z.risk]}${unlocked?"":` · BLOQUEADA · NIVEL ${required}`}</div><button data-zone="${z.id}" ${activeTask||!unlocked?"disabled":""}>${unlocked?"Entrar en zona →":`Desbloquea en nivel ${required}`}</button></div>`}).join("");$("zonesPageInfo").textContent=`Página ${zonePage} / ${Math.ceil(zones.length/3)}`;$("zonesPrev").disabled=zonePage<=1;$("zonesNext").disabled=zonePage>=Math.ceil(zones.length/3);document.querySelectorAll("[data-zone]").forEach(b=>b.onclick=e=>{e.stopPropagation();openZoneHud(b.dataset.zone)});document.querySelectorAll("[data-zone-card]").forEach(c=>c.onclick=e=>{if(e.target.closest("button"))return;openZoneHud(c.dataset.zoneCard)})}
 function stopFusionHum(){
@@ -2667,7 +3090,7 @@ function startFusionHum(){
 }
 
 function beginTask(type,duration,onDone,els){if(activeTask)return;activeTask={type,start:Date.now(),duration,done:false,lastCue:0};stopFusionHum();sound(420,.09,"sine");els.panel.classList.remove("hidden");els.bar.style.width="0%";els.percent.textContent="0%";els.status&&(els.status.textContent=type==="explore"?"Explorando...":type==="craft"?"Fabricando...":type==="extract"?"Extrayendo...":type==="spawn"?"Sintetizando engendro...":"Fusionando...");els.button&&(els.button.disabled=true);const tick=()=>{if(!activeTask||activeTask.type!==type)return;const p=Math.min(1,(Date.now()-activeTask.start)/duration);els.bar.style.width=(p*100)+"%";els.percent.textContent=Math.floor(p*100)+"%";const step=Math.floor(p*3);if(step>activeTask.lastCue&&p<1){activeTask.lastCue=step;sound(560+step*30,.07,"sine")}if(p>=1){activeTask=null;setTimeout(()=>{sound(700,.1,"sine");onDone()},40);return}setTimeout(tick,100)};tick()}
-function beginExplore(){if(activeTask||currentEnemy)return;const z=zones.find(z=>z.id===selectedZone);if(!z||!zoneUnlocked(z))return toast(`Zona bloqueada. Necesitas nivel ${zoneRequiredLevel(z||zones[0])} de Operador.`,true);$("combatPanel").classList.add("hidden");$("exploreProgressPanel").classList.remove("hidden");beginTask("explore",10000,()=>{state.expeditions++;const foundItems=[];const primary=z.loot[Math.floor(Math.random()*z.loot.length)];foundItems.push(primary);const gatherChance=Math.min(.82,Math.max(0,(stat("gather")+stat("loot"))/100));if(Math.random()<gatherChance)foundItems.push(z.loot[Math.floor(Math.random()*z.loot.length)]);const rareChance=Math.min(.35,Math.max(0,stat("luck")/200));if(Math.random()<rareChance)foundItems.push(z.loot[Math.floor(Math.random()*z.loot.length)]);// Anomalías base: baja probabilidad en cualquier zona
+function beginExplore(){if(activeTask||currentEnemy)return;const z=zones.find(z=>z.id===selectedZone);if(!z||!zoneUnlocked(z))return toast(`Zona bloqueada. Necesitas nivel ${zoneRequiredLevel(z||zones[0])} de Operador.`,true);$("combatPanel").classList.add("hidden");$("exploreProgressPanel").classList.remove("hidden");const _expMs=exploreDurationMs();beginTask("explore",_expMs,()=>{state.expeditions++;const foundItems=[];const primary=z.loot[Math.floor(Math.random()*z.loot.length)];foundItems.push(primary);const gatherChance=Math.min(.82,Math.max(0,(stat("gather")+stat("loot")+skillBonus("gather"))/100));if(Math.random()<gatherChance)foundItems.push(z.loot[Math.floor(Math.random()*z.loot.length)]);const rareChance=Math.min(.35,Math.max(0,stat("luck")/200));if(Math.random()<rareChance)foundItems.push(z.loot[Math.floor(Math.random()*z.loot.length)]);// Anomalías base: baja probabilidad en cualquier zona
 if(typeof baseAnomalyNames!=="undefined"&&baseAnomalyNames.length&&Math.random()<(BASE_ANOMALY_DROP_CHANCE+Math.min(0.08,stat("luck")/400))){
   const anom=baseAnomalyNames[Math.floor(Math.random()*baseAnomalyNames.length)];
   foundItems.push(anom);
@@ -3176,9 +3599,9 @@ function claimFusion(){if(!state.pendingFusion)return;const out=state.pendingFus
 function recipePageSize(){const desktop=window.matchMedia("(min-width: 901px)").matches&&!document.body.classList.contains("layout-mobile");return desktop?6:4}
 function renderRecipes(){const pageSize=recipePageSize();let filtered=recipes.filter(r=>recipeCategory==="Todos"||(r.category||info(r.out).cat)===recipeCategory).sort((a,b)=>info(a.out).r-info(b.out).r||a.name.localeCompare(b.name,"es"));const pages=Math.max(1,Math.ceil(filtered.length/pageSize));recipePage=Math.min(Math.max(1,recipePage),pages);const shown=filtered.slice((recipePage-1)*pageSize,(recipePage-1)*pageSize+pageSize);const canCraft=r=>recipeUnlocked(r)&&Object.entries(r.cost).every(([n,q])=>count(n)>=q);$("recipesGrid").innerHTML=shown.length?shown.map(r=>{const need=recipeRequiredLevel(r);const unlocked=recipeUnlocked(r);const can=canCraft(r);return `<div class="recipe-card ${unlocked?"":"recipe-locked"}"><div style="display:flex;gap:9px;align-items:center"><span class="recipe-icon">${itemIconMarkup(r.out,r.icon)}</span><div><h4>${escapeHtml(r.name)}</h4><div class="rarity r${info(r.out).r}">NIVEL ${info(r.out).r} · ${escapeHtml(r.category||info(r.out).cat)}</div></div></div><p>${escapeHtml(r.desc)}</p>${unlocked?`<div class="loot-chips">${Object.entries(r.cost).map(([n,q])=>`<span class="chip ${count(n)>=q?"common":""}">${itemIconMarkup(n,info(n).icon)} ${escapeHtml(n)} ${count(n)}/${q}</span>`).join("")}</div><button data-craft="${r.id}" ${can&&!activeTask?"":"disabled"}>Fabricar · 10 s</button>`:`<div class="small-note" style="color:#ff8098;margin-top:8px">🔒 Requiere Operador nivel ${need}. Tu nivel: ${state.level}.</div><button disabled>Bloqueada</button>`}</div>`}).join(""):'<div class="empty" style="grid-column:1/-1">No hay recetas en esta categoría.</div>';$("recipesPageInfo").textContent=`Página ${recipePage} / ${pages}`;$("recipesPrev").disabled=recipePage<=1;$("recipesNext").disabled=recipePage>=pages;document.querySelectorAll("[data-craft]").forEach(b=>b.onclick=()=>craft(b.dataset.craft))}
 
-function craft(id){const r=recipes.find(x=>x.id===id);if(activeTask)return;if(!recipeUnlocked(r))return toast(`Receta bloqueada. Necesitas nivel de Operador ${recipeRequiredLevel(r)}.`,true);if(!Object.entries(r.cost).every(([n,q])=>count(n)>=q))return toast("Faltan materiales para esa receta.",true);beginTask("craft",10000,()=>{Object.entries(r.cost).forEach(([n,q])=>take(n,q));addItem(r.out,1,{origin:"fabricación"});xp(8);log(`Fabricación completada: <b>${r.out}</b>.`);$("craftMessage").textContent=`Fabricado: ${r.out}. Ya está en el inventario.`;toast(`Objeto fabricado: <b>${r.out}</b>`);render();save()}, {panel:$("craftProgress"),bar:$("craftBar"),percent:$("craftPercent"),button:null})}
+function craft(id){const r=recipes.find(x=>x.id===id);if(activeTask)return;if(!recipeUnlocked(r))return toast(`Receta bloqueada. Necesitas nivel de Operador ${recipeRequiredLevel(r)}.`,true);if(!Object.entries(r.cost).every(([n,q])=>count(n)>=q))return toast("Faltan materiales para esa receta.",true);beginTask("craft",10000,()=>{Object.entries(r.cost).forEach(([n,q])=>take(n,q));addItem(r.out,1,{origin:"fabricación"});ensureSkillsState();state.stats.crafted=(state.stats.crafted||0)+1;xp(8);log(`Fabricación completada: <b>${r.out}</b>.`);$("craftMessage").textContent=`Fabricado: ${r.out}. Ya está en el inventario.`;toast(`Objeto fabricado: <b>${r.out}</b>`);render();save()}, {panel:$("craftProgress"),bar:$("craftBar"),percent:$("craftPercent"),button:null})}
 function renderSmelt(){const ores=Object.keys(itemDB).filter(n=>/^Mena de /.test(n)).sort((a,b)=>info(a.replace(/^Mena de /,"Lingote de ")).r-info(b.replace(/^Mena de /,"Lingote de ")).r||a.localeCompare(b,"es"));const pages=Math.max(1,Math.ceil(ores.length/3));smeltPage=Math.min(Math.max(1,smeltPage),pages);const shown=ores.slice((smeltPage-1)*3,smeltPage*3);$('smeltOptions').innerHTML=shown.map(ore=>{const bar=ore.replace(/^Mena de /,"Lingote de ");const qty=2,coal=1;return `<div class="equip-slot"><div><b>${itemIconMarkup(bar,info(bar).icon)} ${escapeHtml(bar)}</b><br><span>Fundir ${qty} ${escapeHtml(ore)} + ${coal} carbón → 1 lingote</span><br><small class="muted">Mena disponible: ${count(ore)} / Carbón: ${count("Carbón")}</small></div><button class="tiny" data-smelt="${escapeHtml(ore)}" ${count(ore)>=qty&&count("Carbón")>=coal&&!activeTask?"":"disabled"}>Fundir · 10 s</button></div>`}).join('');$('smeltPageInfo').textContent=`Página ${smeltPage} / ${pages}`;$('smeltPrev').disabled=smeltPage<=1;$('smeltNext').disabled=smeltPage>=pages;document.querySelectorAll('[data-smelt]').forEach(b=>b.onclick=()=>smelt(b.dataset.smelt))}
-function smelt(ore){const bar=ore.replace(/^Mena de /,"Lingote de "),n=2;if(!itemDB[bar])return toast("Esta mena aún no tiene un proceso de refinado registrado.",true);if(activeTask||count(ore)<n||count("Carbón")<1)return toast("No hay suficiente mena o carbón.",true);beginTask("smelt",10000,()=>{take(ore,n);take("Carbón",1);addItem(bar,1,{origin:"fundición"});xp(6);log(`Horno industrial: ${ore} fundida y convertida en ${bar}.`);$('smeltMessage').textContent=`Proceso terminado: ${n} ${ore} + 1 carbón → ${bar}.`;toast(`Horno: <b>${bar}</b>`);render();save()}, {panel:$('smeltProgress'),bar:$('smeltBar'),percent:$('smeltPercent'),button:null})}
+function smelt(ore){const bar=ore.replace(/^Mena de /,"Lingote de "),n=2;if(!itemDB[bar])return toast("Esta mena aún no tiene un proceso de refinado registrado.",true);if(activeTask||count(ore)<n||count("Carbón")<1)return toast("No hay suficiente mena o carbón.",true);beginTask("smelt",10000,()=>{take(ore,n);take("Carbón",1);addItem(bar,1,{origin:"fundición"});ensureSkillsState();state.stats.smelted=(state.stats.smelted||0)+1;xp(6);log(`Horno industrial: ${ore} fundida y convertida en ${bar}.`);$('smeltMessage').textContent=`Proceso terminado: ${n} ${ore} + 1 carbón → ${bar}.`;toast(`Horno: <b>${bar}</b>`);render();save()}, {panel:$('smeltProgress'),bar:$('smeltBar'),percent:$('smeltPercent'),button:null})}
 function renderBonus(){$("bonusPanel").innerHTML=`<div class="statline"><span>Bonificación de recolección equipada</span><b class="cyan">+${stat("gather")}%</b></div><div class="statline"><span>Probabilidad de botín adicional</span><b class="cyan">${Math.min(82,Math.max(0,stat("gather")+stat("loot")))}%</b></div><div class="statline"><span>Experiencia adicional</span><b class="cyan">+${stat("experience")}%</b></div><div class="statline"><span>Daño total de combate</span><b>${damage()}</b></div><div class="statline"><span>Defensa total</span><b>${defense()}</b></div><p class="small-note">Las herramientas aumentan los hallazgos. Las armas elevan el daño durante los encuentros. Las piezas fusionadas pueden tener efectos inesperados.</p>`}
 function makeProceduralLoot(packId){
  const families=[
@@ -3646,7 +4069,7 @@ function migrateOrganVariants(){
  (state.inventory||[]).forEach(it=>{if(it&&it.cat==="Órgano")saveOrganVariant(it)});
  Object.values(state.discovered||{}).forEach(it=>{if(it&&it.cat==="Órgano")saveOrganVariant(it)});
 }
-function init(){
+function init(){ensureSkillPointsFromLevel();
  if(!state.version){state=stateDefault();log("Sistema inicializado. Inventario y créditos a cero.")}
  if(!state.activity.length&&!state.inventory.length&&state.credits===0)log("Sistema inicializado. Inventario vacío. Explora para conseguir tus primeros recursos.");
  document.querySelectorAll("[data-settings-panel].settings-tab, .settings-tab[data-settings-panel]").forEach(b=>{
