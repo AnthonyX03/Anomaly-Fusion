@@ -2897,7 +2897,7 @@ function renderPicker(){
  if(pickerMode==="spawn")list=list.filter(x=>x.cat==="Órgano"&&!Object.values(spawnSelected||{}).includes(x.id));
  if(pickerMode==="spawnAnomaly")list=list.filter(x=>x.cat==="Anomalía");
  if(pickerMode==="equip")list=list.filter(x=>pickerSlot==="anomaly"?x.cat==="Anomalía":pickerSlot==="companion"?x.cat==="Criatura":info(x.name).slot===pickerSlot||x.slot===pickerSlot);
- const pickerPageSize=6;const pages=Math.max(1,Math.ceil(list.length/pickerPageSize));pickerPage=Math.min(Math.max(1,pickerPage),pages);const shown=list.slice((pickerPage-1)*pickerPageSize,pickerPage*pickerPageSize);
+ const pageSize=6;const pages=Math.max(1,Math.ceil(list.length/pageSize));pickerPage=Math.min(Math.max(1,pickerPage),pages);const shown=list.slice((pickerPage-1)*pageSize,pickerPage*pageSize);
  $("pickerGrid").innerHTML=shown.length?shown.map(x=>`<button class="picker-item" data-pick-id="${x.id}"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><span style="min-width:0"><b title="${escapeHtml(x.name)}">${escapeHtml(inventoryDisplayName(x))}</b><small>N${x.r} · ${escapeHtml(x.cat)} · ×${x.qty}</small></span></button>`).join(""):'<div class="empty" style="grid-column:1/-1">No hay objetos disponibles en esta categoría.</div>';
  if($("pickerPageInfo"))$("pickerPageInfo").textContent=`Página ${pickerPage} / ${pages}`;
  if($("pickerPrev")){$("pickerPrev").disabled=pickerPage<=1;$("pickerPrev").onclick=()=>{pickerPage=Math.max(1,pickerPage-1);renderPicker()};}
