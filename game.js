@@ -2277,22 +2277,21 @@ function startRefine(){
     if(p<1){requestAnimationFrame(tick);return}
     const win=Math.random()*100<pct;
     if(win){
-      // Objeto aleatorio del registro base con valor > entrada
-      const pool=[...new Set([...(state.seen||[]),...Object.keys(state.discovered||{}),...Object.keys(itemDB||{})])]
+      // Solo puede salir un objeto que ya figure en el Registro Base del jugador.
+      // El Registro Base se construye desde state.seen; itemDB/discovered por sí solos
+      // no autorizan objetos que el jugador todavía no haya registrado.
+      const pool=[...new Set((state.seen||[]).filter(Boolean))]
         .filter(n=>{
-          const d=info(n);
+          const d=knownInfo(n);
           if(!d||!d.cat)return false;
-          if(isSynthesisItem({name:n,...d})||isRefineDust(n))return false;
-          if(["Criatura"].includes(d.cat))return false;
+          if(isSynthesisItem({name:n,...d})||isRefineDust({name:n,...d}))return false;
+          if(d.cat==="Otro")return false;
           return Math.max(1,Number(d.val)||1)>inVal;
         });
-      let name=pool.length?pool[Math.floor(Math.random()*pool.length)]:null;
+      const name=pool.length?pool[Math.floor(Math.random()*pool.length)]:null;
       if(!name){
-        // fallback: cualquier base de mayor valor en itemDB
-        const fb=Object.keys(itemDB).filter(n=>{const d=itemDB[n];return d&&Math.max(1,Number(d.val)||1)>inVal&&d.cat!=="Criatura"&&!d.illegal});
-        name=fb.length?fb[Math.floor(Math.random()*fb.length)]:"Polvo de refinadora";
-      }
-      if(name==="Polvo de refinadora"){
+        // Si no existe un candidato registrado de mayor valor, se considera fallo:
+        // la recompensa es Polvo de refinadora, nunca un objeto no descubierto.
         refinePending={ok:false,name:"Polvo de refinadora",qty:1};
       }else{
         state.achievements=state.achievements||{};state.achievements.refine_success=true;
