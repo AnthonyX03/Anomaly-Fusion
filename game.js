@@ -3205,7 +3205,7 @@ function renderDismantleTable(){
  if(!x){
   if(icon)icon.innerHTML="＋";
   if(label)label.textContent="Sin unidad";
-  host.innerHTML='<div class="empty">Elige una criatura robótica del inventario.</div>';
+  host.classList.remove('has-choices');host.innerHTML='<div class="empty">Elige una criatura robótica del inventario.</div>';
   if(btn)btn.disabled=true;
   if($("dismantlePiecesPager"))$("dismantlePiecesPager").classList.add("hidden");
   return;
@@ -3213,7 +3213,7 @@ function renderDismantleTable(){
  if(icon)icon.innerHTML=itemIconMarkup(x.name,x.icon||info(x.name).icon);
  if(label)label.textContent=inventoryDisplayName(x)+" · N"+(x.r||1);
  if(!isRoboticCreature(x)){
-  host.innerHTML='<div class="empty">Esta criatura no es robótica: usa la Clínica para órganos.</div>';
+  host.classList.remove('has-choices');host.innerHTML='<div class="empty">Esta criatura no es robótica: usa la Clínica para órganos.</div>';
   if(btn)btn.disabled=true;return;
  }
  const opts=pieceCandidatesForRobot(x);
@@ -3234,6 +3234,7 @@ function renderDismantleTable(){
   const ic=itemIconMarkup(name,info(name).icon||"⚙️");
   return `<button type="button" class="extract-organ-opt ${on?"on":""}" data-piece="${escapeHtml(name)}"><span class="item-icon">${ic}</span><span>${escapeHtml(name)}</span></button>`;
  }).join("")||'<div class="empty">Sin piezas detectadas.</div>';
+ host.classList.toggle('has-choices', !!shown.length);
  host.querySelectorAll("[data-piece]").forEach(b=>b.onclick=()=>{
   if(activeTask)return;
   const n=b.dataset.piece;
@@ -3457,6 +3458,9 @@ function fixSidebarScroll(){
     sc.style.setProperty("min-height", "0", "important");
     sc.style.setProperty("overflow-y", "auto", "important");
     sc.style.setProperty("overflow-x", "hidden", "important");
+    sc.style.setProperty("scrollbar-width", "thin", "important");
+    sc.style.setProperty("scrollbar-color", "#2ec4b0 #0a1218", "important");
+    sc.style.colorScheme = "dark";
   }catch(e){console.warn("fixSidebarScroll",e)}
 }
 
@@ -4329,7 +4333,7 @@ function renderExtractTable(){
  if(!x){
   if(icon)icon.innerHTML="＋";
   if(label)label.textContent="Sin criatura";
-  host.innerHTML='<div class="empty">Elige una criatura orgánica del inventario.</div>';
+  host.classList.remove('has-choices');host.innerHTML='<div class="empty">Elige una criatura orgánica del inventario.</div>';
   if(btn)btn.disabled=true;
   if($("extractOrgansPager"))$("extractOrgansPager").classList.add("hidden");
   return;
@@ -4337,14 +4341,14 @@ function renderExtractTable(){
  if(icon)icon.innerHTML=itemIconMarkup(x.name,x.icon||info(x.name).icon);
  if(label)label.textContent=inventoryDisplayName(x)+" · N"+(x.r||1);
  if(isRoboticCreature(x)){
-  host.innerHTML='<div class="empty">Esta unidad es mecánica/robótica: no tiene órganos extraíbles.</div>';
+  host.classList.remove('has-choices');host.innerHTML='<div class="empty">Esta unidad es mecánica/robótica: no tiene órganos extraíbles.</div>';
   if(btn)btn.disabled=true;
   if($("extractOrgansPager"))$("extractOrgansPager").classList.add("hidden");
   return;
  }
  const opts=organCandidatesForCreature(x);
  if(!opts.length){
-  host.innerHTML='<div class="empty">No se detectan órganos extraíbles en esta criatura.</div>';
+  host.classList.remove('has-choices');host.innerHTML='<div class="empty">No se detectan órganos extraíbles en esta criatura.</div>';
   if(btn)btn.disabled=true;
   if($("extractOrgansPager"))$("extractOrgansPager").classList.add("hidden");
   return;
@@ -4362,7 +4366,8 @@ function renderExtractTable(){
  if($("extractOrgansPageInfo"))$("extractOrgansPageInfo").textContent=`Página ${extractOrgansPage} / ${pages}`;
  if($("extractOrgansPrev"))$("extractOrgansPrev").disabled=extractOrgansPage<=1;
  if($("extractOrgansNext"))$("extractOrgansNext").disabled=extractOrgansPage>=pages;
- host.innerHTML=shown.map(name=>{
+ host.classList.add('has-choices');
+host.innerHTML=shown.map(name=>{
   const on=!!extractSelected[name];
   const ic=itemIconMarkup(name,info(name).icon||"🫀");
   return `<button type="button" class="extract-organ-opt ${on?"on":""}" data-extract-organ="${escapeHtml(name)}" aria-pressed="${on?"true":"false"}"><span class="item-icon extract-organ-icon">${ic}</span><span class="extract-organ-text"><b>${escapeHtml(name)}</b><small>Órgano · nivel 1–${maxR}</small></span></button>`;
