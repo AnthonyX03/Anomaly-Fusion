@@ -3470,10 +3470,12 @@ function fixSidebarScroll(){
     const sb=document.querySelector("aside.sidebar");
     const sc=document.querySelector("aside.sidebar .sidebar-scroll");
     if(!sb||!sc)return;
-    // Solo en escritorio / layout PC
     const mobile=window.matchMedia("(max-width:900px)").matches||document.body.classList.contains("layout-mobile");
     if(mobile){
-      sb.style.height="";sb.style.maxHeight="";sc.style.overflowY="";
+      // Quitar overrides PC y forzar oculto
+      ["height","max-height","display","flex-direction","overflow","position","top"].forEach(p=>sb.style.removeProperty(p));
+      ["flex","min-height","overflow-y","overflow-x","scrollbar-width","scrollbar-color"].forEach(p=>sc.style.removeProperty(p));
+      sb.style.setProperty("display","none","important");
       return;
     }
     const top=sb.getBoundingClientRect().top;
