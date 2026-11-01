@@ -14,7 +14,7 @@ let audioCtx=null,masterGain=null,lastSoundAt=0,fusionHum=null;
 let zoneHudOpen=false,activeTask=null,currentEnemy=null;
 let upgradeInputId=null,upgradeInputQty=1,upgradeTargetName=null,upgradeTargetQty=1,upgradeSpinning=false;
 let exchangeBox={},exchangeBusy=false,exchangePending=null;
-let refineInputId=null,refineTargetName=null,refineDustQty=0,refineBusy=false,refinePending=null;
+let refineInputId=null,refineTargetName=null,refineDustQty=0,refineBusy=false,refinePending=null,refineChanceLocked=null;
 let pickerMode=null,pickerSlot=null,pickerFilter="Todos",pickerPage=1;
 let centralSaleFilter="Todos",centralSaleSelection={};
 
@@ -1520,6 +1520,20 @@ art=`<path d="M32 5 39 21 57 13 49 30 60 38 43 42 48 59 32 48 17 59 21 42 4 38 1
 }
 function knownInfo(name){const base={...info(name),...(state.discovered?.[name]||{}),...(state.inventory.find(x=>x.name===name)||{})};const variants=state.synthesisVariants?.[name];if(isSynthesisItem(base)&&Array.isArray(variants)&&variants.length){const best=variants.reduce((a,b)=>(Number(b.r)||1)>(Number(a.r)||1)?b:a,variants[0]);return {...base,...best,name}}return base}
 function isSynthesisItem(x){return !!(x&&(x.trait==="Síntesis de convergencia"||x.affix==="Síntesis de convergencia"||x.coherent===true||x.sourceA&&x.sourceB));}
+// Fuente única del Registro Base. La Refinadora y la pantalla del Registro
+// consultan exactamente estos mismos registros, nunca itemDB ni discovered por separado.
+function getBaseRegistryItems(){
+ const names=[...new Set((state.seen||[]).filter(n=>typeof n==="string"&&n.trim()))];
+ return names.map(name=>({name,...knownInfo(name)})).filter(item=>item.name&&item.cat&&!isSynthesisItem(item));
+}
+function getRefineryRegistryCandidates(minValue){
+ const floor=Math.max(1,Number(minValue)||1);
+ return getBaseRegistryItems().filter(item=>{
+  if(isSynthesisItem(item)||isRefineDust(item))return false;
+  if(item.cat==="Otro"||item.cat==="Otros")return false;
+  return Math.max(1,Number(item.val)||1)>floor;
+ });
+}
 
 function saveOrganVariant(item){
  if(!item||item.cat!=="Órgano")return;
@@ -2216,8 +2230,13 @@ function renderRefineMachine(){
   if($("refineDustInv"))$("refineDustInv").textContent=String(dustInv);
   if($("refineDustUse"))$("refineDustUse").textContent=String(refineDustQty);
   if($("refineDustQty"))$("refineDustQty").textContent="×"+refineDustQty;
-  const pct=refineChancePct();
-  if($("refineChanceLabel"))$("refineChanceLabel").textContent=pct+"%";
+  const pct=((refineBusy||refinePending)&&refineChanceLocked!==null)?refineChanceLocked:refineChancePct();
+  const chanceLabel=$("refineChanceLabel");
+  if(chanceLabel){
+    chanceLabel.textContent=pct+"%";
+    chanceLabel.style.color=pct>=50?"#00e676":pct>=25?"#ff7900":"#ff3b54";
+    chanceLabel.style.textShadow=pct>=50?"0 0 12px #00e67666":pct>=25?"0 0 12px #ff790066":"0 0 10px #ff3b5466";
+  }
   const btn=$("refineStartBtn");
   if(btn)btn.disabled=refineBusy||!inItem||!!activeTask||!!currentEnemy||!!refinePending;
   const out=$("refineOutputSlot"),tInfo=$("refineTargetInfo"),claim=$("refineClaimBtn");
@@ -2260,7 +2279,8 @@ function startRefine(){
   const dustNeed=refineDustQty;
   if(dustNeed>countDust())return toast("No tienes suficiente Polvo de refinadora.",true);
   const pct=refineChancePct();
-  if(!removeItemById(item.id,1))return toast("Error al consumir la entrada.",true);
+  refineChanceLocked=pct;
+  if(!removeItemById(item.id,1)){refineChanceLocked=null;return toast("Error al consumir la entrada.",true);}
   if(dustNeed>0)take("Polvo de refinadora",dustNeed);
   refineBusy=true;refineInputId=null;
   if($("refineBarFill"))$("refineBarFill").style.width="0%";
@@ -2277,25 +2297,17 @@ function startRefine(){
     if(p<1){requestAnimationFrame(tick);return}
     const win=Math.random()*100<pct;
     if(win){
-      // Solo puede salir un objeto que ya figure en el Registro Base del jugador.
-      // El Registro Base se construye desde state.seen; itemDB/discovered por sí solos
-      // no autorizan objetos que el jugador todavía no haya registrado.
-      const pool=[...new Set((state.seen||[]).filter(Boolean))]
-        .filter(n=>{
-          const d=knownInfo(n);
-          if(!d||!d.cat)return false;
-          if(isSynthesisItem({name:n,...d})||isRefineDust({name:n,...d}))return false;
-          if(d.cat==="Otro")return false;
-          return Math.max(1,Number(d.val)||1)>inVal;
-        });
-      const name=pool.length?pool[Math.floor(Math.random()*pool.length)]:null;
+      // Candidatos calculados desde la misma fuente que dibuja la pestaña Registro Base.
+      // Se excluyen todos los tipos "Otro", polvo y objetos de Síntesis.
+      const pool=getRefineryRegistryCandidates(inVal);
+      const name=pool.length?pool[Math.floor(Math.random()*pool.length)].name:null;
       if(!name){
         // Si no existe un candidato registrado de mayor valor, se considera fallo:
         // la recompensa es Polvo de refinadora, nunca un objeto no descubierto.
         refinePending={ok:false,name:"Polvo de refinadora",qty:1};
       }else{
         state.achievements=state.achievements||{};state.achievements.refine_success=true;
-        refinePending={ok:true,name,qty:1};
+        refinePending={ok:true,name,qty:1,sourceVal:inVal};
       }
       if($("refineStatus"))$("refineStatus").textContent=refinePending.ok?"Éxito · listo":"Sin candidatos · polvo";
       if($("refineResult"))$("refineResult").innerHTML=refinePending.ok?`<span class="cyan">Éxito (${pct}%).</span> Reclama el resultado.`:`<span class="red">Sin objeto superior.</span> Polvo listo.`;
@@ -2307,18 +2319,25 @@ function startRefine(){
       sound(140,.2,"sawtooth");
     }
     refineBusy=false;
-    refineDustQty=0;
+    // La probabilidad y el polvo seleccionado se conservan hasta reclamar el resultado.
     renderRefineMachine();save();
   };
   requestAnimationFrame(tick);
 }
 function claimRefine(){
   if(!refinePending)return;
-  const p=refinePending;
+  let p=refinePending;
+  // Segunda validación justo antes de entregar: el resultado debe seguir apareciendo
+  // en Registro Base y conservar un valor superior al objeto consumido.
+  if(p.ok){
+    const allowed=getRefineryRegistryCandidates(p.sourceVal);
+    if(!allowed.some(item=>item.name===p.name))p={ok:false,name:"Polvo de refinadora",qty:1};
+  }
   addItem(p.name,p.qty,{origin:"refinadora"});
   toast(p.ok?`Refinado: ${p.name}`:`+${p.qty}× Polvo de refinadora`);
   log(`Refinadora: ${p.ok?"éxito":"fallo"} → <b>${escapeHtml(p.name)}</b>.`);
   refinePending=null;refineTargetName=null;
+  refineDustQty=0;refineChanceLocked=null;
   if($("refineBarFill"))$("refineBarFill").style.width="0%";
   if($("refineResult"))$("refineResult").textContent="";
   if($("refineStatus"))$("refineStatus").textContent="En espera";
@@ -3368,9 +3387,10 @@ function obtainedHow(name){const d0=knownInfo(name);if(d0.cat==="Órgano")return
 function renderRegistry(){
 const search=$("registrySearch").value.trim().toLowerCase(),sort=registrySort;
 if(registryFilter==="Síntesis")registryFilter="Todos";
-let list=[...new Set(state.seen||[])].map(name=>({name,...knownInfo(name)}));
-// Separar por modo: Base = sin rasgo de síntesis; Síntesis = solo con rasgo
-list=list.filter(x=>registryMode==="synthesis"?isSynthesisItem(x):!isSynthesisItem(x));
+let list=registryMode==="synthesis"
+ ? [...new Set(state.seen||[])].map(name=>({name,...knownInfo(name)})).filter(isSynthesisItem)
+ : getBaseRegistryItems();
+// Base y Refinadora comparten la misma fuente de descubrimientos.
 // Filtros de categoría (sin opción Síntesis; ya está separado por pestaña)
 list=list.filter(x=>(registryFilter==="Todos"||x.cat===registryFilter)&&x.name.toLowerCase().includes(search));
 list.sort((a,b)=>sort==="rarity"?b.r-a.r||a.name.localeCompare(b.name,"es"):sort==="value"?b.val-a.val||a.name.localeCompare(b.name,"es"):a.name.localeCompare(b.name,"es"));
@@ -3509,8 +3529,8 @@ if($("exchangeClearBtn"))$("exchangeClearBtn").onclick=()=>{if(exchangeBusy)retu
 if($("exchangeSubmitBtn"))$("exchangeSubmitBtn").onclick=runExchange;
 if($("refineInputPick"))$("refineInputPick").onclick=()=>{if(!refineBusy)openRefineInputPicker()};
 if($("refineInputClear"))$("refineInputClear").onclick=()=>{if(refineBusy)return;refineInputId=null;renderRefineMachine()};
-if($("refineDustMinus"))$("refineDustMinus").onclick=()=>{if(refineBusy)return;refineDustQty=Math.max(0,refineDustQty-1);renderRefineMachine()};
-if($("refineDustPlus"))$("refineDustPlus").onclick=()=>{if(refineBusy)return;refineDustQty=Math.min(countDust(),16,refineDustQty+1);renderRefineMachine()};
+if($("refineDustMinus"))$("refineDustMinus").onclick=()=>{if(refineBusy||refinePending)return;refineDustQty=Math.max(0,refineDustQty-1);renderRefineMachine()};
+if($("refineDustPlus"))$("refineDustPlus").onclick=()=>{if(refineBusy||refinePending)return;refineDustQty=Math.min(countDust(),16,refineDustQty+1);renderRefineMachine()};
 if($("refineStartBtn"))$("refineStartBtn").onclick=startRefine;
 if($("refineClaimBtn"))$("refineClaimBtn").onclick=claimRefine;
 
