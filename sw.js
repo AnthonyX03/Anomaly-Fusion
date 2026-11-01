@@ -1,4 +1,4 @@
-const CACHE="anomaly-fusion-v3-0-ultimate-r68-fix40-equipped";
+const CACHE="anomaly-fusion-v3-0-ultimate-r68-fix41-ui-align";
 const FILES=["./","./index.html","./game.js","./manifest.webmanifest","./anomaly-fusion-icon.svg","./AnomalyFusion.mp3"];
 self.addEventListener("install",event=>event.waitUntil((async()=>{
  const cache=await caches.open(CACHE);

@@ -11,7 +11,7 @@
 <style>
 :root{--bg:#07090c;--panel:#0d1117;--panel2:#111821;--line:#263441;--muted:#7f929f;--text:#e6f1f5;--cyan:#53f2d1;--blue:#61b9ff;--red:#ff5577;--gold:#ffc857;--green:#8bff9b;--purple:#c18bff;--radius:12px;--scale:1}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html{background:var(--bg);font-size:calc(14px * var(--scale));color:var(--text);font-family:ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace}html{scrollbar-gutter:stable}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% -20%,#14252c 0,transparent 48%),var(--bg);letter-spacing:.01em}button,input,select{font:inherit}button, a, [role="button"], .registry-tile, .item-card, .zone-card, .recipe-card{-webkit-tap-highlight-color:transparent;touch-action:manipulation}button:focus,button:focus-visible,input:focus,select:focus{outline:none}button:focus-visible{border-color:var(--cyan);box-shadow:0 0 0 1px #53f2d155}button{cursor:pointer;color:var(--text);background:#151f28;border:1px solid #334654;border-radius:8px;padding:10px 12px;transition:.15s}button:hover:not(:disabled){border-color:var(--cyan);color:var(--cyan);transform:translateY(-1px)}button:disabled{opacity:.35;cursor:not-allowed}.primary{background:var(--cyan);border-color:var(--cyan);color:#04100e;font-weight:900}.primary:hover:not(:disabled){background:#9bffe9;color:#04100e}.danger{border-color:#6b2c40;color:#ff9ab0}.tiny{padding:5px 8px;font-size:.78rem}.muted{color:var(--muted)}.cyan{color:var(--cyan)}.gold{color:var(--gold)}.red{color:var(--red)}.purple{color:var(--purple)}.hidden{display:none!important}
-header{position:sticky;top:0;z-index:20;background:#080b0fee;backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}.topbar{max-width:1440px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px 18px}.brand{display:flex;align-items:center;gap:10px;min-width:0}.logo{display:grid;place-items:center;width:38px;height:38px;border:1px solid var(--cyan);color:var(--cyan);font-weight:900;transform:rotate(45deg);box-shadow:0 0 20px #53f2d122}.logo span{transform:rotate(-45deg)}.brand h1{font-size:1rem;letter-spacing:.18em;margin:0}.brand small{display:block;color:var(--muted);font-size:.65rem;margin-top:3px;letter-spacing:.12em}.top-stats{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}.stat{border:1px solid var(--line);background:#0d1218;padding:7px 10px;border-radius:7px;font-size:.82rem;white-space:nowrap}.stat b{color:var(--gold)}.shell{max-width:1440px;margin:auto;padding:18px;display:grid;grid-template-columns:220px minmax(0,1fr);gap:18px}.sidebar{align-self:start;position:sticky;top:78px;background:#0a0e13;border:1px solid var(--line);border-radius:var(--radius);padding:0;max-height:calc(100dvh - 96px)!important;display:flex!important;flex-direction:column;overflow:hidden!important}.nav-label{font-size:.68rem;color:#617582;letter-spacing:.16em;padding:9px 10px}.nav{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:transparent;border-color:transparent;color:#a7b6bf;margin-bottom:3px}.nav .ico{width:20px;text-align:center;color:var(--cyan)}.nav.active{background:#12232a;border-color:#24594f;color:var(--cyan)}.side-foot{border-top:1px solid var(--line);margin-top:12px;padding:12px 9px;color:#647a87;font-size:.72rem;line-height:1.6}.main{min-width:0}.page{display:none;animation:fade .2s ease}.page.active{display:block}@keyframes fade{from{opacity:.3;transform:translateY(4px)}to{opacity:1;transform:none}}.page-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin:3px 0 18px}.page-head>div{min-width:0;flex:1}.page-head p{max-width:820px}.eyebrow{font-size:.7rem;color:var(--cyan);letter-spacing:.18em}.page h2{font-size:1.5rem;margin:5px 0}.page-head p{margin:0;color:var(--muted);font-size:.88rem;line-height:1.5}.panel{background:linear-gradient(145deg,#10161d,#0b0f14);border:1px solid var(--line);border-radius:var(--radius);padding:16px;min-width:0}.panel h3{font-size:.9rem;letter-spacing:.1em;margin:0 0 13px}.grid{display:grid;gap:13px}.grid.two{grid-template-columns:repeat(2,minmax(0,1fr))}.grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}.grid.four{grid-template-columns:repeat(4,minmax(0,1fr))}.hero{padding:22px;position:relative;overflow:hidden;background:linear-gradient(110deg,#102027,#0b1118 65%);border-color:#28534e}.hero:after{content:"";position:absolute;width:190px;height:190px;border:1px solid #53f2d122;transform:rotate(45deg);right:-80px;top:-55px;box-shadow:0 0 0 22px #53f2d008,0 0 0 44px #53f2d008}.hero h2{font-size:1.6rem;max-width:600px}.hero p{color:#9db3bc;line-height:1.7;max-width:650px}.hero-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}.section-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:20px 0 10px}.section-title h3{margin:0;font-size:.85rem;letter-spacing:.12em}.tag{font-size:.68rem;padding:4px 7px;border:1px solid var(--line);border-radius:5px;color:var(--muted)}.meter{height:8px;border-radius:20px;background:#050709;border:1px solid #26313a;overflow:hidden}.meter>span{height:100%;display:block;width:0;background:linear-gradient(90deg,#2dbea7,var(--cyan));transition:width .25s}.meter.progress>span{background:linear-gradient(90deg,#2977aa,var(--blue))}.meter.danger-meter>span{background:linear-gradient(90deg,#b32d4e,var(--red))}.activity{padding:10px 0;border-bottom:1px solid #1c2730;font-size:.8rem;color:#9eb0ba;line-height:1.5}.activity:last-child{border:0}.activity b{color:var(--cyan)}.zone-card,.recipe-card,.supply-card{padding:14px;border:1px solid var(--line);border-radius:10px;background:#0c1218;display:flex;flex-direction:column;gap:9px;min-width:0}.zone-card.selected{border-color:var(--cyan);box-shadow:inset 0 0 0 1px #53f2d122}.zone-art{height:80px;border-radius:7px;display:grid;place-items:center;font-size:2.4rem;background:linear-gradient(135deg,#132d2b,#111721);border:1px solid #243a3d}.zone-card h4,.recipe-card h4{margin:0;font-size:.9rem}.zone-card p,.recipe-card p,.supply-card p{font-size:.76rem;line-height:1.5;color:var(--muted);margin:0;flex:1}.loot-chips{display:flex;gap:5px;flex-wrap:wrap}.chip{font-size:.68rem;padding:4px 6px;background:#141f27;border:1px solid #273c49;border-radius:5px;color:#b8cad2}.chip.common{border-color:#3e5d4d;color:#9fe8b2}.chip.rare{border-color:#5b4a76;color:#d2adff}.item-card{border:1px solid var(--line);border-radius:9px;padding:10px;background:#0c1117;min-width:0;position:relative}.item-top{display:flex;align-items:flex-start;gap:9px}.item-icon{font-size:1.5rem;width:36px;height:36px;flex:0 0 36px;display:grid;place-items:center;background:#172129;border-radius:7px}.item-card h4{font-size:.78rem;margin:0 0 5px;overflow-wrap:anywhere}.item-card .desc{font-size:.7rem;color:var(--muted);line-height:1.4}.item-bottom{display:flex;align-items:center;justify-content:space-between;gap:5px;margin-top:10px}.rarity{font-size:.62rem;letter-spacing:.1em;font-weight:900}.r1{color:#b9c4cb}.r2{color:#72e48b}.r3{color:#55baff}.r4{color:#c18bff}.r5{color:#ffc857;text-shadow:0 0 10px #ffc85733}.item-card.rarity-1{border-top:2px solid #a7b4bd}.item-card.rarity-2{border-top:2px solid #72e48b}.item-card.rarity-3{border-top:2px solid #55baff}.item-card.rarity-4{border-top:2px solid #c18bff}.item-card.rarity-5{border-top:2px solid #ffc857}.bar-wrap{margin:15px 0}.bar-label{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);margin-bottom:7px}.slot-row{display:grid;grid-template-columns:1fr 40px 1fr;align-items:center;gap:9px}.slot{min-height:120px;border:1px dashed #3c505d;border-radius:10px;background:#090d12;display:flex;align-items:center;justify-content:center;text-align:center;padding:12px;flex-direction:column;gap:8px}.slot.filled{border-style:solid;border-color:#287c70;background:#0d1b1d}.slot .slot-icon{font-size:1.8rem}.plus{font-size:1.3rem;color:var(--cyan);text-align:center}.slot select{width:100%;max-width:240px;background:#101820;border:1px solid #344955;color:var(--text);padding:8px;border-radius:6px}.result-box{padding:15px;border:1px solid #4a4267;background:#151124;border-radius:10px;margin-top:14px}.result-box h3{color:var(--purple)}.equip-slot{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px;border:1px solid var(--line);border-radius:7px;margin-top:7px;font-size:.78rem}.equip-slot span{color:var(--muted)}.statline{display:flex;justify-content:space-between;gap:10px;font-size:.8rem;padding:8px 0;border-bottom:1px solid #202b33}.statline:last-child{border:0}.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.toolbar input,.toolbar select,.settings-row select{background:#0a1015;color:var(--text);border:1px solid #344955;padding:9px;border-radius:7px;min-width:0}.toolbar input{flex:1;min-width:130px}.inventory-controls{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:13px}.inventory-controls button.active{border-color:var(--cyan);color:var(--cyan);background:#10201f}.sort-menu{position:relative;min-width:180px}.sort-trigger{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:40px;text-align:left;background:#0a1015;border-color:#344955}.sort-trigger .sort-current{color:var(--cyan)}.sort-options{position:absolute;top:calc(100% + 5px);left:0;right:0;z-index:35;padding:5px;background:#0b1117;border:1px solid #3b5966;border-radius:9px;box-shadow:0 12px 30px #000b}.sort-options button{display:block;width:100%;text-align:left;border-color:transparent;background:transparent;padding:10px}.sort-options button[aria-selected="true"]{color:var(--cyan);background:#12232a;border-color:#24594f}.sort-options button:hover:not(:disabled){transform:none}.confirm-copy{color:#a9bac3;line-height:1.65;font-size:.88rem;margin:10px 0 18px}.confirm-actions{display:flex;justify-content:flex-end;gap:9px;flex-wrap:wrap}.pagination{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:15px}.pagination span{font-size:.75rem;color:var(--muted)}.combat{border-color:#613144;background:linear-gradient(135deg,#1a1017,#0d1117)}.combat h3{color:#ff8098}.toast-area{position:fixed;right:16px;top:80px;z-index:80;display:flex;flex-direction:column;gap:8px;width:min(360px,calc(100vw - 32px))}.toast{padding:12px 14px;border:1px solid #2e645b;background:#0b1918;box-shadow:0 12px 35px #0008;border-radius:8px;font-size:.8rem;animation:fade .2s}.toast.bad{border-color:#743348;background:#1c0e15}.toast b{color:var(--cyan)}.modal-backdrop{position:fixed;inset:0;background:#000b;z-index:90;display:grid;place-items:center;padding:16px}.modal{width:min(540px,100%);max-height:85vh;overflow:auto;background:#0c1117;border:1px solid #3b5966;border-radius:12px;padding:18px;box-shadow:0 20px 70px #000b}.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.modal-head h3{margin:0}.settings-row{display:flex;justify-content:space-between;align-items:center;gap:15px;padding:13px 0;border-bottom:1px solid var(--line)}.settings-row:last-child{border:0}.settings-row label{font-size:.82rem}.settings-row small{display:block;color:var(--muted);margin-top:4px}.mobile-nav{display:none}.settings-version{text-align:center;border-top:1px solid var(--line);margin-top:14px;padding-top:13px;color:#627985;font-size:.7rem;letter-spacing:.18em;font-weight:800}.empty{text-align:center;padding:28px 12px;color:var(--muted);border:1px dashed #2a3943;border-radius:9px;font-size:.8rem}.small-note{font-size:.72rem;line-height:1.6;color:var(--muted)}.footer-note{margin-top:20px;text-align:center;color:#50616c;font-size:.68rem;letter-spacing:.12em}
+header{position:sticky;top:0;z-index:20;background:#080b0fee;backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}.topbar{max-width:1440px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px 18px}.brand{display:flex;align-items:center;gap:10px;min-width:0}.logo{display:grid;place-items:center;width:38px;height:38px;border:1px solid var(--cyan);color:var(--cyan);font-weight:900;transform:rotate(45deg);box-shadow:0 0 20px #53f2d122}.logo span{transform:rotate(-45deg)}.brand h1{font-size:1rem;letter-spacing:.18em;margin:0}.brand small{display:block;color:var(--muted);font-size:.65rem;margin-top:3px;letter-spacing:.12em}.top-stats{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}.stat{border:1px solid var(--line);background:#0d1218;padding:7px 10px;border-radius:7px;font-size:.82rem;white-space:nowrap}.stat b{color:var(--gold)}.shell{max-width:1440px;margin:auto;padding:18px;display:grid;grid-template-columns:220px minmax(0,1fr);gap:18px}.sidebar{align-self:start;position:sticky;top:78px;background:#0a0e13;border:1px solid var(--line);border-radius:var(--radius);padding:0;height:calc(100dvh - 96px)!important;max-height:calc(100dvh - 96px)!important;display:flex!important;flex-direction:column;overflow:hidden!important}.nav-label{font-size:.68rem;color:#617582;letter-spacing:.16em;padding:9px 10px}.nav{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:transparent;border-color:transparent;color:#a7b6bf;margin-bottom:3px}.nav .ico{width:20px;text-align:center;color:var(--cyan)}.nav.active{background:#12232a;border-color:#24594f;color:var(--cyan)}.side-foot{border-top:1px solid var(--line);margin-top:12px;padding:12px 9px;color:#647a87;font-size:.72rem;line-height:1.6}.main{min-width:0}.page{display:none;animation:fade .2s ease}.page.active{display:block}@keyframes fade{from{opacity:.3;transform:translateY(4px)}to{opacity:1;transform:none}}.page-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin:3px 0 18px}.page-head>div{min-width:0;flex:1}.page-head p{max-width:820px}.eyebrow{font-size:.7rem;color:var(--cyan);letter-spacing:.18em}.page h2{font-size:1.5rem;margin:5px 0}.page-head p{margin:0;color:var(--muted);font-size:.88rem;line-height:1.5}.panel{background:linear-gradient(145deg,#10161d,#0b0f14);border:1px solid var(--line);border-radius:var(--radius);padding:16px;min-width:0}.panel h3{font-size:.9rem;letter-spacing:.1em;margin:0 0 13px}.grid{display:grid;gap:13px}.grid.two{grid-template-columns:repeat(2,minmax(0,1fr))}.grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}.grid.four{grid-template-columns:repeat(4,minmax(0,1fr))}.hero{padding:22px;position:relative;overflow:hidden;background:linear-gradient(110deg,#102027,#0b1118 65%);border-color:#28534e}.hero:after{content:"";position:absolute;width:190px;height:190px;border:1px solid #53f2d122;transform:rotate(45deg);right:-80px;top:-55px;box-shadow:0 0 0 22px #53f2d008,0 0 0 44px #53f2d008}.hero h2{font-size:1.6rem;max-width:600px}.hero p{color:#9db3bc;line-height:1.7;max-width:650px}.hero-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}.section-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:20px 0 10px}.section-title h3{margin:0;font-size:.85rem;letter-spacing:.12em}.tag{font-size:.68rem;padding:4px 7px;border:1px solid var(--line);border-radius:5px;color:var(--muted)}.meter{height:8px;border-radius:20px;background:#050709;border:1px solid #26313a;overflow:hidden}.meter>span{height:100%;display:block;width:0;background:linear-gradient(90deg,#2dbea7,var(--cyan));transition:width .25s}.meter.progress>span{background:linear-gradient(90deg,#2977aa,var(--blue))}.meter.danger-meter>span{background:linear-gradient(90deg,#b32d4e,var(--red))}.activity{padding:10px 0;border-bottom:1px solid #1c2730;font-size:.8rem;color:#9eb0ba;line-height:1.5}.activity:last-child{border:0}.activity b{color:var(--cyan)}.zone-card,.recipe-card,.supply-card{padding:14px;border:1px solid var(--line);border-radius:10px;background:#0c1218;display:flex;flex-direction:column;gap:9px;min-width:0}.zone-card.selected{border-color:var(--cyan);box-shadow:inset 0 0 0 1px #53f2d122}.zone-art{height:80px;border-radius:7px;display:grid;place-items:center;font-size:2.4rem;background:linear-gradient(135deg,#132d2b,#111721);border:1px solid #243a3d}.zone-card h4,.recipe-card h4{margin:0;font-size:.9rem}.zone-card p,.recipe-card p,.supply-card p{font-size:.76rem;line-height:1.5;color:var(--muted);margin:0;flex:1}.loot-chips{display:flex;gap:5px;flex-wrap:wrap}.chip{font-size:.68rem;padding:4px 6px;background:#141f27;border:1px solid #273c49;border-radius:5px;color:#b8cad2}.chip.common{border-color:#3e5d4d;color:#9fe8b2}.chip.rare{border-color:#5b4a76;color:#d2adff}.item-card{border:1px solid var(--line);border-radius:9px;padding:10px;background:#0c1117;min-width:0;position:relative}.item-top{display:flex;align-items:flex-start;gap:9px}.item-icon{font-size:1.5rem;width:36px;height:36px;flex:0 0 36px;display:grid;place-items:center;background:#172129;border-radius:7px}.item-card h4{font-size:.78rem;margin:0 0 5px;overflow-wrap:anywhere}.item-card .desc{font-size:.7rem;color:var(--muted);line-height:1.4}.item-bottom{display:flex;align-items:center;justify-content:space-between;gap:5px;margin-top:10px}.rarity{font-size:.62rem;letter-spacing:.1em;font-weight:900}.r1{color:#b9c4cb}.r2{color:#72e48b}.r3{color:#55baff}.r4{color:#c18bff}.r5{color:#ffc857;text-shadow:0 0 10px #ffc85733}.item-card.rarity-1{border-top:2px solid #a7b4bd}.item-card.rarity-2{border-top:2px solid #72e48b}.item-card.rarity-3{border-top:2px solid #55baff}.item-card.rarity-4{border-top:2px solid #c18bff}.item-card.rarity-5{border-top:2px solid #ffc857}.bar-wrap{margin:15px 0}.bar-label{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);margin-bottom:7px}.slot-row{display:grid;grid-template-columns:1fr 40px 1fr;align-items:center;gap:9px}.slot{min-height:120px;border:1px dashed #3c505d;border-radius:10px;background:#090d12;display:flex;align-items:center;justify-content:center;text-align:center;padding:12px;flex-direction:column;gap:8px}.slot.filled{border-style:solid;border-color:#287c70;background:#0d1b1d}.slot .slot-icon{font-size:1.8rem}.plus{font-size:1.3rem;color:var(--cyan);text-align:center}.slot select{width:100%;max-width:240px;background:#101820;border:1px solid #344955;color:var(--text);padding:8px;border-radius:6px}.result-box{padding:15px;border:1px solid #4a4267;background:#151124;border-radius:10px;margin-top:14px}.result-box h3{color:var(--purple)}.equip-slot{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px;border:1px solid var(--line);border-radius:7px;margin-top:7px;font-size:.78rem}.equip-slot span{color:var(--muted)}.statline{display:flex;justify-content:space-between;gap:10px;font-size:.8rem;padding:8px 0;border-bottom:1px solid #202b33}.statline:last-child{border:0}.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.toolbar input,.toolbar select,.settings-row select{background:#0a1015;color:var(--text);border:1px solid #344955;padding:9px;border-radius:7px;min-width:0}.toolbar input{flex:1;min-width:130px}.inventory-controls{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:13px}.inventory-controls button.active{border-color:var(--cyan);color:var(--cyan);background:#10201f}.sort-menu{position:relative;min-width:180px}.sort-trigger{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:40px;text-align:left;background:#0a1015;border-color:#344955}.sort-trigger .sort-current{color:var(--cyan)}.sort-options{position:absolute;top:calc(100% + 5px);left:0;right:0;z-index:35;padding:5px;background:#0b1117;border:1px solid #3b5966;border-radius:9px;box-shadow:0 12px 30px #000b}.sort-options button{display:block;width:100%;text-align:left;border-color:transparent;background:transparent;padding:10px}.sort-options button[aria-selected="true"]{color:var(--cyan);background:#12232a;border-color:#24594f}.sort-options button:hover:not(:disabled){transform:none}.confirm-copy{color:#a9bac3;line-height:1.65;font-size:.88rem;margin:10px 0 18px}.confirm-actions{display:flex;justify-content:flex-end;gap:9px;flex-wrap:wrap}.pagination{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:15px}.pagination span{font-size:.75rem;color:var(--muted)}.combat{border-color:#613144;background:linear-gradient(135deg,#1a1017,#0d1117)}.combat h3{color:#ff8098}.toast-area{position:fixed;right:16px;top:80px;z-index:80;display:flex;flex-direction:column;gap:8px;width:min(360px,calc(100vw - 32px))}.toast{padding:12px 14px;border:1px solid #2e645b;background:#0b1918;box-shadow:0 12px 35px #0008;border-radius:8px;font-size:.8rem;animation:fade .2s}.toast.bad{border-color:#743348;background:#1c0e15}.toast b{color:var(--cyan)}.modal-backdrop{position:fixed;inset:0;background:#000b;z-index:90;display:grid;place-items:center;padding:16px}.modal{width:min(540px,100%);max-height:85vh;overflow:auto;background:#0c1117;border:1px solid #3b5966;border-radius:12px;padding:18px;box-shadow:0 20px 70px #000b}.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.modal-head h3{margin:0}.settings-row{display:flex;justify-content:space-between;align-items:center;gap:15px;padding:13px 0;border-bottom:1px solid var(--line)}.settings-row:last-child{border:0}.settings-row label{font-size:.82rem}.settings-row small{display:block;color:var(--muted);margin-top:4px}.mobile-nav{display:none}.settings-version{text-align:center;border-top:1px solid var(--line);margin-top:14px;padding-top:13px;color:#627985;font-size:.7rem;letter-spacing:.18em;font-weight:800}.empty{text-align:center;padding:28px 12px;color:var(--muted);border:1px dashed #2a3943;border-radius:9px;font-size:.8rem}.small-note{font-size:.72rem;line-height:1.6;color:var(--muted)}.footer-note{margin-top:20px;text-align:center;color:#50616c;font-size:.68rem;letter-spacing:.12em}
 body.compact .panel{padding:11px}body.compact .grid{gap:9px}body.reduce-motion *{animation:none!important;transition:none!important}
 @media(max-width:900px){.shell{grid-template-columns:1fr;padding:12px}.sidebar{display:none}.mobile-nav{display:flex;position:fixed;z-index:30;bottom:0;left:0;right:0;justify-content:space-around;gap:3px;padding:7px 5px calc(7px + env(safe-area-inset-bottom));background:#080b0ff5;border-top:1px solid var(--line);backdrop-filter:blur(12px)}.mobile-nav button{flex:1;padding:8px 3px;border-color:transparent;background:transparent;font-size:.65rem;display:flex;flex-direction:column;gap:4px;align-items:center}.mobile-nav button.active{color:var(--cyan);background:#10201f;border-color:#24594f}.mobile-nav .ico{font-size:1rem}.shell{padding-bottom:90px}.topbar{padding:10px 12px}.brand small{display:none}.stat{padding:6px 8px;font-size:.72rem}.grid.four{grid-template-columns:repeat(2,minmax(0,1fr))}.grid.three{grid-template-columns:repeat(2,minmax(0,1fr))}.page-head{align-items:flex-start}.page h2{font-size:1.25rem}.hero{padding:17px}.hero h2{font-size:1.35rem}}
 @media(max-width:520px){.top-stats .stat:nth-child(2){display:none}.brand h1{font-size:.85rem}.logo{width:30px;height:30px}.grid.two,.grid.three{grid-template-columns:1fr}.slot-row{grid-template-columns:1fr 24px 1fr;gap:5px}.slot{min-height:112px;padding:7px}.slot select{font-size:.68rem;padding:6px}.slot .slot-icon{font-size:1.4rem}.panel{padding:12px}.page-head{display:block}.page-head>.tag{display:inline-block;margin-top:9px}.item-card{padding:8px}.item-icon{width:30px;height:30px;flex-basis:30px;font-size:1.2rem}.hero-actions button{flex:1}.toolbar button{padding:9px}.zone-art{height:65px}.zone-card{padding:11px}}
@@ -27,9 +27,20 @@ body.compact .panel{padding:11px}body.compact .grid{gap:9px}body.reduce-motion *
 .exchange-result-list{max-height:min(40vh,260px);overflow:auto;overscroll-behavior:contain}
 .inventory-tile.is-equipped{border-color:#53f2d1;box-shadow:0 0 0 1px #53f2d144}
 .inventory-tile-equipped{display:inline-block;margin-top:4px;font-size:.62rem;letter-spacing:.08em;color:var(--cyan)}
-.refine-layout{display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:center;margin-top:14px}
+.refine-layout{display:grid;grid-template-columns:1fr minmax(130px,160px) 1fr;gap:14px;align-items:stretch;margin-top:14px}
 @media(max-width:700px){.refine-layout{grid-template-columns:1fr}}
-.refine-arrow-col{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:120px}
+.refine-arrow-col{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-width:120px;align-self:center}
+.machine-col{display:flex;flex-direction:column;gap:8px;min-height:100%}
+.machine-col .machine-box{
+  flex:1;min-height:120px;display:flex;flex-direction:column;align-items:stretch;justify-content:center;
+  border:1px solid var(--line);border-radius:12px;background:#0c1218;padding:12px;
+}
+.machine-col .machine-box.dashed{border-style:dashed;border-color:#2a3d48}
+.machine-col .equip-slot.upgrade-slot,.machine-col #recycleInputPick,.machine-col #scrapInputPick{
+  width:100%;min-height:88px;display:flex;align-items:center;justify-content:center;text-align:center;
+}
+.prize-box-list{flex:1;min-height:80px}
+
 .refine-bar{width:100%;height:10px;background:#152029;border-radius:6px;overflow:hidden;border:1px solid var(--line)}
 .refine-bar>span{display:block;height:100%;width:0;background:#61b9ff;transition:width .15s linear}
 .refine-chance{color:#ff3b54;font-weight:800;font-size:1.1rem}
@@ -915,7 +926,8 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 .sidebar-scroll{
   flex:1 1 auto;
   min-height:0;
-  overflow-y:auto;
+  height:100%;
+  overflow-y:scroll !important;
   overflow-x:hidden;
   overscroll-behavior:contain;
   -webkit-overflow-scrolling:touch;
@@ -953,6 +965,19 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .sidebar{position:relative;top:0;max-height:none}
 }
 
+
+/* Fábrica: estilo normal (no ilegal/rojo) */
+.factory-panel{border-color:var(--line)}
+.factory-tabs button.active{border-color:var(--cyan)!important;color:var(--cyan)!important;background:#10201f!important}
+#page-factory .clinic-tabs button.active,
+#page-factory .factory-tabs button.active{border-color:var(--cyan);color:var(--cyan);background:#10201f}
+.factory-slot-wrap{display:flex;justify-content:center}
+.factory-unit-slot{width:100%;max-width:320px;min-height:140px}
+.spawn-slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.spawn-slots .slot{min-height:130px}
+@media(max-width:900px){
+  .sidebar{height:auto!important;max-height:none!important}
+}
 </style>
 </head>
 <body>
@@ -1092,29 +1117,29 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 
 <section class="page" id="page-factory">
  <div class="page-head"><div><div class="eyebrow">SISTEMA 06 / FÁBRICA DE ENSAMBLAJE</div><h2>Fábrica</h2><p>Desmontaje de unidades robóticas y ensamblaje de autómatas. Las pinzas no sirven aquí: usa un <b>Destornillador</b> equipado.</p></div><span class="tag">EXPANSIÓN · ROBÓTICA</span></div>
- <div class="clinic-tabs central-tabs">
-  <button class="active" data-factory-tab="dismantle">⚙ Mesa de desmontaje</button>
-  <button data-factory-tab="assemble">🤖 Ensamblaje de Autómata</button>
+ <div class="factory-tabs central-tabs">
+  <button class="active" data-factory-tab="dismantle">Mesa de desmontaje</button>
+  <button data-factory-tab="assemble">Ensamblaje de Autómata</button>
  </div>
  <div class="clinic-section active" id="factory-dismantle">
-  <div class="panel extract-panel">
-   <h3>⚙ MESA DE DESMONTAJE · PIEZAS ROBÓTICAS</h3>
+  <div class="panel factory-panel">
+   <h3>MESA DE DESMONTAJE · PIEZAS ROBÓTICAS</h3>
    <p class="small-note">Introduce una <b>criatura robótica</b> y selecciona qué <b>piezas</b> recuperar. Las criaturas orgánicas no tienen piezas. El proceso dura 10 s y consume la unidad. El <b>Destornillador</b> equipado mejora la tasa de éxito.</p>
-   <div class="slot-row" style="margin-top:14px">
-    <div class="slot" id="dismantleSlot"><div class="slot-icon" id="dismantleSlotIcon">＋</div><b id="dismantleSlotLabel">Sin unidad</b><div class="slot-actions"><button class="tiny" id="chooseDismantleRobot">Elegir robot</button><button class="tiny hidden" id="clearDismantleRobot">Retirar</button></div></div>
+   <div class="factory-slot-wrap" style="margin-top:14px">
+    <div class="slot factory-unit-slot" id="dismantleSlot"><div class="slot-icon" id="dismantleSlotIcon">＋</div><b id="dismantleSlotLabel">Sin unidad</b><div class="slot-actions"><button class="tiny" id="chooseDismantleRobot">Elegir robot</button><button class="tiny hidden" id="clearDismantleRobot">Retirar</button></div></div>
    </div>
    <div id="dismantlePieceChoices" class="extract-organs" style="margin-top:14px"></div>
    <div class="pagination" id="dismantlePiecesPager" style="margin-top:10px"><button class="tiny" id="dismantlePiecesPrev">← Anterior</button><span class="muted" id="dismantlePiecesPageInfo">Página 1</span><button class="tiny" id="dismantlePiecesNext">Siguiente →</button></div>
    <div class="bar-wrap hidden" id="dismantleProgress" style="margin-top:12px"><div class="bar-label"><b class="cyan">Desmontando...</b><span id="dismantlePercent">0%</span></div><div class="meter progress"><span id="dismantleBar"></span></div></div>
-   <button class="danger" id="dismantleStartBtn" style="width:100%;margin-top:12px" disabled>⚙ Iniciar desmontaje · 10 s</button>
+   <button class="primary" id="dismantleStartBtn" style="width:100%;margin-top:12px" disabled>Iniciar desmontaje · 10 s</button>
    <p class="small-note" id="dismantleMessage" style="margin-top:10px">Cada pieza tiene un <b>% de éxito</b> según nivel y cantidad. El destornillador mejora la tasa. La unidad se consume siempre.</p>
   </div>
  </div>
  <div class="clinic-section" id="factory-assemble">
-  <div class="panel extract-panel">
-   <h3>🤖 ENSAMBLAJE DE AUTÓMATA</h3>
-   <p class="small-note">Coloca <b>5 piezas</b> (obligatorio) y una <b>anomalía opcional</b>. Sin anomalía: rasgo Autómata. Con anomalía: <b>Hibridación anómala</b>. Síntesis en 10 s.</p>
-   <div class="spawn-grid" style="margin-top:14px">
+  <div class="panel factory-panel">
+   <h3>ENSAMBLAJE DE AUTÓMATA</h3>
+   <p class="small-note">Coloca <b>5 piezas</b> (obligatorio) y una <b>anomalía opcional</b>. Sin anomalía: rasgo Autómata. Con anomalía: <b>Hibridación anómala</b>. Proceso 10 s.</p>
+   <div class="spawn-slots" id="asmSlots" style="margin-top:14px">
     <div class="slot" id="asmSlot0"><div class="slot-icon">＋</div><b id="asmLabel0">Pieza 1</b><div class="slot-actions"><button class="tiny" id="chooseAsm0">Elegir</button><button class="tiny hidden" id="clearAsm0">Retirar</button></div></div>
     <div class="slot" id="asmSlot1"><div class="slot-icon">＋</div><b id="asmLabel1">Pieza 2</b><div class="slot-actions"><button class="tiny" id="chooseAsm1">Elegir</button><button class="tiny hidden" id="clearAsm1">Retirar</button></div></div>
     <div class="slot" id="asmSlot2"><div class="slot-icon">＋</div><b id="asmLabel2">Pieza 3</b><div class="slot-actions"><button class="tiny" id="chooseAsm2">Elegir</button><button class="tiny hidden" id="clearAsm2">Retirar</button></div></div>
@@ -1124,7 +1149,7 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
    </div>
    <p class="small-note" id="asmAnomalyNote" style="margin-top:10px">La anomalía es opcional y otorga <b>Hibridación anómala</b>.</p>
    <div class="bar-wrap hidden" id="asmProgress" style="margin-top:12px"><div class="bar-label"><b class="cyan">Ensamblando...</b><span id="asmPercent">0%</span></div><div class="meter progress"><span id="asmBar"></span></div></div>
-   <button class="danger" id="asmStartBtn" style="width:100%;margin-top:12px" disabled>🤖 Iniciar ensamblaje · 10 s</button>
+   <button class="primary" id="asmStartBtn" style="width:100%;margin-top:12px" disabled>Iniciar ensamblaje · 10 s</button>
    <p class="small-note" id="asmMessage" style="margin-top:10px">Los autómatas pueden venderse en el Mercado Negro.</p>
   </div>
  </div>
@@ -1558,11 +1583,13 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
    <h3>♻ MÁQUINA RECICLADORA</h3>
    <p class="small-note">Descompone objetos con rasgo <b>Síntesis de convergencia</b> (no criaturas) en materiales y recursos base. El lote se aproxima al valor del objeto. Proceso: <b>5 s</b>.</p>
    <div class="refine-layout">
-    <div>
+    <div class="machine-col">
      <div class="eyebrow">ENTRADA · SÍNTESIS</div>
-     <button type="button" class="equip-slot upgrade-slot" id="recycleInputPick">＋ Elegir objeto de síntesis</button>
-     <div id="recycleInputInfo" class="small-note" style="margin-top:8px">Ningún objeto.</div>
-     <button type="button" class="tiny hidden" id="recycleInputClear" style="margin-top:8px;width:100%">Retirar</button>
+     <div class="machine-box">
+      <button type="button" class="equip-slot upgrade-slot" id="recycleInputPick">＋ Elegir objeto de síntesis</button>
+      <div id="recycleInputInfo" class="small-note" style="margin-top:8px">Ningún objeto.</div>
+      <button type="button" class="tiny hidden" id="recycleInputClear" style="margin-top:8px;width:100%">Retirar</button>
+     </div>
     </div>
     <div class="refine-arrow-col">
      <div class="eyebrow">PROCESO</div>
@@ -1571,12 +1598,14 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
      <div class="small-note" id="recycleStatus">En espera</div>
      <button class="primary" id="recycleStartBtn" style="width:100%;margin-top:6px" disabled>♻ Reciclar · 5 s</button>
     </div>
-    <div>
+    <div class="machine-col">
      <div class="eyebrow">CAJA DE RECICLAJE</div>
-     <div class="statline"><span>Valor estimado</span><b class="gold" id="recycleBoxValue">0</b></div>
-     <div class="prize-box-list" id="recycleBoxList" style="max-height:200px"></div>
-     <button class="primary" id="recycleClaimBtn" style="width:100%;margin-top:10px" disabled>⇢ Reclamar</button>
-     <p class="small-note" id="recycleNote" style="margin-top:8px">Vacía.</p>
+     <div class="machine-box dashed">
+      <div class="statline"><span>Valor estimado</span><b class="gold" id="recycleBoxValue">0</b></div>
+      <div class="prize-box-list" id="recycleBoxList"></div>
+      <button class="primary" id="recycleClaimBtn" style="width:100%;margin-top:10px" disabled>⇢ Reclamar</button>
+      <p class="small-note" id="recycleNote" style="margin-top:8px">Vacía.</p>
+     </div>
     </div>
    </div>
    <p class="small-note" id="recycleResult" style="margin-top:12px"></p>
@@ -1588,11 +1617,13 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
    <h3>⛓ MÁQUINA DESGUAZADORA</h3>
    <p class="small-note">Descompone objetos de <b>fabricación</b> (armas no balísticas, herramientas, equipo, lingotes y otros con receta) en los materiales de su plano. Proceso: <b>5 s</b>. El objeto se consume.</p>
    <div class="refine-layout">
-    <div>
+    <div class="machine-col">
      <div class="eyebrow">ENTRADA · FABRICACIÓN</div>
-     <button type="button" class="equip-slot upgrade-slot" id="scrapInputPick">＋ Elegir objeto</button>
-     <div id="scrapInputInfo" class="small-note" style="margin-top:8px">Ningún objeto.</div>
-     <button type="button" class="tiny hidden" id="scrapInputClear" style="margin-top:8px;width:100%">Retirar</button>
+     <div class="machine-box">
+      <button type="button" class="equip-slot upgrade-slot" id="scrapInputPick">＋ Elegir objeto</button>
+      <div id="scrapInputInfo" class="small-note" style="margin-top:8px">Ningún objeto.</div>
+      <button type="button" class="tiny hidden" id="scrapInputClear" style="margin-top:8px;width:100%">Retirar</button>
+     </div>
     </div>
     <div class="refine-arrow-col">
      <div class="eyebrow">PROCESO</div>
@@ -1601,11 +1632,13 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
      <div class="small-note" id="scrapStatus">En espera</div>
      <button class="primary" id="scrapStartBtn" style="width:100%;margin-top:6px" disabled>⛓ Desguazar · 5 s</button>
     </div>
-    <div>
+    <div class="machine-col">
      <div class="eyebrow">SALIDA · MATERIALES</div>
-     <div class="prize-box-list" id="scrapBoxList" style="max-height:200px"></div>
-     <button class="primary" id="scrapClaimBtn" style="width:100%;margin-top:10px" disabled>⇢ Reclamar</button>
-     <p class="small-note" id="scrapNote" style="margin-top:8px">Vacía.</p>
+     <div class="machine-box dashed">
+      <div class="prize-box-list" id="scrapBoxList"></div>
+      <button class="primary" id="scrapClaimBtn" style="width:100%;margin-top:10px" disabled>⇢ Reclamar</button>
+      <p class="small-note" id="scrapNote" style="margin-top:8px">Vacía.</p>
+     </div>
     </div>
    </div>
    <p class="small-note" id="scrapResult" style="margin-top:12px"></p>
