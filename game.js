@@ -3434,6 +3434,32 @@ function claimScrap(){
 }
 
 
+
+function fixSidebarScroll(){
+  try{
+    const sb=document.querySelector("aside.sidebar");
+    const sc=document.querySelector("aside.sidebar .sidebar-scroll");
+    if(!sb||!sc)return;
+    // Solo en escritorio / layout PC
+    const mobile=window.matchMedia("(max-width:900px)").matches||document.body.classList.contains("layout-mobile");
+    if(mobile){
+      sb.style.height="";sb.style.maxHeight="";sc.style.overflowY="";
+      return;
+    }
+    const top=sb.getBoundingClientRect().top;
+    const h=Math.max(240, Math.floor(window.innerHeight - top - 16));
+    sb.style.setProperty("height", h+"px", "important");
+    sb.style.setProperty("max-height", h+"px", "important");
+    sb.style.setProperty("display", "flex", "important");
+    sb.style.setProperty("flex-direction", "column", "important");
+    sb.style.setProperty("overflow", "hidden", "important");
+    sc.style.setProperty("flex", "1 1 0%", "important");
+    sc.style.setProperty("min-height", "0", "important");
+    sc.style.setProperty("overflow-y", "auto", "important");
+    sc.style.setProperty("overflow-x", "hidden", "important");
+  }catch(e){console.warn("fixSidebarScroll",e)}
+}
+
 function nav(page){
  // Combate activo: solo se permite volver a Exploración para no quedar atrapado fuera del HUD de combate
  if(currentEnemy){
@@ -4499,7 +4525,7 @@ function openInventoryItem(id){const x=state.inventory.find(i=>i.id===id);if(!x)
       })()]
     ]:[] ),...(d.fusionDepth?[["Generación de fusión",d.fusionDepth]]:[])].map(([k,v])=>`<div class="statline"><span>${escapeHtml(k)}</span><b>${escapeHtml(String(v))}</b></div>`).join("")}</div>`;$("inventoryDetailModal").classList.remove("hidden")}
 
-function applyLayoutMode(mode){const valid=["auto","mobile","pc16"].includes(mode)?mode:"auto";state.settings.layoutMode=valid;document.body.classList.toggle("layout-mobile",valid==="mobile");document.body.classList.toggle("layout-pc16",valid==="pc16");document.body.classList.toggle("layout-auto",valid==="auto");const select=$("layoutModeSelect");if(select&&select.value!==valid)select.value=valid;}
+function applyLayoutMode(mode){const valid=["auto","mobile","pc16"].includes(mode)?mode:"auto";state.settings.layoutMode=valid;document.body.classList.toggle("layout-mobile",valid==="mobile");document.body.classList.toggle("layout-pc16",valid==="pc16");document.body.classList.toggle("layout-auto",valid==="auto");const select=$("layoutModeSelect");if(select&&select.value!==valid)select.value=valid;try{fixSidebarScroll()}catch(e){}}
 function render(){if(document.querySelector("#page-city.active")){try{renderCityPlaces()}catch(e){}}renderPendingFusion();renderSupplyDelivery();renderStats();renderZoneCards();renderZoneDetail();renderZoneLoot();renderFusionSelects();renderRecipes();renderSmelt();renderBonus();renderSupplies();renderCentralSales();renderExtractTable();renderSpawnTable();renderInventory();renderEquipment();renderFusionHistory();renderRegistry();save()}
  try{ensureMissions();if($("missionsBadge"))$("missionsBadge").textContent=String((state.missions||[]).length);trackAchievement()}catch(_e){}
 $("fuseBtn").addEventListener("click",doFuse);if($("claimSupply"))$("claimSupply").addEventListener("click",claimSupply);$("chooseFusionA").onclick=()=>openPicker("fusion","A");$("chooseFusionB").onclick=()=>openPicker("fusion","B");$("clearFusionA").onclick=()=>{if(state.fusionSlots)state.fusionSlots.A=null;renderFusionSelects();sound(400,.05,"sine")};$("clearFusionB").onclick=()=>{if(state.fusionSlots)state.fusionSlots.B=null;renderFusionSelects();sound(400,.05,"sine")};$("fightBtn").addEventListener("click",fight);$("closePicker").onclick=()=>{const qb=$("pickerQtyBar"),qc=$("pickerQtyConfirm");if(qb)qb.classList.add("hidden");if(qc)qc.classList.add("hidden");$("inventoryPicker").classList.add("hidden")};$("inventoryPicker").addEventListener("click",e=>{if(e.target===$("inventoryPicker"))$("inventoryPicker").classList.add("hidden")});$("pickerSearch").addEventListener("input",()=>{pickerPage=1;renderPicker()});$("pickerFilterTrigger").onclick=()=>{$("pickerFilterOptions").classList.toggle("hidden");$("pickerFilterTrigger").setAttribute("aria-expanded",!$("pickerFilterOptions").classList.contains("hidden"))};document.querySelectorAll("[data-picker-filter]").forEach(b=>b.onclick=()=>{pickerFilter=b.dataset.pickerFilter;$("pickerFilterLabel").textContent=pickerFilter;document.querySelectorAll("[data-picker-filter]").forEach(x=>x.setAttribute("aria-selected",x===b?"true":"false"));$("pickerFilterOptions").classList.add("hidden");pickerPage=1;renderPicker()});$("centralSaleSearch").addEventListener("input",renderCentralSales);$("centralSaleFilterTrigger").onclick=()=>{const menu=$("centralSaleFilterOptions"),opening=menu.classList.contains("hidden");closeSortMenus(opening?menu.id:null);menu.classList.toggle("hidden",!opening);$("centralSaleFilterTrigger").setAttribute("aria-expanded",String(opening))};document.querySelectorAll("[data-sale-filter]").forEach(b=>b.onclick=()=>{centralSaleFilter=b.dataset.saleFilter;$("centralSaleFilterLabel").textContent=centralSaleFilter;document.querySelectorAll("[data-sale-filter]").forEach(x=>x.setAttribute("aria-selected",x===b?"true":"false"));$("centralSaleFilterOptions").classList.add("hidden");$("centralSaleFilterTrigger").setAttribute("aria-expanded","false");renderCentralSales()});$("centralSaleSelectAll").onclick=()=>{const equipped=new Set(Object.values(state.equipped||{}).filter(Boolean)),search=$("centralSaleSearch").value.trim().toLowerCase();state.inventory.filter(x=>x.qty>0&&!equipped.has(x.id)&&x.name.toLowerCase().includes(search)&&(centralSaleFilter==="Todos"||(centralSaleFilter==="Síntesis"?isSynthesisItem(x):centralSaleFilter==="Lingote"?(x.cat==="Lingote"||x.name.startsWith("Lingote de ")):centralSaleFilter==="Otro"?!( ["Material","Lingote","Herramienta","Arma","Equipo","Consumible","Criatura","Órgano","Pieza","Anomalía"].includes(x.cat)):x.cat===centralSaleFilter))).forEach(x=>centralSaleSelection[x.id]=x.qty);renderCentralSales()};$("centralSaleClear").onclick=()=>{centralSaleSelection={};renderCentralSales()};$("centralSaleSubmit").onclick=sellCentralSelection;
@@ -4727,6 +4753,8 @@ function migrateOrganVariants(){
  Object.values(state.discovered||{}).forEach(it=>{if(it&&it.cat==="Órgano")saveOrganVariant(it)});
 }
 function init(){ensureSkillPointsFromLevel();
+ try{fixSidebarScroll();window.addEventListener("resize",fixSidebarScroll);window.addEventListener("orientationchange",fixSidebarScroll);}catch(e){}
+
  try{bindCasinoUI()}catch(e){console.warn(e)}
 
  if(!state.version){state=stateDefault();log("Sistema inicializado. Inventario y créditos a cero.")}
