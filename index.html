@@ -889,6 +889,70 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 .paytable-row .sym{display:flex;width:2rem;justify-content:center}
 .paytable-row .sym .hud-icon{width:24px;height:24px}
 .lock-tag{display:inline-flex;align-items:center;gap:4px}
+
+.casino-tab-btn{display:inline-flex;align-items:center;gap:8px}
+.casino-tab-btn .tab-ico{display:inline-flex}
+.casino-tab-btn .tab-ico .hud-icon{width:18px;height:18px}
+#casinoTitleIcon .hud-icon{width:26px;height:26px}
+
+.nav .ico .nav-ico-svg,.mobile-nav .ico .nav-ico-svg{display:block;width:18px;height:18px;margin:0 auto;color:var(--cyan)}
+.nav .ico,.mobile-nav .ico{display:inline-flex;align-items:center;justify-content:center}
+
+/* Sidebar con scroll integrado HUD */
+.sidebar{
+  align-self:start;
+  position:sticky;
+  top:78px;
+  max-height:calc(100dvh - 96px);
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  background:#0a0e13;
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:0;
+}
+.sidebar-scroll{
+  flex:1 1 auto;
+  min-height:0;
+  overflow-y:auto;
+  overflow-x:hidden;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+  padding:10px 10px 8px;
+  scrollbar-width:thin;
+  scrollbar-color:#39a99a #0a1218;
+}
+.sidebar-scroll::-webkit-scrollbar{width:8px}
+.sidebar-scroll::-webkit-scrollbar-track{
+  background:linear-gradient(180deg,#0a1218,#0d151c);
+  border-radius:8px;
+  margin:6px 0;
+  border:1px solid #1a2e36;
+}
+.sidebar-scroll::-webkit-scrollbar-thumb{
+  background:linear-gradient(180deg,#2ec4b0,#1a7a6e);
+  border-radius:8px;
+  border:1px solid #53f2d155;
+  box-shadow:0 0 8px #39a99a33;
+}
+.sidebar-scroll::-webkit-scrollbar-thumb:hover{
+  background:linear-gradient(180deg,#53f2d1,#2ec4b0);
+}
+.sidebar .side-foot{
+  flex:0 0 auto;
+  border-top:1px solid var(--line);
+  margin:0;
+  padding:10px 12px 12px;
+  color:#647a87;
+  font-size:.72rem;
+  line-height:1.5;
+  background:#0a0e13;
+}
+@media(max-width:900px){
+  .sidebar{position:relative;top:0;max-height:none}
+}
+
 </style>
 </head>
 <body>
@@ -898,14 +962,16 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 </div></header>
 <div class="shell">
 <aside class="sidebar">
- <div class="nav-label">SISTEMAS PRINCIPALES</div>
+ 
+<div class="sidebar-scroll">
+<div class="nav-label">SISTEMAS PRINCIPALES</div>
  <button class="nav active" data-page="home"><span class="ico">⌂</span> Centro de control</button>
  <button class="nav" data-page="fusion"><span class="ico">⟁</span> Máquina de fusión</button>
  <button class="nav" data-page="explore"><span class="ico">⌖</span> Exploración</button>
  <button class="nav" data-page="central"><span class="ico">▦</span> La Central</button>
  <button class="nav" data-page="clinic"><span class="ico">⚕</span> Clínica</button>
  <button class="nav" data-page="nexus"><span class="ico">◎</span> Centro</button>
- <button class="nav" data-page="city"><span class="ico">🏙</span> Ciudad</button>
+ <button class="nav" data-page="city"><span class="ico"><svg class="nav-ico-svg" width="18" height="18" viewBox="0 0 64 64" aria-hidden="true"><path d="M8 52h48M12 52V28l8-8 8 6 8-10 8 8 8-6v34" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linejoin="round"/><path d="M28 52v-12h8v12" fill="none" stroke="currentColor" stroke-width="3"/></svg></span> Ciudad</button>
  <button class="nav" data-page="soon" disabled title="En construcción"><span class="ico">?</span> ???</button>
  <div class="nav-label">GESTIÓN DE OBJETOS</div>
  <button class="nav" data-page="inventory"><span class="ico">▤</span> Inventario</button>
@@ -914,11 +980,12 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
  <button class="nav" data-page="equipment"><span class="ico">◈</span> Equipo</button>
  <button class="nav" data-page="skills"><span class="ico">✦</span> Habilidades</button>
  <button class="nav" data-page="stats"><span class="ico">▣</span> Estadísticas</button>
- <div class="side-foot">SISTEMA ONLINE<br><span class="cyan">●</span> ENERGÍA ESTABLE<br>ÚLTIMO GUARDADO: LOCAL</div>
+ </div><!-- /.sidebar-scroll -->
+<div class="side-foot">SISTEMA ONLINE<br><span class="cyan">●</span> ENERGÍA ESTABLE<br>ÚLTIMO GUARDADO: LOCAL</div>
 </aside>
 <main class="main">
 <section class="page active" id="page-home">
- <div class="panel hero"><div class="eyebrow">BIENVENIDO, OPERADOR · <span id="homeClock" class="home-clock">—</span></div><h2>Todo puede convertirse en algo más.</h2><p>Explora zonas hostiles, recupera materiales, fabrica herramientas y fusiona cualquier par de objetos. La lógica es tuya. El resultado… no siempre.</p><div class="hero-actions"><button class="primary" data-goto="fusion">⟁ Iniciar fusión</button><button data-goto="explore">⌖ Salir a explorar</button><button data-goto="registry">▦ Registro de objetos</button></div></div>
+ <div class="panel hero"><div class="eyebrow">SISTEMA 01 / CENTRO DE CONTROL<span id="homeClock" class="home-clock">—</span></div><h2>Todo puede convertirse en algo más.</h2><p>Explora zonas hostiles, recupera materiales, fabrica herramientas y fusiona cualquier par de objetos. La lógica es tuya. El resultado… no siempre.</p><div class="hero-actions"><button class="primary" data-goto="fusion">⟁ Iniciar fusión</button><button data-goto="explore">⌖ Salir a explorar</button><button data-goto="registry">▦ Registro de objetos</button></div></div>
  <div class="grid three" style="margin-top:13px"><div class="panel"><div class="eyebrow">OBJETOS REGISTRADOS</div><div style="display:flex;gap:18px;margin:9px 0;flex-wrap:wrap"><div><div style="font-size:1.5rem;line-height:1.1" id="itemCountBase">0</div><div class="small-note" style="margin-top:2px">Registro Base</div></div><div><div style="font-size:1.5rem;line-height:1.1" id="itemCountSynth">0</div><div class="small-note" style="margin-top:2px">Registro de Síntesis</div></div></div><div class="small-note">Colección local separada por tipo de descubrimiento.</div></div><div class="panel"><div class="eyebrow">EXPEDICIONES</div><div style="font-size:1.8rem;margin:9px 0" id="expCount">0</div><div class="small-note">Cada salida puede traer recursos… o problemas.</div></div><div class="panel"><div class="eyebrow">FUSIONES COMPLETADAS</div><div style="font-size:1.8rem;margin:9px 0" id="fusionCount">0</div><div class="small-note">Dos objetos entran. Algo nuevo sale.</div></div></div>
  <div class="section-title"><h3>▰ REGISTRO RECIENTE</h3><span class="tag">ÚLTIMOS EVENTOS</span></div><div class="panel" id="activityLog"></div>
  <div class="section-title"><h3>▰ ACCESOS</h3></div>
@@ -929,7 +996,7 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
  </div>
 </section>
 <section class="page" id="page-fusion">
- <div class="page-head"><div><div class="eyebrow">SISTEMA 01 / TRANSMUTACIÓN</div><h2>Máquina de fusión</h2><p>Somete dos objetos a una síntesis de convergencia: sus propiedades guían el resultado, mientras que la estabilidad y el nivel dependen de la materia introducida.</p></div><span class="tag">FUSIÓN LIBRE</span></div>
+ <div class="page-head"><div><div class="eyebrow">SISTEMA 02 / TRANSMUTACIÓN</div><h2>Máquina de fusión</h2><p>Somete dos objetos a una síntesis de convergencia: sus propiedades guían el resultado, mientras que la estabilidad y el nivel dependen de la materia introducida.</p></div><span class="tag">FUSIÓN LIBRE</span></div>
  <div class="panel"><div class="eyebrow">CÁMARA DE COMBINACIÓN</div><div class="slot-row" style="margin-top:14px"><div class="slot" id="slotA"><div class="slot-icon">＋</div><b id="fusionALabel">Objeto A</b><div class="slot-actions"><button class="tiny" id="chooseFusionA">Elegir del inventario</button><button class="tiny hidden" id="clearFusionA">Retirar</button></div></div><div class="plus">⊕</div><div class="slot" id="slotB"><div class="slot-icon">＋</div><b id="fusionBLabel">Objeto B</b><div class="slot-actions"><button class="tiny" id="chooseFusionB">Elegir del inventario</button><button class="tiny hidden" id="clearFusionB">Retirar</button></div></div></div>
  <div class="bar-wrap hidden" id="fusionProgress"><div class="bar-label"><b class="cyan">Fusionando...</b><span id="fusionPercent">0%</span></div><div class="meter progress"><span id="fusionBar"></span></div></div>
  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:15px;flex-wrap:wrap"><span class="small-note">Coste: 2 objetos · Tiempo: 10 segundos</span><button class="primary" id="fuseBtn">⟁ INICIAR FUSIÓN</button></div>
@@ -937,7 +1004,7 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
  <div class="section-title"><h3>▰ ÚLTIMAS FUSIONES</h3><span class="tag">HISTORIAL</span></div><div class="panel" id="fusionHistory"><div class="empty">Todavía no has fusionado nada.</div></div>
 </section>
 <section class="page" id="page-explore">
- <div class="page-head"><div><div class="eyebrow">SISTEMA 02 / RECOLECCIÓN</div><h2>Exploración</h2><p>Las tres primeras zonas están disponibles desde el principio. Sube tu nivel de Operador explorando, fusionando, fabricando y fundiendo para desbloquear nuevas regiones.</p></div><span class="tag">RIESGO VARIABLE</span></div>
+ <div class="page-head"><div><div class="eyebrow">SISTEMA 03 / RECOLECCIÓN</div><h2>Exploración</h2><p>Las tres primeras zonas están disponibles desde el principio. Sube tu nivel de Operador explorando, fusionando, fabricando y fundiendo para desbloquear nuevas regiones.</p></div><span class="tag">RIESGO VARIABLE</span></div>
  <div id="zonesOverview"><div class="grid three" id="zonesGrid"></div><div class="zone-pagination"><button class="tiny" id="zonesPrev">← Anterior</button><span class="muted" id="zonesPageInfo">Página 1 / 4</span><button class="tiny" id="zonesNext">Siguiente →</button></div></div>
  <div class="zone-hud hidden" id="zoneHud"><div class="zone-hud-top"><div><div class="eyebrow">TERMINAL DE CAMPO / SESIÓN ACTIVA</div><h3>HUD DE ZONA</h3><p class="small-note">Conexión directa con el escáner local. Todos los eventos de esta expedición se mostrarán aquí.</p></div><span class="tag">LIVE FEED</span></div>
   <div class="panel" id="zoneHudDetail"><div class="empty">Selecciona una zona para iniciar.</div></div>
@@ -975,7 +1042,7 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
  </div>
 </section>
 <section class="page" id="page-central">
- <div class="page-head"><div><div class="eyebrow">SISTEMA 03 / PRODUCCIÓN</div><h2>La Central</h2><p>Elige un módulo de trabajo. Cada proceso tarda 10 segundos.</p></div><span class="tag">TALLER ACTIVO</span></div>
+ <div class="page-head"><div><div class="eyebrow">SISTEMA 04 / PRODUCCIÓN</div><h2>La Central</h2><p>Elige un módulo de trabajo. Cada proceso tarda 10 segundos.</p></div><span class="tag">TALLER ACTIVO</span></div>
 <div class="central-tabs"><button class="active" data-central-tab="craft">▦ Mesa de creación</button><button data-central-tab="smelt">♨ Horno industrial</button><button data-central-tab="supplies">▣ Solicitar suministros</button><button data-central-tab="send">⇢ Envío de suministro</button></div>
 <div class="central-section active" id="central-craft"><div class="panel"><h3>▦ MESA DE CREACIÓN</h3><p class="small-note">Consulta planos recuperados, fabrica objetos y procesa materiales. Las recetas se ordenan por nivel: N1 primero y después N2–N5. Cada ficha indica los recursos necesarios antes de fabricar.</p><div class="inventory-controls" id="recipeCategories"><button class="active" data-recipe-category="Todos">Todas</button><button data-recipe-category="Material">Materiales</button><button data-recipe-category="Herramienta">Herramientas</button><button data-recipe-category="Arma">Armas</button><button data-recipe-category="Equipo">Equipo</button><button data-recipe-category="Consumible">Consumibles</button><button data-recipe-category="Otro">Otros</button></div><div id="recipesGrid" class="grid three" style="margin-top:12px"></div><div class="recipe-pagination"><button class="tiny" id="recipesPrev">← Anterior</button><span class="muted" id="recipesPageInfo">Página 1 / 3</span><button class="tiny" id="recipesNext">Siguiente →</button></div><div class="bar-wrap hidden" id="craftProgress"><div class="bar-label"><b class="cyan">Fabricando...</b><span id="craftPercent">0%</span></div><div class="meter progress"><span id="craftBar"></span></div></div><div id="craftMessage" class="small-note" style="margin-top:10px"></div></div></div>
 <div class="central-section" id="central-smelt"><div class="panel"><h3>♨ HORNO INDUSTRIAL</h3><div class="zone-art" style="height:100px;font-size:2.8rem">♨</div><p class="small-note" style="margin:12px 0">Funde menas para obtener lingotes. Cada lote requiere dos unidades de mena del mismo tipo y una unidad de carbón. Algunas menas pueden producir residuos adicionales.</p><div id="smeltOptions" class="grid"></div><div class="recipe-pagination"><button class="tiny" id="smeltPrev">← Anterior</button><span class="muted" id="smeltPageInfo">Página 1 / 1</span><button class="tiny" id="smeltNext">Siguiente →</button></div><div class="bar-wrap hidden" id="smeltProgress"><div class="bar-label"><b class="gold">Fundiendo...</b><span id="smeltPercent">0%</span></div><div class="meter"><span id="smeltBar"></span></div></div><div id="smeltMessage" class="small-note" style="margin-top:10px"></div></div></div>
@@ -985,7 +1052,7 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 </section>
 
 <section class="page" id="page-clinic">
- <div class="page-head"><div><div class="eyebrow">SISTEMA 04 / CLÍNICA CLANDESTINA</div><h2>Clínica</h2><p>Extracción de órganos y tráfico ilegal. Separado de los canales legales de La Central.</p></div><span class="tag">EXPANSIÓN · TRÁFICO</span></div>
+ <div class="page-head"><div><div class="eyebrow">SISTEMA 05 / CLÍNICA CLANDESTINA</div><h2>Clínica</h2><p>Extracción de órganos y tráfico ilegal. Separado de los canales legales de La Central.</p></div><span class="tag">EXPANSIÓN · TRÁFICO</span></div>
  <div class="clinic-tabs central-tabs">
   <button class="active" data-clinic-tab="extract">⚗ Mesa de extracción</button>
   <button data-clinic-tab="spawn">🧬 Síntesis de Criatura</button>
@@ -1025,7 +1092,7 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 
 
 <section class="page" id="page-market">
- <div class="page-head"><div><div class="eyebrow">SISTEMA 05 / COMERCIO</div><h2>Mercado</h2><p>Compra y venta legal o clandestina. El diario y los porcentajes de venta se reinician cada día a las 00:00 (hora local).</p></div><span class="tag" id="marketDayTag">DÍA · —</span></div>
+ <div class="page-head"><div><div class="eyebrow">SISTEMA 10 / COMERCIO</div><h2>Mercado</h2><p>Compra y venta legal o clandestina. El diario y los porcentajes de venta se reinician cada día a las 00:00 (hora local).</p></div><span class="tag" id="marketDayTag">DÍA · —</span></div>
  <div class="central-tabs market-tabs" style="grid-template-columns:repeat(2,minmax(0,1fr))">
   <button class="active" data-market-tab="buy">🛒 Mercado · Compra</button>
   <button data-market-tab="buyBlack">☠ Negro · Compra</button>
@@ -1114,13 +1181,13 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 </section>
 
 <section class="page" id="page-inventory">
- <div class="page-head"><div><div class="eyebrow">SISTEMA 05 / ARCHIVO</div><h2>Inventario</h2><p>Consulta, filtra y ordena tus objetos por categoría, nivel, procedencia y valor base. Las pilas de distinta procedencia se mantienen separadas y la lista se divide en páginas.</p></div><span class="tag" id="inventoryCountTag">0 OBJETOS</span></div>
+ <div class="page-head"><div><div class="eyebrow">SISTEMA 09 / ARCHIVO</div><h2>Inventario</h2><p>Consulta, filtra y ordena tus objetos por categoría, nivel, procedencia y valor base. Las pilas de distinta procedencia se mantienen separadas y la lista se divide en páginas.</p></div><span class="tag" id="inventoryCountTag">0 OBJETOS</span></div>
  <div class="panel"><div class="inventory-controls" id="categoryFilters"><button class="active" data-filter="Todos">Todos</button><button data-filter="Material">Materiales</button><button data-filter="Lingote">Lingotes</button><button data-filter="Herramienta">Herramientas</button><button data-filter="Arma">Armas</button><button data-filter="Equipo">Equipo</button><button data-filter="Consumible">Consumibles</button><button data-filter="Criatura">Criaturas</button><button data-filter="Órgano">Órganos</button><button data-filter="Anomalía">Anomalías</button><button data-filter="Contrabando">Contrabando</button><button data-filter="Otro">Otros</button><button data-filter="Síntesis">Síntesis</button></div>
  <div class="toolbar" style="margin-bottom:14px"><input id="inventorySearch" placeholder="Buscar en el inventario..." aria-label="Buscar"><div class="sort-menu" data-sort-menu="inventory"><button class="sort-trigger" id="sortInventoryTrigger" aria-haspopup="listbox" aria-expanded="false"><span>Ordenar: <span class="sort-current" id="sortInventoryLabel">Nivel: mayor primero</span></span><span aria-hidden="true">⌄</span></button><div class="sort-options hidden" id="sortInventoryOptions" role="listbox" aria-label="Orden del inventario"><button type="button" data-sort-target="inventory" data-sort-value="rarity" aria-selected="true">Nivel: mayor primero</button><button type="button" data-sort-target="inventory" data-sort-value="name" aria-selected="false">Nombre A-Z</button><button type="button" data-sort-target="inventory" data-sort-value="value" aria-selected="false">Valor: mayor primero</button></div></div></div>
  <div class="grid four" id="inventoryGrid"></div><div class="pagination"><button class="tiny" id="prevPage">← Anterior</button><span id="pageInfo">Página 1</span><button class="tiny" id="nextPage">Siguiente →</button></div></div>
 </section>
 <section class="page" id="page-registry">
- <div class="page-head"><div><div class="eyebrow">SISTEMA 06 / BASE DE DATOS</div><h2>Registro de objetos</h2><p>Consulta los objetos descubiertos separados en dos bases de datos: el Registro Base (objetos ordinarios) y el Registro de Síntesis (resultados de fusión con el rasgo Síntesis de convergencia). Usa los filtros y las páginas para encontrar cada entrada.</p></div><span class="tag" id="registryCount">0 DESCUBIERTOS</span></div>
+ <div class="page-head"><div><div class="eyebrow">SISTEMA 11 / BASE DE DATOS</div><h2>Registro de objetos</h2><p>Consulta los objetos descubiertos separados en dos bases de datos: el Registro Base (objetos ordinarios) y el Registro de Síntesis (resultados de fusión con el rasgo Síntesis de convergencia). Usa los filtros y las páginas para encontrar cada entrada.</p></div><span class="tag" id="registryCount">0 DESCUBIERTOS</span></div>
  <div class="panel">
   <div class="inventory-controls registry-mode-tabs" id="registryModeTabs" style="margin-bottom:12px">
    <button class="active" data-registry-mode="base">Registro Base</button>
@@ -1156,7 +1223,7 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
  </div>
 </section>
 <section class="page" id="page-equipment">
- <div class="page-head"><div><div class="eyebrow">SISTEMA 06 / SUPERVIVENCIA</div><h2>Equipo</h2><p>Equipa herramientas, armas y anomalías. Los valores de combate reflejan tu equipo activo y las habilidades del operador.</p></div><span class="tag">OPERADOR</span></div>
+ <div class="page-head"><div><div class="eyebrow">SISTEMA 12 / SUPERVIVENCIA</div><h2>Equipo</h2><p>Equipa herramientas, armas y anomalías. Los valores de combate reflejan tu equipo activo y las habilidades del operador.</p></div><span class="tag">OPERADOR</span></div>
  <div class="grid two">
   <div class="panel">
    <h3>◈ RESUMEN DE COMBATE</h3>
@@ -1182,7 +1249,7 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
  <div class="section-title"><h3>▰ OBJETOS EQUIPADOS</h3></div><div class="grid four" id="equippedCards"></div>
 </section>
 <section class="page" id="page-skills">
- <div class="page-head"><div><div class="eyebrow">SISTEMA 07 / ENTRENAMIENTO</div><h2>Habilidades</h2><p>Asigna puntos de habilidad al subir de nivel. Algunas están bloqueadas hasta alcanzar cierto nivel de Operador. Cada nivel de una habilidad cuesta 1 punto.</p></div><span class="tag" id="skillPointsTag">0 PUNTOS</span></div>
+ <div class="page-head"><div><div class="eyebrow">SISTEMA 13 / ENTRENAMIENTO</div><h2>Habilidades</h2><p>Asigna puntos de habilidad al subir de nivel. Algunas están bloqueadas hasta alcanzar cierto nivel de Operador. Cada nivel de una habilidad cuesta 1 punto.</p></div><span class="tag" id="skillPointsTag">0 PUNTOS</span></div>
  <div class="panel">
   <div class="statline"><span>Puntos disponibles</span><b class="cyan" id="skillPointsLabel">0</b></div>
   <p class="small-note" style="margin-top:8px">Ganas <b>1 punto de habilidad</b> por cada nivel de Operador que subas. No se pueden retirar una vez asignados.</p>
@@ -1190,7 +1257,7 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
  </div>
 </section>
 <section class="page" id="page-stats">
- <div class="page-head"><div><div class="eyebrow">SISTEMA 08 / PERFIL</div><h2>Estadísticas</h2><p>Perfil del operador: progreso, rangos y contadores de actividad.</p></div><span class="tag">OPERADOR</span></div>
+ <div class="page-head"><div><div class="eyebrow">SISTEMA 14 / PERFIL</div><h2>Estadísticas</h2><p>Perfil del operador: progreso, rangos y contadores de actividad.</p></div><span class="tag">OPERADOR</span></div>
  <div class="grid two">
   <div class="panel">
    <h3>◈ PERFIL</h3>
@@ -1223,21 +1290,21 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
  </div>
 </section>
 <section class="page" id="page-city">
- <div class="page-head"><div><div class="eyebrow">SISTEMA 10 / URBANO</div><h2>Ciudad</h2><p>Distritos del asentamiento. La mayoría permanecen sellados tras el Colapso. El Casino es el único acceso estable… de momento.</p></div><span class="tag">5 LUGARES</span></div>
+ <div class="page-head"><div><div class="eyebrow">SISTEMA 07 / URBANO</div><h2>Ciudad</h2><p>Distritos del asentamiento. La mayoría permanecen sellados tras el Colapso. El Casino es el único acceso estable… de momento.</p></div><span class="tag">5 LUGARES</span></div>
  <div class="city-places" id="cityPlaces"></div>
  <div id="cityCasino" class="hidden">
   <div class="panel" style="margin-bottom:12px">
    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
     <div>
      <div class="eyebrow">DISTRITO · JUEGO</div>
-     <h3 style="margin:4px 0 0">🎰 EL CASINO</h3>
+     <h3 style="margin:4px 0 0;display:flex;align-items:center;gap:8px" id="casinoTitle"><span id="casinoTitleIcon"></span> EL CASINO</h3>
     </div>
     <button type="button" class="tiny" id="cityBackBtn">← Volver a la Ciudad</button>
    </div>
    <p class="small-note" style="margin-top:8px">La casa siempre tiene ventaja. Elige mesa y apuesta con cuidado.</p>
    <div class="inventory-controls" style="margin-top:12px" id="casinoTabs">
-    <button class="active" data-casino-tab="money">🎰 Slot (Dinero)</button>
-    <button data-casino-tab="items">🎁 Slot (Objetos)</button>
+    <button class="active casino-tab-btn" data-casino-tab="money"><span class="tab-ico" id="tabIcoMoney"></span> Slot (Dinero)</button>
+    <button class="casino-tab-btn" data-casino-tab="items"><span class="tab-ico" id="tabIcoItems"></span> Slot (Objetos)</button>
    </div>
   </div>
 
@@ -1333,12 +1400,16 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 <div class="footer-note">ANOMALY FUSION // NOTHING IS EVER JUST ONE THING</div>
 
 <section class="page" id="page-nexus">
- <div class="page-head"><div><div class="eyebrow">SISTEMA 09 / CONVERSIÓN</div><h2>Centro</h2><p>Centro de máquinas. Aquí operan la Mejora, el Intercambio, la Refinadora y futuros módulos del sistema.</p></div><span class="tag">4 MÓDULOS</span></div>
- <div class="inventory-controls" style="margin-bottom:14px" id="nexusTabs">
+ <div class="page-head"><div><div class="eyebrow">SISTEMA 06 / CONVERSIÓN</div><h2>Centro</h2><p>Centro de máquinas. Mejora, Intercambio, Refinadora, Recicladora y módulos en construcción.</p></div><span class="tag">8 MÓDULOS</span></div>
+ <div class="inventory-controls" style="margin-bottom:14px;flex-wrap:wrap" id="nexusTabs">
   <button class="active" data-nexus-tab="upgrade">◎ Mejora</button>
   <button data-nexus-tab="mod2">▦ Intercambio</button>
   <button data-nexus-tab="mod3">⚗ Refinadora</button>
-  <button data-nexus-tab="mod4" disabled title="Próximamente">🔮 Módulo D</button>
+  <button data-nexus-tab="recycle">♻ Recicladora</button>
+  <button data-nexus-tab="mod5" disabled title="En construcción">Módulo E</button>
+  <button data-nexus-tab="mod6" disabled title="En construcción">Módulo F</button>
+  <button data-nexus-tab="mod7" disabled title="En construcción">Módulo G</button>
+  <button data-nexus-tab="mod8" disabled title="En construcción">Módulo H</button>
  </div>
  <div class="nexus-section active" id="nexus-upgrade">
   <div class="panel">
@@ -1440,7 +1511,41 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
    <p class="small-note" id="refineResult" style="margin-top:12px"></p>
   </div>
  </div>
- <div class="nexus-section" id="nexus-mod4"><div class="panel"><div class="empty">Módulo D — Próximamente.</div></div></div>
+ 
+ <div class="nexus-section" id="nexus-recycle">
+  <div class="panel">
+   <h3>♻ MÁQUINA RECICLADORA</h3>
+   <p class="small-note">Descompone objetos con rasgo <b>Síntesis de convergencia</b> (no criaturas) en materiales y recursos base. El lote se aproxima al valor del objeto. Proceso: <b>5 s</b>.</p>
+   <div class="refine-layout">
+    <div>
+     <div class="eyebrow">ENTRADA · SÍNTESIS</div>
+     <button type="button" class="equip-slot upgrade-slot" id="recycleInputPick">＋ Elegir objeto de síntesis</button>
+     <div id="recycleInputInfo" class="small-note" style="margin-top:8px">Ningún objeto.</div>
+     <button type="button" class="tiny hidden" id="recycleInputClear" style="margin-top:8px;width:100%">Retirar</button>
+    </div>
+    <div class="refine-arrow-col">
+     <div class="eyebrow">PROCESO</div>
+     <div style="font-size:1.4rem" id="recycleArrow">→</div>
+     <div class="refine-bar"><span id="recycleBarFill"></span></div>
+     <div class="small-note" id="recycleStatus">En espera</div>
+     <button class="primary" id="recycleStartBtn" style="width:100%;margin-top:6px" disabled>♻ Reciclar · 5 s</button>
+    </div>
+    <div>
+     <div class="eyebrow">CAJA DE RECICLAJE</div>
+     <div class="statline"><span>Valor estimado</span><b class="gold" id="recycleBoxValue">0</b></div>
+     <div class="prize-box-list" id="recycleBoxList" style="max-height:200px"></div>
+     <button class="primary" id="recycleClaimBtn" style="width:100%;margin-top:10px" disabled>⇢ Reclamar</button>
+     <p class="small-note" id="recycleNote" style="margin-top:8px">Vacía.</p>
+    </div>
+   </div>
+   <p class="small-note" id="recycleResult" style="margin-top:12px"></p>
+  </div>
+ </div>
+ <div class="nexus-section" id="nexus-mod5"><div class="panel"><div class="empty">Módulo E — En construcción.</div></div></div>
+ <div class="nexus-section" id="nexus-mod6"><div class="panel"><div class="empty">Módulo F — En construcción.</div></div></div>
+ <div class="nexus-section" id="nexus-mod7"><div class="panel"><div class="empty">Módulo G — En construcción.</div></div></div>
+ <div class="nexus-section" id="nexus-mod8"><div class="panel"><div class="empty">Módulo H — En construcción.</div></div></div>
+
 </section>
 
 </main></div>
@@ -1456,7 +1561,7 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   <button data-page="central"><span class="ico">▦</span>La Central</button>
   <button data-page="clinic"><span class="ico">⚕</span>Clínica</button>
   <button data-page="nexus"><span class="ico">◎</span>Centro</button>
-  <button data-page="city"><span class="ico">🏙</span>Ciudad</button>
+  <button data-page="city"><span class="ico"><svg class="nav-ico-svg" width="18" height="18" viewBox="0 0 64 64" aria-hidden="true"><path d="M8 52h48M12 52V28l8-8 8 6 8-10 8 8 8-6v34" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linejoin="round"/><path d="M28 52v-12h8v12" fill="none" stroke="currentColor" stroke-width="3"/></svg></span>Ciudad</button>
   <button data-page="soon" disabled title="En construcción"><span class="ico">?</span>???</button>
  </div>
  <div class="mobile-nav-panel hidden" id="mobilePanelManage">
