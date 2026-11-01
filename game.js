@@ -298,6 +298,14 @@ const recipes = [
  {id:"tongs_copper",name:"Pinzas de cobre",icon:"⚕",desc:"Pinzas de lingote de cobre. +16% éxito.",cost:{"Lingote de cobre":2,"Cable de cobre":1},out:"Pinzas de cobre",category:"Herramienta"},
  {id:"tongs_titanium",name:"Pinzas de titanio",icon:"⚕",desc:"Pinzas de lingote de titanio. +20% éxito.",cost:{"Lingote de titanio":2,"Cristal agrietado":1},out:"Pinzas de titanio",category:"Herramienta"},
  {id:"tongs_cobalt",name:"Pinzas de cobalto",icon:"⚕",desc:"Pinzas de lingote de cobalto. +22% éxito.",cost:{"Lingote de cobalto":2,"Cristal de hielo azul":1},out:"Pinzas de cobalto",category:"Herramienta"},
+ 
+ {id:"driver1",name:"Destornillador oxidado",icon:"🔧",desc:"Destornillador de chatarra. +6% desmontaje.",cost:{"Chatarra":2,"Ramas":1},out:"Destornillador oxidado",category:"Herramienta"},
+ {id:"driver_iron",name:"Destornillador de hierro",icon:"🔧",desc:"+12% desmontaje.",cost:{"Lingote de hierro":2,"Chatarra":1},out:"Destornillador de hierro",category:"Herramienta"},
+ {id:"driver_copper",name:"Destornillador de cobre",icon:"🔧",desc:"+16% desmontaje.",cost:{"Lingote de cobre":2,"Cable de cobre":1},out:"Destornillador de cobre",category:"Herramienta"},
+ {id:"driver_titanium",name:"Destornillador de titanio",icon:"🔧",desc:"+20% desmontaje.",cost:{"Lingote de titanio":2,"Cristal agrietado":1},out:"Destornillador de titanio",category:"Herramienta"},
+ {id:"driver_cobalt",name:"Destornillador de cobalto",icon:"🔧",desc:"+22% desmontaje.",cost:{"Lingote de cobalto":2,"Cristal de hielo azul":1},out:"Destornillador de cobalto",category:"Herramienta"},
+ {id:"driver_precision",name:"Destornillador de precisión",icon:"🔧",desc:"+25% desmontaje.",cost:{"Lingote de titanio":2,"Cristal pulido":1,"Cable de cobre":1},out:"Destornillador de precisión",category:"Herramienta"},
+ {id:"driver_iridium",name:"Destornillador de iridio",icon:"🔧",desc:"+30% desmontaje. N5.",cost:{"Lingote de iridio":2,"Cristal pulido":1},out:"Destornillador de iridio",category:"Herramienta"},
  {id:"tongs_precision",name:"Pinzas de precisión",icon:"⚕",desc:"Pinzas de titanio y cristal pulido. +25% éxito.",cost:{"Lingote de titanio":2,"Cristal pulido":1,"Cable de cobre":1},out:"Pinzas de precisión",category:"Herramienta"},
  // === ARMAS ===
  {id:"knife_scrap",name:"Cuchillo oxidado",icon:"🔪",desc:"Hoja improvisada de chatarra y ramas.",cost:{"Chatarra":3,"Ramas":1},out:"Cuchillo oxidado",category:"Arma"},
@@ -874,10 +882,58 @@ function applyIllegalPolicy(item){
  }
  return item;
 }
+
+const ROBOT_PARTS=["Servo","Actuador","Placa base","Núcleo lógico","Sensor óptico","Módulo de potencia","Articulación hidráulica","Chasis parcial","Unidad de memoria","Antena de enlace","Disipador","Puerto de datos","Rodamiento","Cableado blindado","Celda energética","Procesador táctico","Lente de enfoque","Brazo auxiliar","Oruga compacta","Escudo térmico","Filtro de plasma","Bobina de inducción","Tarjeta de control","Junta magnética","Cámara térmica","Batería de reserva","Ventilador de flujo","Conector de fase","Estructura de titanio","Chip de navegación"];
+const ROBOT_CREATURE_ROOTS=["Autómata","Dron","Androide","Servo","Centinela","Ensamblador","Centinela","Vigía","Ingeniero","Custodio"];
+[
+ ["Dron de patrulla",2,42,"Unidad aérea ligera de reconocimiento."],
+ ["Servo de carga",2,46,"Brazo móvil de transporte industrial."],
+ ["Androide de mantenimiento",3,68,"Técnico autónomo de pasillos sellados."],
+ ["Centinela de muelle",3,72,"Torreta móvil con sensores de proximidad."],
+ ["Ensamblador de línea",3,75,"Robot de producción con múltiples actuadores."],
+ ["Autómata de archivo",4,98,"Guardián mecánico de registros."],
+ ["Dron de asalto",4,105,"Unidad táctica con placas reforzadas."],
+ ["Ingeniero errante",4,103,"Autómata de mantenimiento sin órdenes."],
+ ["Vigía orbital",5,128,"Entidad mecánica de vigilancia múltiple."],
+ ["Custodio de deriva",5,132,"Guardián de rutas dimensionales."],
+ ["Coloso de chatarra",5,140,"Chasis pesado reconstruido con restos."],
+ ["Araña de soldadura",3,70,"Multi-patas de ensamblaje preciso."],
+ ["Perro mecánico",2,48,"Unidad cuadrúpeda de escolta."],
+ ["Torreta errante",3,66,"Plataforma armada semi-autónoma."],
+ ["Núcleo ambulante",4,110,"Procesador central con tren de orugas."]
+].forEach(([name,r,val,desc])=>{
+ if(!itemDB[name])addGenerated(name,{icon:"🤖",cat:"Criatura",r,val,desc,companion:true,robotic:true});
+});
 function isRoboticCreature(x){
+ if(!x)return false;
+ if(x.robotic||info(x.name||x).robotic)return true;
  const n=String(x?.name||"").toLocaleLowerCase("es");
- return /dron|robot|mec[aá]n|androide|aut[oó]mat|cibern|servo|unidad t[aá]ctica|ensambl|chasis|placa neuronal/.test(n);
+ return /dron|robot|mec[aá]n|androide|aut[oó]mat|cibern|servo|unidad t[aá]ctica|ensambl|chasis|placa neuronal|coloso de chatarra|araña de soldadura|perro mecánico|torreta|n[uú]cleo ambulante|vig[ií]a orbital|centinela de/.test(n);
 }
+function pieceCandidatesForRobot(x){
+ if(!x||x.cat!=="Criatura"||!isRoboticCreature(x))return [];
+ const n=String(x.name||"");
+ let root=ROBOT_CREATURE_ROOTS.find(r=>n.toLocaleLowerCase("es").includes(r.toLocaleLowerCase("es")));
+ const baseName=root||n.split(" ")[0]||"unidad";
+ return ROBOT_PARTS.map(part=>{
+  const name=`${part} de ${baseName}`;
+  if(!itemDB[name])addGenerated(name,{icon:"⚙️",cat:"Pieza",r:1,val:18,desc:`Componente robótico recuperado de ${baseName}.`,robotPart:true});
+  return name;
+ });
+}
+function equippedDriverBonus(){
+ const id=state.equipped&&state.equipped.driver;
+ const x=id?state.inventory.find(i=>i.id===id):null;
+ const d=x?(Number(x.driverBonus)||Number(info(x.name).driverBonus)||0):0;
+ return d+skillBonus("extract");
+}
+function dismantleSuccessChance(selectedCount,creatureLevel){
+ const n=Math.max(1,selectedCount||1);
+ const r=Math.max(1,Math.min(5,Number(creatureLevel)||1));
+ let chance=88-(r*6)-((n-1)*10)+equippedDriverBonus();
+ return Math.max(8,Math.min(92,Math.round(chance)));
+}
+
 function organCandidatesForCreature(x){
  if(!x||x.cat!=="Criatura"||isRoboticCreature(x))return [];
  const n=String(x.name||"");
@@ -1446,7 +1502,7 @@ function startCreatureSpawn(){
 const stateDefault=()=>({
  credits:0,level:1,xp:0,expeditions:0,fusions:0,
  inventory:[],
- equipped:{pick:null,axe:null,tongs:null,weapon:null,armor:null,anomaly:null,companion:null},
+ equipped:{pick:null,axe:null,tongs:null,driver:null,weapon:null,armor:null,anomaly:null,companion:null},
  history:[],pendingFusion:null,pendingSupply:null,activity:[],seen:[],discovered:{},synthesisVariants:{},valueRanges:{},organVariants:{},
  settings:{sound:true,soundVolume:75,soundMuted:false,musicVolume:40,musicMuted:false,scale:"1",motion:false,layoutMode:"auto"},
  market:null,
@@ -1949,7 +2005,7 @@ function setSortMenu(target,value){const options={inventory:{rarity:"Nivel: mayo
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function inventoryDisplayName(x){const raw=String(x?.name||"Objeto desconocido");const cleaned=raw.replace(/\s*·\s*.+$/,"").trim()||raw;return cleaned.replace(/\s+N[1-5]$/,"").trim()||cleaned;}
 function objectTypeLabel(x){const name=String(x?.name||"");const m=name.match(/\s*·\s*(.+)$/);if(m&&m[1].trim())return m[1].trim();return x?.cat||info(x?.name||"").cat||"Otro"}
-function itemCard(x,opts={}){const r=x.r||info(x.name).r||1;if(opts.compact){const fused=isSynthesisItem(x),desc=x.desc||info(x.name).desc||"Objeto sin descripción.";return `<button type="button" class="item-card inventory-tile rarity-${r}" data-inventory-detail="${escapeHtml(x.id)}" aria-label="Ver detalles de ${escapeHtml(x.name)}"><div class="item-top"><div class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</div><div class="inventory-tile-main"><h4 title="${escapeHtml(inventoryDisplayName(x))}">${escapeHtml(inventoryDisplayName(x))} ${x.qty>1?`<span class="muted">×${x.qty}</span>`:""}</h4><div class="rarity r${r}">${escapeHtml(rarityNames[r]||"COMÚN")} · N${r}</div></div></div><div class="inventory-tile-description">${escapeHtml(desc)}</div>${fused?`<div class="inventory-tile-trait">✦ Síntesis de convergencia</div>`:""}<div class="inventory-tile-meta"><span>${escapeHtml(x.cat||info(x.name).cat||"Otro")}</span><b>${formatCredits(Number(x.val||info(x.name).val||1),13)}</b></div><span class="inventory-tile-open">Ver detalles ↗</span></button>`}const skills=Array.isArray(x.abilities)?x.abilities:(x.ability?[x.ability]:[]);
+function itemCard(x,opts={}){const r=x.r||info(x.name).r||1;if(opts.compact){const fused=isSynthesisItem(x),desc=x.desc||info(x.name).desc||"Objeto sin descripción.";const eq=isItemEquipped(x.id);const slot=eq?equippedSlotOf(x.id):null;const slotLabel=({weapon:"Arma",armor:"Armadura",tool:"Herramienta",tongs:"Pinzas",driver:"Destornillador",pick:"Pico",axe:"Hacha",anomaly:"Anomalía",companion:"Compañero"})[slot]||slot||"Equipo";return `<button type="button" class="item-card inventory-tile rarity-${r}${eq?" is-equipped is-locked":""}" data-inventory-detail="${escapeHtml(x.id)}" data-equipped="${eq?"1":"0"}" aria-label="Ver detalles de ${escapeHtml(x.name)}"><div class="item-top"><div class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}${eq?`<span class="equip-lock" title="Equipado">${typeof hudIconMarkup==="function"?hudIconMarkup("lock",14):"🔒"}</span>`:""}</div><div class="inventory-tile-main"><h4 title="${escapeHtml(inventoryDisplayName(x))}">${escapeHtml(inventoryDisplayName(x))} ${x.qty>1?`<span class="muted">×${x.qty}</span>`:""}</h4><div class="rarity r${r}">${escapeHtml(rarityNames[r]||"COMÚN")} · N${r}</div></div></div><div class="inventory-tile-description">${escapeHtml(desc)}</div>${fused?`<div class="inventory-tile-trait">✦ Síntesis de convergencia</div>`:""}${eq?`<div class="inventory-tile-equipped">${typeof hudIconMarkup==="function"?hudIconMarkup("lock",12):""}<span>Equipado · ${escapeHtml(slotLabel)}</span></div>`:""}<div class="inventory-tile-meta"><span>${escapeHtml(x.cat||info(x.name).cat||"Otro")}</span><b>${formatCredits(Number(x.val||info(x.name).val||1),13)}</b></div><span class="inventory-tile-open">${eq?"Bloqueado · Ver detalles ↗":"Ver detalles ↗"}</span></button>`}const skills=Array.isArray(x.abilities)?x.abilities:(x.ability?[x.ability]:[]);
 const skillLines=[];
 if(skills.length)skills.forEach(a=>skillLines.push(`${a.name}${a.desc?" · "+a.desc:""}`));
 else if(x.secondaryTrait)skillLines.push(String(x.secondaryTrait));
@@ -2232,7 +2288,7 @@ function runExchange(){
       const d=info(n);
       if(!d||!d.cat)return false;
       if(isSynthesisItem({name:n,...d}))return false;
-      if(["Criatura","Órgano","Anomalía"].includes(d.cat))return false;
+      if(["Criatura","Órgano","Pieza","Anomalía"].includes(d.cat))return false;
       if(d.illegal||d.trait==="Ilegal")return false;
       return ["Material","Lingote","Consumible","Herramienta","Arma","Equipo"].includes(d.cat);
     });
@@ -2552,7 +2608,7 @@ function unlockedMaterialPool(){
  return [...names].filter(n=>{
    const d=info(n);
    if(!d||!d.cat)return false;
-   if(["Criatura","Órgano","Anomalía"].includes(d.cat))return false;
+   if(["Criatura","Órgano","Pieza","Anomalía"].includes(d.cat))return false;
    if(d.illegal)return false;
    return ["Material","Lingote","Consumible"].includes(d.cat);
  });
@@ -3042,7 +3098,7 @@ function renderRecycleMachine(){
     if(inItem)pick.innerHTML=`<span class="item-icon">${itemIconMarkup(inItem.name,inItem.icon||info(inItem.name).icon)}</span> ${escapeHtml(inventoryDisplayName(inItem))}`;
     else pick.textContent="＋ Elegir objeto de síntesis";
   }
-  if(infoEl)infoEl.textContent=inItem?`N${inItem.r||1} · ${inItem.cat||"?"} · ${Math.max(1,Number(inItem.val)||1)} cr. · Síntesis`:"Ningún objeto.";
+  if(infoEl)infoEl.innerHTML=inItem?`N${inItem.r||1} · ${inItem.cat||"?"} · ${formatCredits(Math.max(1,Number(inItem.val)||1),14)} · Síntesis`:"Ningún objeto.";
   if(clr)clr.classList.toggle("hidden",!inItem||recycleBusy||recycleBox.length>0);
   if($("recycleStartBtn"))$("recycleStartBtn").disabled=recycleBusy||!inItem||recycleBox.length>0||!!activeTask;
   const val=recycleBox.reduce((a,x)=>a+(Math.max(1,Number(info(x.name).val)||1)*(x.qty||1)),0);
@@ -3135,6 +3191,249 @@ function claimRecycle(){
 }
 
 
+
+
+// === FÁBRICA ===
+let dismantleRobotId=null,dismantleSelected={},dismantlePiecesPage=1;
+let asmSelected={},asmAnomalyId=null;
+function renderDismantleTable(){
+ const host=$("dismantlePieceChoices");
+ if(!host)return;
+ const x=state.inventory.find(i=>i.id===dismantleRobotId);
+ const icon=$("dismantleSlotIcon"),label=$("dismantleSlotLabel"),btn=$("dismantleStartBtn"),clearBtn=$("clearDismantleRobot");
+ if(clearBtn){clearBtn.classList.toggle("hidden",!x);clearBtn.disabled=!!activeTask}
+ if(!x){
+  if(icon)icon.innerHTML="＋";
+  if(label)label.textContent="Sin unidad";
+  host.innerHTML='<div class="empty">Elige una criatura robótica del inventario.</div>';
+  if(btn)btn.disabled=true;
+  if($("dismantlePiecesPager"))$("dismantlePiecesPager").classList.add("hidden");
+  return;
+ }
+ if(icon)icon.innerHTML=itemIconMarkup(x.name,x.icon||info(x.name).icon);
+ if(label)label.textContent=inventoryDisplayName(x)+" · N"+(x.r||1);
+ if(!isRoboticCreature(x)){
+  host.innerHTML='<div class="empty">Esta criatura no es robótica: usa la Clínica para órganos.</div>';
+  if(btn)btn.disabled=true;return;
+ }
+ const opts=pieceCandidatesForRobot(x);
+ Object.keys(dismantleSelected).forEach(k=>{if(!opts.includes(k))delete dismantleSelected[k]});
+ const selectedNames=Object.keys(dismantleSelected);
+ const maxR=Math.max(1,Math.min(5,Number(x.r)||1));
+ const globalChance=dismantleSuccessChance(selectedNames.length||1,maxR);
+ const pageSize=6;
+ const pages=Math.max(1,Math.ceil(opts.length/pageSize));
+ dismantlePiecesPage=Math.min(Math.max(1,dismantlePiecesPage||1),pages);
+ const shown=opts.slice((dismantlePiecesPage-1)*pageSize,dismantlePiecesPage*pageSize);
+ if($("dismantlePiecesPager")){$("dismantlePiecesPager").classList.toggle("is-single",opts.length<=pageSize);$("dismantlePiecesPager").classList.remove("hidden");}
+ if($("dismantlePiecesPageInfo"))$("dismantlePiecesPageInfo").textContent=`Página ${dismantlePiecesPage} / ${pages}`;
+ if($("dismantlePiecesPrev"))$("dismantlePiecesPrev").disabled=dismantlePiecesPage<=1;
+ if($("dismantlePiecesNext"))$("dismantlePiecesNext").disabled=dismantlePiecesPage>=pages;
+ host.innerHTML=shown.map(name=>{
+  const on=!!dismantleSelected[name];
+  const ic=itemIconMarkup(name,info(name).icon||"⚙️");
+  return `<button type="button" class="extract-organ-opt ${on?"on":""}" data-piece="${escapeHtml(name)}"><span class="item-icon">${ic}</span><span>${escapeHtml(name)}</span></button>`;
+ }).join("")||'<div class="empty">Sin piezas detectadas.</div>';
+ host.querySelectorAll("[data-piece]").forEach(b=>b.onclick=()=>{
+  if(activeTask)return;
+  const n=b.dataset.piece;
+  if(dismantleSelected[n])delete dismantleSelected[n]; else dismantleSelected[n]=true;
+  renderDismantleTable();
+ });
+ if(btn)btn.disabled=!selectedNames.length||!!activeTask;
+ if($("dismantleMessage"))$("dismantleMessage").innerHTML=`Éxito global estimado: <b class="cyan">${globalChance}%</b> · Destornillador +${equippedDriverBonus()}%.`;
+}
+function startDismantle(){
+ if(activeTask)return;
+ const x=state.inventory.find(i=>i.id===dismantleRobotId);
+ if(!x)return toast("Selecciona una unidad robótica.",true);
+ if(!isRoboticCreature(x))return toast("Solo unidades robóticas.",true);
+ const selected=Object.keys(dismantleSelected);
+ if(!selected.length)return toast("Selecciona al menos una pieza.",true);
+ const creatureName=x.name,creatureId=x.id,creatureLevel=Math.max(1,Math.min(5,Number(x.r)||1));
+ const chance=dismantleSuccessChance(selected.length,creatureLevel);
+ const pieceNames=selected.slice();
+ beginTask("dismantle",10000,()=>{
+  if(!takeById(creatureId,1)){toast("La unidad ya no está disponible.",true);return}
+  if(Math.random()*100>=chance){
+   dismantleSelected={};dismantleRobotId=null;
+   log(`Desmontaje fallido sobre <b>${escapeHtml(creatureName)}</b>.`);
+   toast("Desmontaje fallido",true);renderDismantleTable();save();return;
+  }
+  pieceNames.forEach(baseName=>{
+   const r=Math.max(1,Math.min(5,creatureLevel));
+   const val=Math.max(8,12+r*8+Math.floor(Math.random()*10));
+   if(!itemDB[baseName])addGenerated(baseName,{icon:"⚙️",cat:"Pieza",r:1,val,desc:"Pieza robótica.",robotPart:true});
+   addItem(baseName,1,{r,val,cat:"Pieza",robotPart:true,origin:"fabrica"});
+  });
+  log(`Desmontaje de <b>${escapeHtml(creatureName)}</b>: ${pieceNames.map(escapeHtml).join(", ")}.`);
+  toast("Piezas recuperadas");
+  dismantleSelected={};dismantleRobotId=null;renderDismantleTable();render();save();
+ },{panel:$("dismantleProgress"),bar:$("dismantleBar"),percent:$("dismantlePercent"),status:null,button:$("dismantleStartBtn")});
+}
+function renderAssembleTable(){
+ for(let i=0;i<5;i++){
+  const id=asmSelected[i];
+  const x=id?state.inventory.find(it=>it.id===id):null;
+  const slot=$("asmSlot"+i);
+  if(slot)slot.classList.toggle("filled",!!x);
+  const icon=slot&&slot.querySelector(".slot-icon");
+  if(icon)icon.innerHTML=x?itemIconMarkup(x.name,x.icon||info(x.name).icon):"＋";
+  if($("asmLabel"+i))$("asmLabel"+i).textContent=x?inventoryDisplayName(x):("Pieza "+(i+1));
+  const choose=$("chooseAsm"+i),clear=$("clearAsm"+i);
+  if(choose){choose.textContent=x?"Cambiar":"Elegir";choose.disabled=!!activeTask}
+  if(clear){clear.classList.toggle("hidden",!x);clear.disabled=!!activeTask}
+ }
+ const ax=asmAnomalyId?state.inventory.find(i=>i.id===asmAnomalyId):null;
+ if($("asmAnomalyIcon"))$("asmAnomalyIcon").innerHTML=ax?itemIconMarkup(ax.name,ax.icon||info(ax.name).icon):"＋";
+ if($("asmAnomalyLabel"))$("asmAnomalyLabel").textContent=ax?inventoryDisplayName(ax):"Anomalía (opcional)";
+ if($("clearAsmAnomaly")){$("clearAsmAnomaly").classList.toggle("hidden",!ax);$("clearAsmAnomaly").disabled=!!activeTask}
+ const filled=[0,1,2,3,4].every(i=>asmSelected[i]&&state.inventory.find(it=>it.id===asmSelected[i]));
+ if($("asmStartBtn"))$("asmStartBtn").disabled=!filled||!!activeTask;
+}
+function startAssemble(){
+ if(activeTask)return;
+ const pieces=[];
+ for(let i=0;i<5;i++){
+  const it=state.inventory.find(x=>x.id===asmSelected[i]);
+  if(!it||it.cat!=="Pieza")return toast("Necesitas 5 piezas robóticas.",true);
+  pieces.push(it);
+ }
+ const anomaly=asmAnomalyId?state.inventory.find(x=>x.id===asmAnomalyId):null;
+ if(asmAnomalyId&&!anomaly)return toast("Anomalía no disponible.",true);
+ const ids=pieces.map(p=>p.id).concat(anomaly?[anomaly.id]:[]);
+ beginTask("assemble",10000,()=>{
+  for(const id of ids){if(!takeById(id,1)){toast("Faltan componentes.",true);return}}
+  const avgR=Math.round(pieces.reduce((a,p)=>a+(Number(p.r)||1),0)/5);
+  const r=Math.max(1,Math.min(5,avgR+(anomaly?1:0)));
+  const val=Math.round(pieces.reduce((a,p)=>a+(Number(p.val)||10),0)*(anomaly?1.35:1.1));
+  const name=anomaly?`Autómata anómalo N${r}`:`Autómata ensamblado N${r}`;
+  const trait=anomaly?"Hibridación anómala":"Autómata";
+  addGenerated(name,{icon:"🤖",cat:"Criatura",r,val,desc:`Unidad robótica ensamblada en Fábrica. Rasgo: ${trait}.`,companion:true,robotic:true,trait});
+  addItem(name,1,{r,val,cat:"Criatura",robotic:true,trait,illegal:true,origin:"fabrica"});
+  log(`Ensamblaje: <b>${escapeHtml(name)}</b> (${trait}).`);
+  toast(name);
+  asmSelected={};asmAnomalyId=null;renderAssembleTable();render();save();
+ },{panel:$("asmProgress"),bar:$("asmBar"),percent:$("asmPercent"),status:null,button:$("asmStartBtn")});
+}
+
+
+
+// === DESGUAZADORA ===
+let scrapInputId=null,scrapBusy=false,scrapBox=[];
+function findRecipeForItem(name){
+  return (typeof recipes!=="undefined"?recipes:[]).find(r=>r&&r.out===name&&r.cost&&Object.keys(r.cost).length);
+}
+function isScrapEligible(item){
+  if(!item||!item.name)return false;
+  if(isItemEquipped(item.id))return false;
+  const d=info(item.name);
+  const cat=item.cat||d.cat||"";
+  if(cat==="Criatura"||cat==="Órgano"||cat==="Pieza"||cat==="Anomalía"||cat==="Contrabando")return false;
+  if(isBallisticWeapon(item.name,item))return false;
+  // Must have a craft recipe with costs
+  const rec=findRecipeForItem(item.name);
+  if(rec)return true;
+  // Lingotes: reverse to mena + carbon if smelt pattern
+  if(cat==="Lingote"||/^Lingote de /.test(item.name))return true;
+  // Origin fabricación hint
+  if(item.origin==="fabricación"||item.origin==="fabricacion")return !!rec;
+  return false;
+}
+function scrapOutputsFor(item){
+  const rec=findRecipeForItem(item.name);
+  if(rec&&rec.cost){
+    return Object.entries(rec.cost).map(([name,qty])=>({name,qty:Math.max(1,Number(qty)||1)}));
+  }
+  // Lingote → Mena + Carbón
+  const m=String(item.name).match(/^Lingote de (.+)$/i);
+  if(m){
+    const mena=`Mena de ${m[1]}`;
+    const out=[{name:mena,qty:1}];
+    if(itemDB["Carbón"]||itemDB["Carbon"]||true)out.push({name:itemDB["Carbón"]?"Carbón":"Carbón",qty:1});
+    if(!itemDB[mena])addGenerated(mena,{icon:"⛏️",cat:"Material",r:Math.max(1,(item.r||1)-0),val:Math.max(4,(Number(item.val)||10)/2),desc:`Mineral bruto de ${m[1]}.`});
+    return out;
+  }
+  return [];
+}
+function renderScrapMachine(){
+  const inItem=scrapInputId?state.inventory.find(i=>i.id===scrapInputId):null;
+  if(scrapInputId&&!inItem)scrapInputId=null;
+  const pick=$("scrapInputPick"),infoEl=$("scrapInputInfo"),clr=$("scrapInputClear");
+  if(pick){
+    if(inItem)pick.innerHTML=`<span class="item-icon">${itemIconMarkup(inItem.name,inItem.icon||info(inItem.name).icon)}</span> ${escapeHtml(inventoryDisplayName(inItem))}`;
+    else pick.textContent="＋ Elegir objeto";
+  }
+  if(infoEl){
+    if(inItem){
+      const outs=scrapOutputsFor(inItem);
+      const preview=outs.map(o=>`${o.qty}× ${o.name}`).join(", ")||"—";
+      infoEl.innerHTML=`N${inItem.r||1} · ${inItem.cat||"?"} · ${formatCredits(Math.max(1,Number(inItem.val)||1),14)}<br><span class="muted">Devuelve: ${escapeHtml(preview)}</span>`;
+    } else infoEl.textContent="Ningún objeto.";
+  }
+  if(clr)clr.classList.toggle("hidden",!inItem||scrapBusy||scrapBox.length>0);
+  if($("scrapStartBtn"))$("scrapStartBtn").disabled=scrapBusy||!inItem||scrapBox.length>0||!!activeTask;
+  const list=$("scrapBoxList");
+  if(list){
+    if(!scrapBox.length)list.innerHTML='<div class="empty">Vacía.</div>';
+    else{
+      const map={};scrapBox.forEach(x=>{map[x.name]=(map[x.name]||0)+(x.qty||1)});
+      list.innerHTML=Object.entries(map).map(([n,q])=>`<div class="prize-row"><span class="item-icon">${itemIconMarkup(n,info(n).icon)}</span><div><b>${escapeHtml(n)}</b><small> · ×${q}</small></div></div>`).join("");
+    }
+  }
+  if($("scrapClaimBtn"))$("scrapClaimBtn").disabled=!scrapBox.length||scrapBusy;
+  if($("scrapNote"))$("scrapNote").textContent=scrapBox.length?"Listo para reclamar.":"Vacía.";
+  if($("scrapStatus")&&!scrapBusy)$("scrapStatus").textContent=scrapBox.length?"Completado":"En espera";
+}
+function openScrapInputPicker(){
+  if(scrapBusy||scrapBox.length)return toast("Reclama o espera el proceso.",true);
+  pickerMode="scrapInput";pickerSlot=null;pickerFilter="Todos";pickerPage=1;
+  if($("pickerSearch"))$("pickerSearch").value="";
+  if($("pickerTitle"))$("pickerTitle").textContent="⛓ DESGUAZADORA";
+  if($("pickerDescription"))$("pickerDescription").textContent="Armas no balísticas, herramientas, equipo, lingotes y objetos con receta de fabricación.";
+  if($("pickerFilterMenu"))$("pickerFilterMenu").classList.remove("hidden");
+  $("inventoryPicker").classList.remove("hidden");renderPicker();
+}
+function startScrap(){
+  if(scrapBusy||scrapBox.length)return;
+  const item=state.inventory.find(i=>i.id===scrapInputId);
+  if(!item)return;
+  if(!isScrapEligible(item))return toast("Este objeto no se puede desguazar.",true);
+  const outs=scrapOutputsFor(item);
+  if(!outs.length)return toast("No hay plano de fabricación asociado.",true);
+  if(!removeItemById(item.id,1)&&!takeById(item.id,1))return toast("Error al consumir.",true);
+  scrapBusy=true;scrapInputId=null;
+  if($("scrapBarFill"))$("scrapBarFill").style.width="0%";
+  if($("scrapStatus"))$("scrapStatus").textContent="Desguazando…";
+  if($("scrapArrow"))$("scrapArrow").textContent="⟶";
+  renderScrapMachine();sound(260,.08,"sine");
+  const t0=Date.now(),dur=5000;
+  const tick=()=>{
+    if(!scrapBusy)return;
+    const p=Math.min(1,(Date.now()-t0)/dur);
+    if($("scrapBarFill"))$("scrapBarFill").style.width=(p*100)+"%";
+    if(p<1){requestAnimationFrame(tick);return}
+    scrapBox=outs.map(o=>({name:o.name,qty:o.qty}));
+    scrapBusy=false;
+    if($("scrapStatus"))$("scrapStatus").textContent="Completado";
+    if($("scrapResult"))$("scrapResult").innerHTML=`<span class="cyan">Desguace listo.</span> Materiales recuperados.`;
+    sound(600,.12,"triangle");
+    renderScrapMachine();save();
+  };
+  requestAnimationFrame(tick);
+}
+function claimScrap(){
+  if(!scrapBox.length||scrapBusy)return;
+  scrapBox.forEach(x=>addItem(x.name,x.qty,{origin:"desguace"}));
+  log(`Desguazadora: <b>${scrapBox.map(x=>x.qty+"× "+x.name).join(", ")}</b>.`);
+  toast("Materiales reclamados");
+  scrapBox=[];
+  if($("scrapBarFill"))$("scrapBarFill").style.width="0%";
+  if($("scrapResult"))$("scrapResult").textContent="";
+  renderScrapMachine();render();save();sound(560,.1,"triangle");
+}
+
+
 function nav(page){
  // Combate activo: solo se permite volver a Exploración para no quedar atrapado fuera del HUD de combate
  if(currentEnemy){
@@ -3146,7 +3445,7 @@ function nav(page){
   // page === explore → permitir y reabrir el combate
  }
  const requestedSupplies=page==="supplies";if(requestedSupplies)page="central";document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id==="page-"+page));
-if(page==="city"){closeCasino();renderCityPlaces();updateSlotBetsUI();}if(page==="skills")renderSkills();if(page==="stats")renderStats();document.querySelectorAll("[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===page));if(typeof closeMobileNavPanels==="function")closeMobileNavPanels();if(requestedSupplies){document.querySelectorAll("[data-central-tab]").forEach(b=>b.classList.toggle("active",b.dataset.centralTab==="supplies"));document.querySelectorAll("#page-central .central-section").forEach(x=>x.classList.toggle("active",x.id==="central-supplies"))}if(page==="clinic"){renderExtractTable();renderSpawnTable()}if(page==="nexus"){renderUpgradeMachine();renderExchangeModule();renderRefineMachine();renderRecycleMachine()}if(page==="market"){try{ensureMarketDay();renderMarketBuy(false);renderMarketBuy(true);renderMarketSell(false);renderMarketSell(true)}catch(err){console.error(err)}}
+if(page==="city"){closeCasino();renderCityPlaces();updateSlotBetsUI();}if(page==="skills")renderSkills();if(page==="stats")renderStats();document.querySelectorAll("[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===page));if(typeof closeMobileNavPanels==="function")closeMobileNavPanels();if(requestedSupplies){document.querySelectorAll("[data-central-tab]").forEach(b=>b.classList.toggle("active",b.dataset.centralTab==="supplies"));document.querySelectorAll("#page-central .central-section").forEach(x=>x.classList.toggle("active",x.id==="central-supplies"))}if(page==="clinic"){renderExtractTable();renderSpawnTable()}if(page==="factory"){renderDismantleTable();renderAssembleTable()}if(page==="nexus"){renderUpgradeMachine();renderExchangeModule();renderRefineMachine();renderRecycleMachine();renderScrapMachine()}if(page==="market"){try{ensureMarketDay();renderMarketBuy(false);renderMarketBuy(true);renderMarketSell(false);renderMarketSell(true)}catch(err){console.error(err)}}
  // Si hay combate en curso, forzar HUD de zona + panel de combate visibles en Exploración
  if(currentEnemy&&page==="explore"){
   zoneHudOpen=true;
@@ -3257,7 +3556,7 @@ function startFusionHum(){
  }catch(e){fusionHum=null}
 }
 
-function beginTask(type,duration,onDone,els){if(activeTask)return;activeTask={type,start:Date.now(),duration,done:false,lastCue:0};stopFusionHum();sound(420,.09,"sine");els.panel.classList.remove("hidden");els.bar.style.width="0%";els.percent.textContent="0%";els.status&&(els.status.textContent=type==="explore"?"Explorando...":type==="craft"?"Fabricando...":type==="extract"?"Extrayendo...":type==="spawn"?"Sintetizando engendro...":"Fusionando...");els.button&&(els.button.disabled=true);const tick=()=>{if(!activeTask||activeTask.type!==type)return;const p=Math.min(1,(Date.now()-activeTask.start)/duration);els.bar.style.width=(p*100)+"%";els.percent.textContent=Math.floor(p*100)+"%";const step=Math.floor(p*3);if(step>activeTask.lastCue&&p<1){activeTask.lastCue=step;sound(560+step*30,.07,"sine")}if(p>=1){activeTask=null;setTimeout(()=>{sound(700,.1,"sine");onDone()},40);return}setTimeout(tick,100)};tick()}
+function beginTask(type,duration,onDone,els){if(activeTask)return;activeTask={type,start:Date.now(),duration,done:false,lastCue:0};stopFusionHum();sound(420,.09,"sine");els.panel.classList.remove("hidden");els.bar.style.width="0%";els.percent.textContent="0%";els.status&&(els.status.textContent=type==="explore"?"Explorando...":type==="craft"?"Fabricando...":type==="extract"?"Extrayendo...":type==="spawn"?"Sintetizando engendro...":type==="dismantle"?"Desmontando...":type==="assemble"?"Ensamblando...":"Fusionando...");els.button&&(els.button.disabled=true);const tick=()=>{if(!activeTask||activeTask.type!==type)return;const p=Math.min(1,(Date.now()-activeTask.start)/duration);els.bar.style.width=(p*100)+"%";els.percent.textContent=Math.floor(p*100)+"%";const step=Math.floor(p*3);if(step>activeTask.lastCue&&p<1){activeTask.lastCue=step;sound(560+step*30,.07,"sine")}if(p>=1){activeTask=null;setTimeout(()=>{sound(700,.1,"sine");onDone()},40);return}setTimeout(tick,100)};tick()}
 function beginExplore(){if(activeTask||currentEnemy)return;const z=zones.find(z=>z.id===selectedZone);if(!z||!zoneUnlocked(z))return toast(`Zona bloqueada. Necesitas nivel ${zoneRequiredLevel(z||zones[0])} de Operador.`,true);$("combatPanel").classList.add("hidden");$("exploreProgressPanel").classList.remove("hidden");const _expMs=exploreDurationMs();beginTask("explore",_expMs,()=>{state.expeditions++;const foundItems=[];const primary=z.loot[Math.floor(Math.random()*z.loot.length)];foundItems.push(primary);const gatherChance=Math.min(.82,Math.max(0,(stat("gather")+stat("loot")+skillBonus("gather"))/100));if(Math.random()<gatherChance)foundItems.push(z.loot[Math.floor(Math.random()*z.loot.length)]);const rareChance=Math.min(.35,Math.max(0,stat("luck")/200));if(Math.random()<rareChance)foundItems.push(z.loot[Math.floor(Math.random()*z.loot.length)]);// Anomalías base: baja probabilidad en cualquier zona
 if(typeof baseAnomalyNames!=="undefined"&&baseAnomalyNames.length&&Math.random()<(BASE_ANOMALY_DROP_CHANCE+Math.min(0.08,stat("luck")/400))){
   const anom=baseAnomalyNames[Math.floor(Math.random()*baseAnomalyNames.length)];
@@ -3398,7 +3697,62 @@ function renderPicker(){
  }
  // --- Máquina de Mejora: entrada desde inventario (solo base) ---
  
- if(pickerMode==="recycleInput"){
+ 
+ if(pickerMode==="dismantleRobot"){
+  let list=state.inventory.filter(x=>x.qty>0&&x.cat==="Criatura"&&isRoboticCreature(x)&&!isItemEquipped(x.id)&&x.name.toLowerCase().includes(search));
+  const pageSize=pickerPageSize();const pages=Math.max(1,Math.ceil(list.length/pageSize));
+  pickerPage=Math.min(Math.max(1,pickerPage),pages);
+  const shown=list.slice((pickerPage-1)*pageSize,pickerPage*pageSize);
+  $("pickerGrid").innerHTML=shown.length?shown.map(x=>`<button type="button" class="picker-item" data-pick-id="${x.id}"><span class="item-icon">${itemIconMarkup(x.name,x.icon)}</span><span><b>${escapeHtml(inventoryDisplayName(x))}</b><small>Robot · N${x.r||1}</small></span></button>`).join(""):'<div class="empty" style="grid-column:1/-1">No hay unidades robóticas.</div>';
+  if($("pickerPageInfo"))$("pickerPageInfo").textContent=`Página ${pickerPage} / ${pages}`;
+  $("pickerGrid").querySelectorAll("[data-pick-id]").forEach(b=>b.onclick=()=>{dismantleRobotId=b.dataset.pickId;dismantleSelected={};$("inventoryPicker").classList.add("hidden");renderDismantleTable();sound(500)});
+  return;
+ }
+ if(pickerMode==="asmPiece"){
+  const used=new Set(Object.values(asmSelected).filter(Boolean));
+  let list=state.inventory.filter(x=>x.qty>0&&x.cat==="Pieza"&&!used.has(x.id)&&x.name.toLowerCase().includes(search));
+  const pageSize=pickerPageSize();const pages=Math.max(1,Math.ceil(list.length/pageSize));
+  pickerPage=Math.min(Math.max(1,pickerPage),pages);
+  const shown=list.slice((pickerPage-1)*pageSize,pickerPage*pageSize);
+  $("pickerGrid").innerHTML=shown.length?shown.map(x=>`<button type="button" class="picker-item" data-pick-id="${x.id}"><span class="item-icon">${itemIconMarkup(x.name,x.icon)}</span><span><b>${escapeHtml(inventoryDisplayName(x))}</b><small>Pieza · N${x.r||1}</small></span></button>`).join(""):'<div class="empty" style="grid-column:1/-1">No hay piezas.</div>';
+  if($("pickerPageInfo"))$("pickerPageInfo").textContent=`Página ${pickerPage} / ${pages}`;
+  $("pickerGrid").querySelectorAll("[data-pick-id]").forEach(b=>b.onclick=()=>{asmSelected[pickerSlot]=b.dataset.pickId;$("inventoryPicker").classList.add("hidden");renderAssembleTable();sound(500)});
+  return;
+ }
+ if(pickerMode==="asmAnomaly"){
+  let list=state.inventory.filter(x=>x.qty>0&&x.cat==="Anomalía"&&x.name.toLowerCase().includes(search));
+  const pageSize=pickerPageSize();const pages=Math.max(1,Math.ceil(list.length/pageSize));
+  pickerPage=Math.min(Math.max(1,pickerPage),pages);
+  const shown=list.slice((pickerPage-1)*pageSize,pickerPage*pageSize);
+  $("pickerGrid").innerHTML=shown.length?shown.map(x=>`<button type="button" class="picker-item" data-pick-id="${x.id}"><span class="item-icon">${itemIconMarkup(x.name,x.icon)}</span><span><b>${escapeHtml(inventoryDisplayName(x))}</b></span></button>`).join(""):'<div class="empty" style="grid-column:1/-1">No hay anomalías.</div>';
+  $("pickerGrid").querySelectorAll("[data-pick-id]").forEach(b=>b.onclick=()=>{asmAnomalyId=b.dataset.pickId;$("inventoryPicker").classList.add("hidden");renderAssembleTable();sound(500)});
+  return;
+ }
+
+ if(pickerMode==="scrapInput"){
+  let list=state.inventory.filter(x=>{
+    if(x.qty<=0||isItemEquipped(x.id))return false;
+    if(!isScrapEligible(x))return false;
+    return x.name.toLowerCase().includes(search);
+  });
+  const pageSize=pickerPageSize();
+  const pages=Math.max(1,Math.ceil(list.length/pageSize));
+  pickerPage=Math.min(Math.max(1,pickerPage),pages);
+  const shown=list.slice((pickerPage-1)*pageSize,pickerPage*pageSize);
+  $("pickerGrid").innerHTML=shown.length?shown.map(x=>{
+    const outs=scrapOutputsFor(x);
+    const prev=outs.slice(0,3).map(o=>o.qty+"× "+o.name).join(", ");
+    return `<button type="button" class="picker-item" data-pick-id="${x.id}"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><span style="min-width:0"><b>${escapeHtml(inventoryDisplayName(x))}</b><small>${escapeHtml(prev||"con receta")}</small></span></button>`;
+  }).join(""):'<div class="empty" style="grid-column:1/-1">No hay objetos desguazables.</div>';
+  if($("pickerPageInfo"))$("pickerPageInfo").textContent=`Página ${pickerPage} / ${pages}`;
+  if($("pickerPrev")){$("pickerPrev").disabled=pickerPage<=1;$("pickerPrev").onclick=()=>{pickerPage=Math.max(1,pickerPage-1);renderPicker()};}
+  if($("pickerNext")){$("pickerNext").disabled=pickerPage>=pages;$("pickerNext").onclick=()=>{pickerPage++;renderPicker()};}
+  $("pickerGrid").querySelectorAll("[data-pick-id]").forEach(b=>b.onclick=()=>{
+    scrapInputId=b.dataset.pickId;$("inventoryPicker").classList.add("hidden");renderScrapMachine();sound(500);
+  });
+  return;
+ }
+if(pickerMode==="recycleInput"){
   let list=state.inventory.filter(x=>{
     if(x.qty<=0||!isSynthesisItem(x)||x.cat==="Criatura"||isItemEquipped(x.id))return false;
     return x.name.toLowerCase().includes(search);
@@ -3529,7 +3883,7 @@ if(pickerMode==="upgradeInput"){
   return;
  }
  let list=state.inventory.filter(x=>x.qty>0&&x.name.toLowerCase().includes(search)&&!isItemEquipped(x.id));
- if(pickerMode==="fusion"&&pickerFilter!=="Todos")list=list.filter(x=>pickerFilter==="Síntesis"?isSynthesisItem(x):pickerFilter==="Lingote"?(x.cat==="Lingote"||x.name.startsWith("Lingote de ")):pickerFilter==="Otro"?!( ["Material","Lingote","Herramienta","Arma","Equipo","Consumible","Criatura","Órgano","Anomalía"].includes(x.cat)):x.cat===pickerFilter);
+ if(pickerMode==="fusion"&&pickerFilter!=="Todos")list=list.filter(x=>pickerFilter==="Síntesis"?isSynthesisItem(x):pickerFilter==="Lingote"?(x.cat==="Lingote"||x.name.startsWith("Lingote de ")):pickerFilter==="Otro"?!( ["Material","Lingote","Herramienta","Arma","Equipo","Consumible","Criatura","Órgano","Pieza","Anomalía"].includes(x.cat)):x.cat===pickerFilter);
  if(pickerMode==="extract")list=list.filter(x=>x.cat==="Criatura"&&!isRoboticCreature(x));
  if(pickerMode==="spawn")list=list.filter(x=>x.cat==="Órgano"&&!Object.values(spawnSelected||{}).includes(x.id));
  if(pickerMode==="spawnAnomaly")list=list.filter(x=>x.cat==="Anomalía");
@@ -3540,7 +3894,62 @@ if(pickerMode==="upgradeInput"){
  if($("pickerPrev")){$("pickerPrev").disabled=pickerPage<=1;$("pickerPrev").onclick=()=>{pickerPage=Math.max(1,pickerPage-1);renderPicker()};}
  if($("pickerNext")){$("pickerNext").disabled=pickerPage>=pages;$("pickerNext").onclick=()=>{pickerPage++;renderPicker()};}
  document.querySelectorAll("[data-pick-id]").forEach(b=>b.onclick=()=>{const x=state.inventory.find(i=>i.id===b.dataset.pickId);if(!x)return;if(pickerMode==="fusion"){state.fusionSlots=state.fusionSlots||{A:null,B:null};state.fusionSlots[pickerSlot]=x.id;renderFusionSelects()}else if(pickerMode==="extract"){extractCreatureId=x.id;extractSelected={};extractOrgansPage=1;renderExtractTable()}else if(pickerMode==="spawn"){spawnSelected[pickerSlot]=x.id;renderSpawnTable()}else if(pickerMode==="spawnAnomaly"){spawnAnomalyId=x.id;renderSpawnTable()}else 
- if(pickerMode==="recycleInput"){
+ 
+ if(pickerMode==="dismantleRobot"){
+  let list=state.inventory.filter(x=>x.qty>0&&x.cat==="Criatura"&&isRoboticCreature(x)&&!isItemEquipped(x.id)&&x.name.toLowerCase().includes(search));
+  const pageSize=pickerPageSize();const pages=Math.max(1,Math.ceil(list.length/pageSize));
+  pickerPage=Math.min(Math.max(1,pickerPage),pages);
+  const shown=list.slice((pickerPage-1)*pageSize,pickerPage*pageSize);
+  $("pickerGrid").innerHTML=shown.length?shown.map(x=>`<button type="button" class="picker-item" data-pick-id="${x.id}"><span class="item-icon">${itemIconMarkup(x.name,x.icon)}</span><span><b>${escapeHtml(inventoryDisplayName(x))}</b><small>Robot · N${x.r||1}</small></span></button>`).join(""):'<div class="empty" style="grid-column:1/-1">No hay unidades robóticas.</div>';
+  if($("pickerPageInfo"))$("pickerPageInfo").textContent=`Página ${pickerPage} / ${pages}`;
+  $("pickerGrid").querySelectorAll("[data-pick-id]").forEach(b=>b.onclick=()=>{dismantleRobotId=b.dataset.pickId;dismantleSelected={};$("inventoryPicker").classList.add("hidden");renderDismantleTable();sound(500)});
+  return;
+ }
+ if(pickerMode==="asmPiece"){
+  const used=new Set(Object.values(asmSelected).filter(Boolean));
+  let list=state.inventory.filter(x=>x.qty>0&&x.cat==="Pieza"&&!used.has(x.id)&&x.name.toLowerCase().includes(search));
+  const pageSize=pickerPageSize();const pages=Math.max(1,Math.ceil(list.length/pageSize));
+  pickerPage=Math.min(Math.max(1,pickerPage),pages);
+  const shown=list.slice((pickerPage-1)*pageSize,pickerPage*pageSize);
+  $("pickerGrid").innerHTML=shown.length?shown.map(x=>`<button type="button" class="picker-item" data-pick-id="${x.id}"><span class="item-icon">${itemIconMarkup(x.name,x.icon)}</span><span><b>${escapeHtml(inventoryDisplayName(x))}</b><small>Pieza · N${x.r||1}</small></span></button>`).join(""):'<div class="empty" style="grid-column:1/-1">No hay piezas.</div>';
+  if($("pickerPageInfo"))$("pickerPageInfo").textContent=`Página ${pickerPage} / ${pages}`;
+  $("pickerGrid").querySelectorAll("[data-pick-id]").forEach(b=>b.onclick=()=>{asmSelected[pickerSlot]=b.dataset.pickId;$("inventoryPicker").classList.add("hidden");renderAssembleTable();sound(500)});
+  return;
+ }
+ if(pickerMode==="asmAnomaly"){
+  let list=state.inventory.filter(x=>x.qty>0&&x.cat==="Anomalía"&&x.name.toLowerCase().includes(search));
+  const pageSize=pickerPageSize();const pages=Math.max(1,Math.ceil(list.length/pageSize));
+  pickerPage=Math.min(Math.max(1,pickerPage),pages);
+  const shown=list.slice((pickerPage-1)*pageSize,pickerPage*pageSize);
+  $("pickerGrid").innerHTML=shown.length?shown.map(x=>`<button type="button" class="picker-item" data-pick-id="${x.id}"><span class="item-icon">${itemIconMarkup(x.name,x.icon)}</span><span><b>${escapeHtml(inventoryDisplayName(x))}</b></span></button>`).join(""):'<div class="empty" style="grid-column:1/-1">No hay anomalías.</div>';
+  $("pickerGrid").querySelectorAll("[data-pick-id]").forEach(b=>b.onclick=()=>{asmAnomalyId=b.dataset.pickId;$("inventoryPicker").classList.add("hidden");renderAssembleTable();sound(500)});
+  return;
+ }
+
+ if(pickerMode==="scrapInput"){
+  let list=state.inventory.filter(x=>{
+    if(x.qty<=0||isItemEquipped(x.id))return false;
+    if(!isScrapEligible(x))return false;
+    return x.name.toLowerCase().includes(search);
+  });
+  const pageSize=pickerPageSize();
+  const pages=Math.max(1,Math.ceil(list.length/pageSize));
+  pickerPage=Math.min(Math.max(1,pickerPage),pages);
+  const shown=list.slice((pickerPage-1)*pageSize,pickerPage*pageSize);
+  $("pickerGrid").innerHTML=shown.length?shown.map(x=>{
+    const outs=scrapOutputsFor(x);
+    const prev=outs.slice(0,3).map(o=>o.qty+"× "+o.name).join(", ");
+    return `<button type="button" class="picker-item" data-pick-id="${x.id}"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><span style="min-width:0"><b>${escapeHtml(inventoryDisplayName(x))}</b><small>${escapeHtml(prev||"con receta")}</small></span></button>`;
+  }).join(""):'<div class="empty" style="grid-column:1/-1">No hay objetos desguazables.</div>';
+  if($("pickerPageInfo"))$("pickerPageInfo").textContent=`Página ${pickerPage} / ${pages}`;
+  if($("pickerPrev")){$("pickerPrev").disabled=pickerPage<=1;$("pickerPrev").onclick=()=>{pickerPage=Math.max(1,pickerPage-1);renderPicker()};}
+  if($("pickerNext")){$("pickerNext").disabled=pickerPage>=pages;$("pickerNext").onclick=()=>{pickerPage++;renderPicker()};}
+  $("pickerGrid").querySelectorAll("[data-pick-id]").forEach(b=>b.onclick=()=>{
+    scrapInputId=b.dataset.pickId;$("inventoryPicker").classList.add("hidden");renderScrapMachine();sound(500);
+  });
+  return;
+ }
+if(pickerMode==="recycleInput"){
   let list=state.inventory.filter(x=>{
     if(x.qty<=0||!isSynthesisItem(x)||x.cat==="Criatura"||isItemEquipped(x.id))return false;
     return x.name.toLowerCase().includes(search);
@@ -3842,7 +4251,7 @@ function renderCentralSales(){
  const search=($("centralSaleSearch")?.value||"").trim().toLowerCase();
  const equipped=new Set(Object.values(state.equipped||{}).filter(Boolean));
  const sellable=state.inventory.filter(x=>x.qty>0&&!equipped.has(x.id)&&!isIllegalItem(x));
- const matchesCategory=x=>centralSaleFilter==="Todos"||(centralSaleFilter==="Síntesis"?isSynthesisItem(x):centralSaleFilter==="Lingote"?(x.cat==="Lingote"||x.name.startsWith("Lingote de ")):centralSaleFilter==="Otro"?!( ["Material","Lingote","Herramienta","Arma","Equipo","Consumible","Criatura","Órgano","Anomalía"].includes(x.cat)):x.cat===centralSaleFilter);
+ const matchesCategory=x=>centralSaleFilter==="Todos"||(centralSaleFilter==="Síntesis"?isSynthesisItem(x):centralSaleFilter==="Lingote"?(x.cat==="Lingote"||x.name.startsWith("Lingote de ")):centralSaleFilter==="Otro"?!( ["Material","Lingote","Herramienta","Arma","Equipo","Consumible","Criatura","Órgano","Pieza","Anomalía"].includes(x.cat)):x.cat===centralSaleFilter);
  const items=sellable.filter(x=>x.name.toLowerCase().includes(search)&&matchesCategory(x));
  const liveIds=new Set(sellable.map(x=>x.id));
  Object.keys(centralSaleSelection).forEach(id=>{const item=sellable.find(x=>x.id===id);if(!liveIds.has(id))delete centralSaleSelection[id];else centralSaleSelection[id]=Math.min(item.qty,Math.max(0,Number(centralSaleSelection[id])||0));if(!centralSaleSelection[id])delete centralSaleSelection[id];});
@@ -4082,7 +4491,7 @@ function openRegistryItem(name,level=null){
  }
 }
 
-function openInventoryItem(id){const x=state.inventory.find(i=>i.id===id);if(!x)return;const d={...info(x.name),...x};const skills=Array.isArray(d.abilities)?d.abilities:(d.ability?[d.ability]:[]);const chips=[`<span class="chip">Tipo: ${escapeHtml(d.cat||"Otro")}</span>`,`<span class="chip">Nivel ${Number(d.r)||1} · ${escapeHtml(rarityNames[Number(d.r)||1]||"Común")}</span>`,`<span class="chip">Valor base (100%): ${Number(d.val||info(d.name).val||1)} cr.</span>`];if(isSynthesisItem(d))chips.push(`<span class="chip">Rasgo de fusión: Síntesis de convergencia</span>`);else if(d.affix)chips.push(`<span class="chip">Rasgo: ${escapeHtml(d.affix)}</span>`);if(d.secondaryTrait)chips.push(`<span class="chip">Rasgo adicional: ${escapeHtml(d.secondaryTrait)}</span>`);if(d.passive)chips.push(`<span class="chip">Pasiva: ${escapeHtml(d.passive.value||d.passive.type||"")}</span>`);skills.forEach(a=>chips.push(`<span class="chip">Habilidad: ${escapeHtml(a.name)}${a.desc?" · "+escapeHtml(a.desc):""}</span>`));if(d.damage)chips.push(`<span class="chip">Daño: +${d.damage}</span>`);if(d.defense)chips.push(`<span class="chip">Defensa: +${d.defense}</span>`);if(d.gather)chips.push(`<span class="chip">Recolección: +${d.gather}%</span>`);if(d.health)chips.push(`<span class="chip">Salud: +${d.health}</span>`);if(d.speed)chips.push(`<span class="chip">Velocidad: +${d.speed}</span>`);if(d.crit)chips.push(`<span class="chip">Crítico: +${d.crit}</span>`);const slot=Object.entries(state.equipped||{}).find(([,eid])=>eid===x.id)?.[0];$("inventoryDetailTitle").textContent=inventoryDisplayName(x);$("inventoryDetailBody").innerHTML=`<div class="inventory-detail-head"><div class="registry-big-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</div><div><div class="rarity r${Number(d.r)||1}">NIVEL ${Number(d.r)||1} · ${escapeHtml(rarityNames[Number(d.r)||1]||"COMÚN")}</div><h3 class="inventory-detail-name">${escapeHtml(inventoryDisplayName(x))}</h3><div class="small-note">Cantidad: ×${x.qty}${slot?` · Equipado en: ${escapeHtml(slot)}`:""}</div></div></div><p class="inventory-detail-description">${escapeHtml(d.desc||"Sin descripción disponible.")}</p><div class="loot-chips inventory-detail-chips">${chips.join("")}</div><div class="section-title"><h3>INFORMACIÓN DEL OBJETO</h3></div><div class="inventory-detail-stats">${[["Tipo de objeto",objectTypeLabel(d)],["Valor",`${Number(d.val||info(d.name).val||1)} cr.`],["Rareza",rarityNames[Number(d.r)||1]||"Común"],["Nivel",`N${Number(d.r)||1}`],...(d.origin?[
+function openInventoryItem(id){const x=state.inventory.find(i=>i.id===id);if(!x)return;const d={...info(x.name),...x};const skills=Array.isArray(d.abilities)?d.abilities:(d.ability?[d.ability]:[]);const chips=[`<span class="chip">Tipo: ${escapeHtml(d.cat||"Otro")}</span>`,`<span class="chip">Nivel ${Number(d.r)||1} · ${escapeHtml(rarityNames[Number(d.r)||1]||"Común")}</span>`,`<span class="chip">Valor base (100%): ${Number(d.val||info(d.name).val||1)} cr.</span>`];if(isSynthesisItem(d))chips.push(`<span class="chip">Rasgo de fusión: Síntesis de convergencia</span>`);else if(d.affix)chips.push(`<span class="chip">Rasgo: ${escapeHtml(d.affix)}</span>`);if(d.secondaryTrait)chips.push(`<span class="chip">Rasgo adicional: ${escapeHtml(d.secondaryTrait)}</span>`);if(d.passive)chips.push(`<span class="chip">Pasiva: ${escapeHtml(d.passive.value||d.passive.type||"")}</span>`);skills.forEach(a=>chips.push(`<span class="chip">Habilidad: ${escapeHtml(a.name)}${a.desc?" · "+escapeHtml(a.desc):""}</span>`));if(d.damage)chips.push(`<span class="chip">Daño: +${d.damage}</span>`);if(d.defense)chips.push(`<span class="chip">Defensa: +${d.defense}</span>`);if(d.gather)chips.push(`<span class="chip">Recolección: +${d.gather}%</span>`);if(d.health)chips.push(`<span class="chip">Salud: +${d.health}</span>`);if(d.speed)chips.push(`<span class="chip">Velocidad: +${d.speed}</span>`);if(d.crit)chips.push(`<span class="chip">Crítico: +${d.crit}</span>`);const slot=Object.entries(state.equipped||{}).find(([,eid])=>eid===x.id)?.[0];$("inventoryDetailTitle").textContent=inventoryDisplayName(x);$("inventoryDetailBody").innerHTML=`<div class="inventory-detail-head"><div class="registry-big-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</div><div><div class="rarity r${Number(d.r)||1}">NIVEL ${Number(d.r)||1} · ${escapeHtml(rarityNames[Number(d.r)||1]||"COMÚN")}</div><h3 class="inventory-detail-name">${escapeHtml(inventoryDisplayName(x))}</h3><div class="small-note">Cantidad: ×${x.qty}${slot?` · <span class="equip-badge-inline">${typeof hudIconMarkup==="function"?hudIconMarkup("lock",12):""} Equipado (${escapeHtml(slot)}) — bloqueado hasta desequipar</span>`:""}</div></div></div><p class="inventory-detail-description">${escapeHtml(d.desc||"Sin descripción disponible.")}</p><div class="loot-chips inventory-detail-chips">${chips.join("")}</div><div class="section-title"><h3>INFORMACIÓN DEL OBJETO</h3></div><div class="inventory-detail-stats">${[["Tipo de objeto",objectTypeLabel(d)],["Valor",`${Number(d.val||info(d.name).val||1)} cr.`],["Rareza",rarityNames[Number(d.r)||1]||"Común"],["Nivel",`N${Number(d.r)||1}`],...(d.origin?[
       ["Origen", (()=>{
         const zonesFound=itemOriginZones(d.name||x.name);
         if(zonesFound.length)return zonesFound.join(", ");
@@ -4093,7 +4502,7 @@ function openInventoryItem(id){const x=state.inventory.find(i=>i.id===id);if(!x)
 function applyLayoutMode(mode){const valid=["auto","mobile","pc16"].includes(mode)?mode:"auto";state.settings.layoutMode=valid;document.body.classList.toggle("layout-mobile",valid==="mobile");document.body.classList.toggle("layout-pc16",valid==="pc16");document.body.classList.toggle("layout-auto",valid==="auto");const select=$("layoutModeSelect");if(select&&select.value!==valid)select.value=valid;}
 function render(){if(document.querySelector("#page-city.active")){try{renderCityPlaces()}catch(e){}}renderPendingFusion();renderSupplyDelivery();renderStats();renderZoneCards();renderZoneDetail();renderZoneLoot();renderFusionSelects();renderRecipes();renderSmelt();renderBonus();renderSupplies();renderCentralSales();renderExtractTable();renderSpawnTable();renderInventory();renderEquipment();renderFusionHistory();renderRegistry();save()}
  try{ensureMissions();if($("missionsBadge"))$("missionsBadge").textContent=String((state.missions||[]).length);trackAchievement()}catch(_e){}
-$("fuseBtn").addEventListener("click",doFuse);if($("claimSupply"))$("claimSupply").addEventListener("click",claimSupply);$("chooseFusionA").onclick=()=>openPicker("fusion","A");$("chooseFusionB").onclick=()=>openPicker("fusion","B");$("clearFusionA").onclick=()=>{if(state.fusionSlots)state.fusionSlots.A=null;renderFusionSelects();sound(400,.05,"sine")};$("clearFusionB").onclick=()=>{if(state.fusionSlots)state.fusionSlots.B=null;renderFusionSelects();sound(400,.05,"sine")};$("fightBtn").addEventListener("click",fight);$("closePicker").onclick=()=>{const qb=$("pickerQtyBar"),qc=$("pickerQtyConfirm");if(qb)qb.classList.add("hidden");if(qc)qc.classList.add("hidden");$("inventoryPicker").classList.add("hidden")};$("inventoryPicker").addEventListener("click",e=>{if(e.target===$("inventoryPicker"))$("inventoryPicker").classList.add("hidden")});$("pickerSearch").addEventListener("input",()=>{pickerPage=1;renderPicker()});$("pickerFilterTrigger").onclick=()=>{$("pickerFilterOptions").classList.toggle("hidden");$("pickerFilterTrigger").setAttribute("aria-expanded",!$("pickerFilterOptions").classList.contains("hidden"))};document.querySelectorAll("[data-picker-filter]").forEach(b=>b.onclick=()=>{pickerFilter=b.dataset.pickerFilter;$("pickerFilterLabel").textContent=pickerFilter;document.querySelectorAll("[data-picker-filter]").forEach(x=>x.setAttribute("aria-selected",x===b?"true":"false"));$("pickerFilterOptions").classList.add("hidden");pickerPage=1;renderPicker()});$("centralSaleSearch").addEventListener("input",renderCentralSales);$("centralSaleFilterTrigger").onclick=()=>{const menu=$("centralSaleFilterOptions"),opening=menu.classList.contains("hidden");closeSortMenus(opening?menu.id:null);menu.classList.toggle("hidden",!opening);$("centralSaleFilterTrigger").setAttribute("aria-expanded",String(opening))};document.querySelectorAll("[data-sale-filter]").forEach(b=>b.onclick=()=>{centralSaleFilter=b.dataset.saleFilter;$("centralSaleFilterLabel").textContent=centralSaleFilter;document.querySelectorAll("[data-sale-filter]").forEach(x=>x.setAttribute("aria-selected",x===b?"true":"false"));$("centralSaleFilterOptions").classList.add("hidden");$("centralSaleFilterTrigger").setAttribute("aria-expanded","false");renderCentralSales()});$("centralSaleSelectAll").onclick=()=>{const equipped=new Set(Object.values(state.equipped||{}).filter(Boolean)),search=$("centralSaleSearch").value.trim().toLowerCase();state.inventory.filter(x=>x.qty>0&&!equipped.has(x.id)&&x.name.toLowerCase().includes(search)&&(centralSaleFilter==="Todos"||(centralSaleFilter==="Síntesis"?isSynthesisItem(x):centralSaleFilter==="Lingote"?(x.cat==="Lingote"||x.name.startsWith("Lingote de ")):centralSaleFilter==="Otro"?!( ["Material","Lingote","Herramienta","Arma","Equipo","Consumible","Criatura","Órgano","Anomalía"].includes(x.cat)):x.cat===centralSaleFilter))).forEach(x=>centralSaleSelection[x.id]=x.qty);renderCentralSales()};$("centralSaleClear").onclick=()=>{centralSaleSelection={};renderCentralSales()};$("centralSaleSubmit").onclick=sellCentralSelection;
+$("fuseBtn").addEventListener("click",doFuse);if($("claimSupply"))$("claimSupply").addEventListener("click",claimSupply);$("chooseFusionA").onclick=()=>openPicker("fusion","A");$("chooseFusionB").onclick=()=>openPicker("fusion","B");$("clearFusionA").onclick=()=>{if(state.fusionSlots)state.fusionSlots.A=null;renderFusionSelects();sound(400,.05,"sine")};$("clearFusionB").onclick=()=>{if(state.fusionSlots)state.fusionSlots.B=null;renderFusionSelects();sound(400,.05,"sine")};$("fightBtn").addEventListener("click",fight);$("closePicker").onclick=()=>{const qb=$("pickerQtyBar"),qc=$("pickerQtyConfirm");if(qb)qb.classList.add("hidden");if(qc)qc.classList.add("hidden");$("inventoryPicker").classList.add("hidden")};$("inventoryPicker").addEventListener("click",e=>{if(e.target===$("inventoryPicker"))$("inventoryPicker").classList.add("hidden")});$("pickerSearch").addEventListener("input",()=>{pickerPage=1;renderPicker()});$("pickerFilterTrigger").onclick=()=>{$("pickerFilterOptions").classList.toggle("hidden");$("pickerFilterTrigger").setAttribute("aria-expanded",!$("pickerFilterOptions").classList.contains("hidden"))};document.querySelectorAll("[data-picker-filter]").forEach(b=>b.onclick=()=>{pickerFilter=b.dataset.pickerFilter;$("pickerFilterLabel").textContent=pickerFilter;document.querySelectorAll("[data-picker-filter]").forEach(x=>x.setAttribute("aria-selected",x===b?"true":"false"));$("pickerFilterOptions").classList.add("hidden");pickerPage=1;renderPicker()});$("centralSaleSearch").addEventListener("input",renderCentralSales);$("centralSaleFilterTrigger").onclick=()=>{const menu=$("centralSaleFilterOptions"),opening=menu.classList.contains("hidden");closeSortMenus(opening?menu.id:null);menu.classList.toggle("hidden",!opening);$("centralSaleFilterTrigger").setAttribute("aria-expanded",String(opening))};document.querySelectorAll("[data-sale-filter]").forEach(b=>b.onclick=()=>{centralSaleFilter=b.dataset.saleFilter;$("centralSaleFilterLabel").textContent=centralSaleFilter;document.querySelectorAll("[data-sale-filter]").forEach(x=>x.setAttribute("aria-selected",x===b?"true":"false"));$("centralSaleFilterOptions").classList.add("hidden");$("centralSaleFilterTrigger").setAttribute("aria-expanded","false");renderCentralSales()});$("centralSaleSelectAll").onclick=()=>{const equipped=new Set(Object.values(state.equipped||{}).filter(Boolean)),search=$("centralSaleSearch").value.trim().toLowerCase();state.inventory.filter(x=>x.qty>0&&!equipped.has(x.id)&&x.name.toLowerCase().includes(search)&&(centralSaleFilter==="Todos"||(centralSaleFilter==="Síntesis"?isSynthesisItem(x):centralSaleFilter==="Lingote"?(x.cat==="Lingote"||x.name.startsWith("Lingote de ")):centralSaleFilter==="Otro"?!( ["Material","Lingote","Herramienta","Arma","Equipo","Consumible","Criatura","Órgano","Pieza","Anomalía"].includes(x.cat)):x.cat===centralSaleFilter))).forEach(x=>centralSaleSelection[x.id]=x.qty);renderCentralSales()};$("centralSaleClear").onclick=()=>{centralSaleSelection={};renderCentralSales()};$("centralSaleSubmit").onclick=sellCentralSelection;
 if($("chooseExtractCreature"))$("chooseExtractCreature").onclick=()=>openPicker("extract");
 if($("extractStartBtn"))$("extractStartBtn").onclick=startExtraction;
 
@@ -4149,7 +4558,7 @@ document.querySelectorAll("[data-nexus-tab]").forEach(b=>b.onclick=()=>{
   document.querySelectorAll("#page-nexus .nexus-section").forEach(x=>x.classList.toggle("active",x.id==="nexus-"+b.dataset.nexusTab));
   if(b.dataset.nexusTab==="upgrade")renderUpgradeMachine();
   if(b.dataset.nexusTab==="mod2")renderExchangeModule();
-  if(b.dataset.nexusTab==="mod3")renderRefineMachine();if(b.dataset.nexusTab==="recycle")renderRecycleMachine();
+  if(b.dataset.nexusTab==="mod3")renderRefineMachine();if(b.dataset.nexusTab==="recycle")renderRecycleMachine();if(b.dataset.nexusTab==="scrap")renderScrapMachine();
 });
 
 if($("upgradeInputPick"))$("upgradeInputPick").onclick=()=>{if(!upgradeSpinning)openUpgradeInputPicker()};
@@ -4169,7 +4578,44 @@ if($("refineInputPick"))$("refineInputPick").onclick=()=>{if(!refineBusy)openRef
 if($("recycleInputPick"))$("recycleInputPick").onclick=()=>openRecycleInputPicker();
 if($("recycleInputClear"))$("recycleInputClear").onclick=()=>{if(recycleBusy)return;recycleInputId=null;renderRecycleMachine()};
 if($("recycleStartBtn"))$("recycleStartBtn").onclick=startRecycle;
+
+document.querySelectorAll("[data-factory-tab]").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll("[data-factory-tab]").forEach(x=>x.classList.toggle("active",x===b));
+  document.querySelectorAll("#page-factory .clinic-section").forEach(x=>x.classList.toggle("active",x.id==="factory-"+b.dataset.factoryTab));
+});
+if($("chooseDismantleRobot"))$("chooseDismantleRobot").onclick=()=>{
+  pickerMode="dismantleRobot";pickerPage=1;pickerFilter="Criatura";
+  if($("pickerTitle"))$("pickerTitle").textContent="⚙ UNIDAD ROBÓTICA";
+  if($("pickerDescription"))$("pickerDescription").textContent="Solo criaturas robóticas.";
+  $("inventoryPicker").classList.remove("hidden");renderPicker();
+};
+if($("clearDismantleRobot"))$("clearDismantleRobot").onclick=()=>{dismantleRobotId=null;dismantleSelected={};renderDismantleTable()};
+if($("dismantleStartBtn"))$("dismantleStartBtn").onclick=startDismantle;
+if($("dismantlePiecesPrev"))$("dismantlePiecesPrev").onclick=()=>{dismantlePiecesPage=Math.max(1,dismantlePiecesPage-1);renderDismantleTable()};
+if($("dismantlePiecesNext"))$("dismantlePiecesNext").onclick=()=>{dismantlePiecesPage++;renderDismantleTable()};
+for(let i=0;i<5;i++){
+  const ii=i;
+  if($("chooseAsm"+ii))$("chooseAsm"+ii).onclick=()=>{
+    pickerMode="asmPiece";pickerSlot=ii;pickerPage=1;pickerFilter="Pieza";
+    if($("pickerTitle"))$("pickerTitle").textContent="⚙ PIEZA "+(ii+1);
+    $("inventoryPicker").classList.remove("hidden");renderPicker();
+  };
+  if($("clearAsm"+ii))$("clearAsm"+ii).onclick=()=>{delete asmSelected[ii];renderAssembleTable()};
+}
+if($("chooseAsmAnomaly"))$("chooseAsmAnomaly").onclick=()=>{
+  pickerMode="asmAnomaly";pickerPage=1;pickerFilter="Anomalía";
+  if($("pickerTitle"))$("pickerTitle").textContent="⚙ ANOMALÍA";
+  $("inventoryPicker").classList.remove("hidden");renderPicker();
+};
+if($("clearAsmAnomaly"))$("clearAsmAnomaly").onclick=()=>{asmAnomalyId=null;renderAssembleTable()};
+if($("asmStartBtn"))$("asmStartBtn").onclick=startAssemble;
+
 if($("recycleClaimBtn"))$("recycleClaimBtn").onclick=claimRecycle;
+if($("scrapInputPick"))$("scrapInputPick").onclick=()=>openScrapInputPicker();
+if($("scrapInputClear"))$("scrapInputClear").onclick=()=>{if(scrapBusy)return;scrapInputId=null;renderScrapMachine()};
+if($("scrapStartBtn"))$("scrapStartBtn").onclick=startScrap;
+if($("scrapClaimBtn"))$("scrapClaimBtn").onclick=claimScrap;
+
 
 if($("refineInputClear"))$("refineInputClear").onclick=()=>{if(refineBusy)return;refineInputId=null;renderRefineMachine()};
 if($("refineDustMinus"))$("refineDustMinus").onclick=()=>{if(refineBusy||refinePending)return;refineDustQty=Math.max(0,refineDustQty-1);renderRefineMachine()};
