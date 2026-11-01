@@ -305,8 +305,7 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
  .extract-organs{grid-template-columns:repeat(3,minmax(0,1fr))!important}
 }
 #page-clinic .extract-panel .slot-row,
-#page-clinic .extract-panel > .slot{display:flex;justify-content:center;margin-left:auto;margin-right:auto}
-#page-clinic .extract-panel .slot{max-width:320px;width:100%}
+/* clinic slot centering handled by unit-slot-stack */
 /* Picker: 3 columnas PC, 2 móvil → 6 por página sin huecos raros */
 .picker-grid, #pickerGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 @media(min-width:700px){
@@ -1122,6 +1121,80 @@ aside.sidebar .sidebar-scroll::-webkit-scrollbar-corner{
   background:#0a1218 !important;
 }
 
+
+/* === CENTRADO REAL unidad + mensaje (Clínica / Fábrica) === */
+.unit-slot-wrap{
+  display:flex !important;
+  justify-content:center !important;
+  align-items:flex-start !important;
+  width:100% !important;
+  margin-top:14px !important;
+}
+.unit-slot-stack{
+  width:280px !important;
+  max-width:100% !important;
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:stretch !important;
+  gap:16px !important;
+}
+.unit-slot-stack .slot,
+#extractSlot,
+#dismantleSlot{
+  width:100% !important;
+  max-width:none !important;
+  min-width:0 !important;
+  min-height:120px !important;
+  margin:0 !important;
+  box-sizing:border-box !important;
+}
+#extractOrganChoices,
+#dismantlePieceChoices{
+  width:100% !important;
+  max-width:none !important;
+  margin:0 !important;
+  display:block !important;
+  box-sizing:border-box !important;
+}
+#extractOrganChoices .empty,
+#dismantlePieceChoices .empty{
+  width:100% !important;
+  text-align:center !important;
+  margin:0 !important;
+  box-sizing:border-box !important;
+}
+/* Con opciones: ensancha la pila para la rejilla */
+.unit-slot-stack.has-choices{
+  width:min(720px,100%) !important;
+}
+.unit-slot-stack.has-choices #extractOrganChoices,
+.unit-slot-stack.has-choices #dismantlePieceChoices{
+  display:grid !important;
+  grid-template-columns:repeat(auto-fill,minmax(140px,1fr)) !important;
+  gap:8px !important;
+}
+.unit-slot-stack.has-choices .slot{
+  max-width:280px !important;
+  margin:0 auto !important;
+}
+
+/* Cursors HUD: scroll + volumen */
+aside.sidebar .sidebar-scroll,
+aside.sidebar .sidebar-scroll *,
+.sidebar-scroll,
+input[type="range"],
+input[type="range"]::-webkit-slider-thumb,
+input[type="range"]::-webkit-slider-runnable-track,
+input[type="range"]::-moz-range-thumb,
+input[type="range"]::-moz-range-track,
+.settings-volume,
+.settings-volume *{
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath d='M12 28V14.5c0-1 .8-1.8 1.8-1.8s1.8.8 1.8 1.8V18h1.2V11c0-1 .8-1.8 1.8-1.8s1.8.8 1.8 1.8v5.5h1.2V12c0-1 .8-1.8 1.8-1.8s1.8.8 1.8 1.8v8.2c0 4.2-2.4 7.8-7.2 7.8H14c-1.1 0-2-.9-2-2z' fill='%230d1a22' stroke='%2353f2d1' stroke-width='1.6' stroke-linejoin='round'/%3E%3Cpath d='M12 14.2V8.5c0-1.1.9-2 2-2s2 .9 2 2v5.7' fill='none' stroke='%2353f2d1' stroke-width='1.6'/%3E%3C/svg%3E") 10 4, pointer !important;
+}
+input[type="range"]{
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath d='M12 28V14.5c0-1 .8-1.8 1.8-1.8s1.8.8 1.8 1.8V18h1.2V11c0-1 .8-1.8 1.8-1.8s1.8.8 1.8 1.8v5.5h1.2V12c0-1 .8-1.8 1.8-1.8s1.8.8 1.8 1.8v8.2c0 4.2-2.4 7.8-7.2 7.8H14c-1.1 0-2-.9-2-2z' fill='%230d1a22' stroke='%2353f2d1' stroke-width='1.6' stroke-linejoin='round'/%3E%3Cpath d='M12 14.2V8.5c0-1.1.9-2 2-2s2 .9 2 2v5.7' fill='none' stroke='%2353f2d1' stroke-width='1.6'/%3E%3C/svg%3E") 10 4, pointer !important;
+}
+
 </style>
 </head>
 <body>
@@ -1231,8 +1304,10 @@ aside.sidebar .sidebar-scroll::-webkit-scrollbar-corner{
    <h3>⚗ MESA DE EXTRACCIÓN · TRÁFICO DE ÓRGANOS</h3>
    <p class="small-note">Introduce una criatura orgánica y selecciona qué órganos extraer. Las unidades robóticas o mecánicas no tienen órganos. El proceso dura 10 segundos y consume la criatura.</p>
    <div class="unit-slot-wrap" style="margin-top:14px">
-    <div class="slot unit-slot-card" id="extractSlot"><div class="slot-icon" id="extractSlotIcon">＋</div><b id="extractSlotLabel">Sin criatura</b><div class="slot-actions"><button class="tiny" id="chooseExtractCreature">Elegir criatura</button><button class="tiny hidden" id="clearExtractCreature">Retirar</button></div></div>
-    <div id="extractOrganChoices" class="extract-organs unit-slot-below"></div>
+    <div class="unit-slot-stack" id="extractStack">
+     <div class="slot unit-slot-card" id="extractSlot"><div class="slot-icon" id="extractSlotIcon">＋</div><b id="extractSlotLabel">Sin criatura</b><div class="slot-actions"><button class="tiny" id="chooseExtractCreature">Elegir criatura</button><button class="tiny hidden" id="clearExtractCreature">Retirar</button></div></div>
+     <div id="extractOrganChoices" class="extract-organs unit-slot-below"></div>
+    </div>
    </div><div class="pagination" id="extractOrgansPager" style="margin-top:10px"><button class="tiny" id="extractOrgansPrev">← Anterior</button><span class="muted" id="extractOrgansPageInfo">Página 1</span><button class="tiny" id="extractOrgansNext">Siguiente →</button></div>
    <div class="bar-wrap hidden" id="extractProgress" style="margin-top:12px"><div class="bar-label"><b class="cyan">Extrayendo...</b><span id="extractPercent">0%</span></div><div class="meter progress"><span id="extractBar"></span></div></div>
    <button class="danger" id="extractStartBtn" style="width:100%;margin-top:12px" disabled>⚗ Iniciar extracción · 10 s</button>
@@ -1270,8 +1345,10 @@ aside.sidebar .sidebar-scroll::-webkit-scrollbar-corner{
    <h3>MESA DE DESMONTAJE · PIEZAS ROBÓTICAS</h3>
    <p class="small-note">Introduce una <b>criatura robótica</b> y selecciona qué <b>piezas</b> recuperar. Las criaturas orgánicas no tienen piezas. El proceso dura 10 s y consume la unidad. El <b>Destornillador</b> equipado mejora la tasa de éxito.</p>
    <div class="unit-slot-wrap" style="margin-top:14px">
-    <div class="slot unit-slot-card" id="dismantleSlot"><div class="slot-icon" id="dismantleSlotIcon">＋</div><b id="dismantleSlotLabel">Sin unidad</b><div class="slot-actions"><button class="tiny" id="chooseDismantleRobot">Elegir robot</button><button class="tiny hidden" id="clearDismantleRobot">Retirar</button></div></div>
-    <div id="dismantlePieceChoices" class="extract-organs unit-slot-below"></div>
+    <div class="unit-slot-stack" id="dismantleStack">
+     <div class="slot unit-slot-card" id="dismantleSlot"><div class="slot-icon" id="dismantleSlotIcon">＋</div><b id="dismantleSlotLabel">Sin unidad</b><div class="slot-actions"><button class="tiny" id="chooseDismantleRobot">Elegir robot</button><button class="tiny hidden" id="clearDismantleRobot">Retirar</button></div></div>
+     <div id="dismantlePieceChoices" class="extract-organs unit-slot-below"></div>
+    </div>
    </div>
    <div class="pagination" id="dismantlePiecesPager" style="margin-top:10px"><button class="tiny" id="dismantlePiecesPrev">← Anterior</button><span class="muted" id="dismantlePiecesPageInfo">Página 1</span><button class="tiny" id="dismantlePiecesNext">Siguiente →</button></div>
    <div class="bar-wrap hidden" id="dismantleProgress" style="margin-top:12px"><div class="bar-label"><b class="cyan">Desmontando...</b><span id="dismantlePercent">0%</span></div><div class="meter progress"><span id="dismantleBar"></span></div></div>
@@ -1282,7 +1359,7 @@ aside.sidebar .sidebar-scroll::-webkit-scrollbar-corner{
  <div class="clinic-section" id="factory-assemble">
   <div class="panel factory-panel">
    <h3>ENSAMBLAJE DE AUTÓMATA</h3>
-   <p class="small-note">Coloca <b>5 piezas</b> (obligatorio) y una <b>anomalía opcional</b>. Sin anomalía: rasgo Autómata. Con anomalía: <b>Hibridación anómala</b>. Proceso 10 s.</p>
+   <p class="small-note">Coloca <b>5 piezas</b> (obligatorio) y una <b>anomalía opcional</b>. Sin anomalía: rasgo <b>Autómata</b>. Con anomalía: rasgo <b>Núcleo anómalo</b> (nombre propio). No son ilegales. Proceso 10 s.</p>
    <div class="spawn-slots" id="asmSlots" style="margin-top:14px">
     <div class="slot" id="asmSlot0"><div class="slot-icon">＋</div><b id="asmLabel0">Pieza 1</b><div class="slot-actions"><button class="tiny" id="chooseAsm0">Elegir</button><button class="tiny hidden" id="clearAsm0">Retirar</button></div></div>
     <div class="slot" id="asmSlot1"><div class="slot-icon">＋</div><b id="asmLabel1">Pieza 2</b><div class="slot-actions"><button class="tiny" id="chooseAsm1">Elegir</button><button class="tiny hidden" id="clearAsm1">Retirar</button></div></div>

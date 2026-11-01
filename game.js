@@ -857,11 +857,15 @@ function isIllegalItem(x){
  const name=String(x.name||"");
  const cat=x.cat||info(name).cat||"";
  const trait=String(x.trait||x.affix||"");
- // Solo: órganos, armas balísticas, Engendros y Híbridos anómalos
+ // Piezas y autómatas (robóticos) NUNCA ilegales
+ if(cat==="Pieza")return false;
+ if(x.robotic||info(name).robotic)return false;
+ if(trait==="Autómata"||trait==="Núcleo anómalo"||/aut[oó]mata/i.test(name))return false;
+ // Solo: órganos, armas balísticas, Engendros orgánicos e Híbridos anómalos orgánicos
  if(cat==="Órgano")return true;
  if(isBallisticWeapon(name,x))return true;
  if(trait==="Engendro"||/engendro/i.test(name))return true;
- if(trait==="Hibridación anómala"||/hibridaci[oó]n an[oó]mala/i.test(trait)||/h[ií]brido an[oó]malo/i.test(name))return true;
+ if((trait==="Hibridación anómala"||/hibridaci[oó]n an[oó]mala/i.test(trait)||/h[ií]brido an[oó]malo/i.test(name))&&!x.robotic)return true;
  return false;
 }
 function applyIllegalPolicy(item){
@@ -3205,7 +3209,7 @@ function renderDismantleTable(){
  if(!x){
   if(icon)icon.innerHTML="＋";
   if(label)label.textContent="Sin unidad";
-  host.classList.remove('has-choices');host.innerHTML='<div class="empty">Elige una criatura robótica del inventario.</div>';
+  host.classList.remove('has-choices');if($('dismantleStack'))$('dismantleStack').classList.remove('has-choices');host.innerHTML='<div class="empty">Elige una criatura robótica del inventario.</div>';
   if(btn)btn.disabled=true;
   if($("dismantlePiecesPager"))$("dismantlePiecesPager").classList.add("hidden");
   return;
@@ -3308,10 +3312,17 @@ function startAssemble(){
   const avgR=Math.round(pieces.reduce((a,p)=>a+(Number(p.r)||1),0)/5);
   const r=Math.max(1,Math.min(5,avgR+(anomaly?1:0)));
   const val=Math.round(pieces.reduce((a,p)=>a+(Number(p.val)||10),0)*(anomaly?1.35:1.1));
-  const name=anomaly?`Autómata anómalo N${r}`:`Autómata ensamblado N${r}`;
-  const trait=anomaly?"Hibridación anómala":"Autómata";
-  addGenerated(name,{icon:"🤖",cat:"Criatura",r,val,desc:`Unidad robótica ensamblada en Fábrica. Rasgo: ${trait}.`,companion:true,robotic:true,trait});
-  addItem(name,1,{r,val,cat:"Criatura",robotic:true,trait,illegal:true,origin:"fabrica"});
+  // Nombres propios (no ilegales). Con anomalía: serie "Núcleo anómalo"
+  const baseNames=["Centinela de chasis","Vigía de engranajes","Operario de fase","Guardián de circuito","Patrulla de vacío"];
+  const anomNames=["Centinela de fisura","Vigía de eco","Operario de umbral","Guardián de resonancia","Patrulla de distorsión"];
+  const pool=anomaly?anomNames:baseNames;
+  const seed=pieces.map(p=>p.name).join("|")+(anomaly?anomaly.name:"");
+  let h=0;for(let i=0;i<seed.length;i++)h=(h*31+seed.charCodeAt(i))>>>0;
+  const core=pool[h%pool.length];
+  const name=anomaly?`${core} · N${r}`:`${core} · N${r}`;
+  const trait=anomaly?"Núcleo anómalo":"Autómata";
+  addGenerated(name,{icon:"🤖",cat:"Criatura",r,val,desc:`Unidad robótica ensamblada en Fábrica. Rasgo: ${trait}. No es contrabando.`,companion:true,robotic:true,trait,illegal:false});
+  addItem(name,1,{r,val,cat:"Criatura",robotic:true,trait,illegal:false,origin:"fabrica"});
   log(`Ensamblaje: <b>${escapeHtml(name)}</b> (${trait}).`);
   toast(name);
   asmSelected={};asmAnomalyId=null;renderAssembleTable();render();save();
@@ -4333,7 +4344,7 @@ function renderExtractTable(){
  if(!x){
   if(icon)icon.innerHTML="＋";
   if(label)label.textContent="Sin criatura";
-  host.classList.remove('has-choices');host.innerHTML='<div class="empty">Elige una criatura orgánica del inventario.</div>';
+  host.classList.remove('has-choices');($('extractStack')||{}).classList&&$('extractStack').classList.remove('has-choices');host.innerHTML='<div class="empty">Elige una criatura orgánica del inventario.</div>';
   if(btn)btn.disabled=true;
   if($("extractOrgansPager"))$("extractOrgansPager").classList.add("hidden");
   return;
@@ -4366,7 +4377,7 @@ function renderExtractTable(){
  if($("extractOrgansPageInfo"))$("extractOrgansPageInfo").textContent=`Página ${extractOrgansPage} / ${pages}`;
  if($("extractOrgansPrev"))$("extractOrgansPrev").disabled=extractOrgansPage<=1;
  if($("extractOrgansNext"))$("extractOrgansNext").disabled=extractOrgansPage>=pages;
- host.classList.add('has-choices');
+ host.classList.add('has-choices');if($('extractStack'))$('extractStack').classList.add('has-choices');
 host.innerHTML=shown.map(name=>{
   const on=!!extractSelected[name];
   const ic=itemIconMarkup(name,info(name).icon||"🫀");
