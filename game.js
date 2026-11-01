@@ -1406,7 +1406,7 @@ const stateDefault=()=>({
  missionHistory:[],
  version:11
 });
-function loadState(){try{const s=JSON.parse(localStorage.getItem("anomalyFusionSave")||localStorage.getItem("joyaCeroSave"));if(s&&(s.version===2||s.version===3||s.version===4||s.version===5||s.version===6||s.version===7||s.version===8||s.version===9||s.version===10)&&s.inventory&&s.equipped)return Object.assign(stateDefault(),s,{version:10,equipped:{...stateDefault().equipped,...s.equipped},history:(s.history||[]).slice(0,3),pendingFusion:s.pendingFusion||null,pendingSupply:s.pendingSupply||null,seen:[...new Set([...(s.seen||[]),...(s.inventory||[]).map(x=>x.name)])],discovered:{...(s.discovered||{}),...Object.fromEntries((s.inventory||[]).map(x=>[x.name,x]))},synthesisVariants:{...(s.synthesisVariants||{})},valueRanges:{...(s.valueRanges||{})},organVariants:{...(s.organVariants||{})}})}catch(e){}return stateDefault()}
+function loadState(){try{const s=JSON.parse(localStorage.getItem("anomalyFusionSave")||localStorage.getItem("joyaCeroSave"));if(s&&s.inventory&&s.equipped&&Number(s.version)>=2&&Number(s.version)<=30)return Object.assign(stateDefault(),s,{version:Math.max(11,Number(s.version)||11),equipped:{...stateDefault().equipped,...s.equipped},history:(s.history||[]).slice(0,3),pendingFusion:s.pendingFusion||null,pendingSupply:s.pendingSupply||null,seen:[...new Set([...(s.seen||[]),...(s.inventory||[]).map(x=>x.name)])],discovered:{...(s.discovered||{}),...Object.fromEntries((s.inventory||[]).map(x=>[x.name,x]))},synthesisVariants:{...(s.synthesisVariants||{})},valueRanges:{...(s.valueRanges||{})},organVariants:{...(s.organVariants||{})}})}catch(e){}return stateDefault()}
 function save(){try{localStorage.setItem("anomalyFusionSave",JSON.stringify(state))}catch(e){toast("No se pudo guardar la partida. Comprueba el espacio disponible del navegador.",true)}}
 let state=loadState();
 // Migra al registro los niveles de síntesis ya existentes en partidas anteriores.
@@ -2679,10 +2679,10 @@ function removeItemById(id,qty){
 // === CIUDAD · CASINO ===
 const CITY_PLACES=[
  {id:"casino",name:"El Casino",icon:"🎰",desc:"Mesas de azar y slots. Créditos y objetos en juego.",unlocked:true},
- {id:"bazaar",name:"Bazar del Colapso",icon:"🏪",desc:"Comercio informal de piezas y rumores.",unlocked:false,req:"Próximamente"},
- {id:"clinic_city",name:"Clínica clandestina",icon:"🏥",desc:"Tratamientos fuera del protocolo.",unlocked:false,req:"Próximamente"},
- {id:"docks",name:"Muelles grises",icon:"⚓",desc:"Cargas ilegales y contrabando naval.",unlocked:false,req:"Próximamente"},
- {id:"tower",name:"Torre de vigilancia",icon:"🗼",desc:"Control urbano sellado tras el Colapso.",unlocked:false,req:"Próximamente"}
+ {id:"lugar_b",name:"Lugar B",icon:"🔒",desc:"Distrito sellado. Acceso restringido.",unlocked:false,req:"Bloqueado"},
+ {id:"lugar_c",name:"Lugar C",icon:"🔒",desc:"Distrito sellado. Acceso restringido.",unlocked:false,req:"Bloqueado"},
+ {id:"lugar_d",name:"Lugar D",icon:"🔒",desc:"Distrito sellado. Acceso restringido.",unlocked:false,req:"Bloqueado"},
+ {id:"lugar_e",name:"Lugar E",icon:"🔒",desc:"Distrito sellado. Acceso restringido.",unlocked:false,req:"Bloqueado"}
 ];
 const SLOT_MONEY_SYMBOLS=[
  {id:"chip",icon:"🪙",name:"Ficha",mult:2,weight:28},
@@ -4070,6 +4070,8 @@ function migrateOrganVariants(){
  Object.values(state.discovered||{}).forEach(it=>{if(it&&it.cat==="Órgano")saveOrganVariant(it)});
 }
 function init(){ensureSkillPointsFromLevel();
+ try{bindCasinoUI()}catch(e){console.warn(e)}
+
  if(!state.version){state=stateDefault();log("Sistema inicializado. Inventario y créditos a cero.")}
  if(!state.activity.length&&!state.inventory.length&&state.credits===0)log("Sistema inicializado. Inventario vacío. Explora para conseguir tus primeros recursos.");
  document.querySelectorAll("[data-settings-panel].settings-tab, .settings-tab[data-settings-panel]").forEach(b=>{
@@ -4092,8 +4094,9 @@ function init(){ensureSkillPointsFromLevel();
  document.body.classList.toggle("reduce-motion",!!state.settings.motion);
  applyLayoutMode(state.settings.layoutMode||"auto");
  setSoundVolume(state.settings.soundVolume??75);
- syncSettingsUI();
- render();
+ try{syncSettingsUI()}catch(e){console.warn("syncSettingsUI",e)}
+ try{render()}catch(e){console.error("render",e);toast("Error al iniciar interfaz.",true)}
+
  if(state.pendingSupply&&state.pendingSupply.stage==="animating"){
   setTimeout(()=>{
    if(state.pendingSupply&&state.pendingSupply.stage==="animating"){
