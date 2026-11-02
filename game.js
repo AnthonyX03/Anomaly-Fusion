@@ -3372,8 +3372,8 @@ function renderScrapMachine(){
   if(infoEl){
     if(inItem){
       const outs=scrapOutputsFor(inItem);
-      const preview=outs.map(o=>`${o.qty}× ${o.name}`).join(", ")||"—";
-      infoEl.innerHTML=`N${inItem.r||1} · ${inItem.cat||"?"} · ${formatCredits(Math.max(1,Number(inItem.val)||1),14)}<br><span class="muted">Devuelve: ${escapeHtml(preview)}</span>`;
+      const preview=outs.map(o=>`<span class="scrap-mat">${itemIconMarkup(o.name,info(o.name).icon)} <b>×${o.qty}</b> ${escapeHtml(o.name)}</span>`).join(" ")||"—";
+      infoEl.innerHTML=`N${inItem.r||1} · ${escapeHtml(inItem.cat||"?")} · ${formatCredits(Math.max(1,Number(inItem.val)||1),14)}<br><span class="muted">Devuelve:</span> <span class="scrap-mat-row">${preview}</span>`;
     } else infoEl.textContent="Ningún objeto.";
   }
   if(clr)clr.classList.toggle("hidden",!inItem||scrapBusy||scrapBox.length>0);
@@ -3489,6 +3489,169 @@ function fixSidebarScroll(){
   }catch(e){console.warn("fixSidebarScroll",e)}
 }
 
+
+// === IMPRESORA ===
+let printTargetId=null,printFuel=[],printBusy=false,printOut=null;
+function isPrintEligible(item){
+  if(!item||!item.name||item.qty<=0)return false;
+  if(isItemEquipped(item.id))return false;
+  const cat=item.cat||info(item.name).cat||"";
+  if(cat==="Criatura")return false;
+  return true;
+}
+function printItemValue(item){
+  return Math.max(1,Number(item.val)||Number(info(item.name).val)||1);
+}
+function printFuelTotal(){
+  return printFuel.reduce((s,x)=>s+(printItemValue(x)*Math.max(1,Number(x.qty)||1)),0);
+}
+function printSuccessChance(){
+  const t=printTargetId?state.inventory.find(i=>i.id===printTargetId):null;
+  if(!t)return 0;
+  const need=printItemValue(t);
+  const have=printFuelTotal();
+  if(need<=0)return 0;
+  // Cap 100%. Exact match or above = 100%. Linear below.
+  return Math.max(0,Math.min(100,Math.round((have/need)*100)));
+}
+function printChanceClass(pct){
+  if(pct<=20)return "pct-low";
+  if(pct<=49)return "pct-mid";
+  return "pct-high";
+}
+function renderPrintMachine(){
+  const t=printTargetId?state.inventory.find(i=>i.id===printTargetId):null;
+  if(printTargetId&&!t)printTargetId=null;
+  const pick=$("printTargetPick"),infoEl=$("printTargetInfo"),clr=$("printTargetClear");
+  if(pick){
+    if(t)pick.innerHTML=`<span class="item-icon">${itemIconMarkup(t.name,t.icon||info(t.name).icon)}</span> ${escapeHtml(inventoryDisplayName(t))}`;
+    else pick.textContent="＋ Elegir objeto";
+  }
+  if(infoEl){
+    if(t){
+      const syn=isSynthesisItem(t)?' · Síntesis':'';
+      infoEl.innerHTML=`N${t.r||1} · ${escapeHtml(t.cat||"?")}${syn}<br>Valor base: ${formatCredits(printItemValue(t),14)}`;
+    } else infoEl.textContent="Ningún objeto.";
+  }
+  if(clr)clr.classList.toggle("hidden",!t||printBusy||!!printOut);
+  // fuel list
+  const list=$("printFuelList");
+  if(list){
+    if(!printFuel.length)list.innerHTML='<div class="empty">Vacía.</div>';
+    else list.innerHTML=printFuel.map((x,idx)=>{
+      const v=printItemValue(x)*(x.qty||1);
+      return `<div class="prize-row"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><div><b>${escapeHtml(inventoryDisplayName(x))}</b><small> · ×${x.qty||1} · ${formatCredits(v,12)}</small></div><button type="button" class="tiny" data-print-fuel-rm="${idx}">✕</button></div>`;
+    }).join("");
+    list.querySelectorAll("[data-print-fuel-rm]").forEach(b=>b.onclick=()=>{
+      if(printBusy||printOut)return;
+      printFuel.splice(Number(b.dataset.printFuelRm),1);
+      renderPrintMachine();
+    });
+  }
+  const fuelVal=printFuelTotal();
+  if($("printFuelValue"))$("printFuelValue").innerHTML=formatCredits(fuelVal,14);
+  if($("printFuelClear"))$("printFuelClear").classList.toggle("hidden",!printFuel.length||printBusy||!!printOut);
+  if($("printFuelAdd"))$("printFuelAdd").disabled=printBusy||!!printOut;
+  const pct=printSuccessChance();
+  const ch=$("printChance");
+  if(ch){ch.textContent=pct+"%";ch.className="print-chance "+printChanceClass(pct)}
+  if($("printStartBtn"))$("printStartBtn").disabled=printBusy||!t||!printFuel.length||!!printOut||!!activeTask;
+  // out
+  const outList=$("printOutList");
+  if(outList){
+    if(!printOut)outList.innerHTML='<div class="empty">Vacía.</div>';
+    else outList.innerHTML=`<div class="prize-row"><span class="item-icon">${itemIconMarkup(printOut.name,printOut.icon||info(printOut.name).icon)}</span><div><b>${escapeHtml(inventoryDisplayName(printOut))}</b><small> · ×${printOut.qty||1} · ${formatCredits(printItemValue(printOut),12)}</small></div></div>`;
+  }
+  if($("printClaimBtn"))$("printClaimBtn").disabled=!printOut||printBusy;
+  if($("printNote"))$("printNote").textContent=printOut?"Copia lista.":"Vacía.";
+  if($("printStatus")&&!printBusy)$("printStatus").textContent=printOut?"Completado":"En espera";
+}
+function openPrintTargetPicker(){
+  if(printBusy||printOut)return toast("Reclama o espera el proceso.",true);
+  pickerMode="printTarget";pickerSlot=null;pickerFilter="Todos";pickerPage=1;
+  if($("pickerSearch"))$("pickerSearch").value="";
+  if($("pickerTitle"))$("pickerTitle").textContent="🖨 IMPRESORA · OBJETIVO";
+  if($("pickerDescription"))$("pickerDescription").textContent="Elige el objeto a duplicar (no criaturas, no equipados).";
+  if($("pickerFilterMenu"))$("pickerFilterMenu").classList.remove("hidden");
+  $("inventoryPicker").classList.remove("hidden");renderPicker();
+}
+function openPrintFuelPicker(){
+  if(printBusy||printOut)return;
+  if(!printTargetId)return toast("Elige primero el objeto a duplicar.",true);
+  pickerMode="printFuel";pickerSlot=null;pickerFilter="Todos";pickerPage=1;
+  if($("pickerSearch"))$("pickerSearch").value="";
+  if($("pickerTitle"))$("pickerTitle").textContent="🖨 IMPRESORA · APORTE";
+  if($("pickerDescription"))$("pickerDescription").textContent="Añade objetos para cubrir el valor del original. No criaturas.";
+  if($("pickerFilterMenu"))$("pickerFilterMenu").classList.remove("hidden");
+  $("inventoryPicker").classList.remove("hidden");renderPicker();
+}
+function startPrint(){
+  if(printBusy||printOut)return;
+  const t=state.inventory.find(i=>i.id===printTargetId);
+  if(!t||!isPrintEligible(t))return toast("Objetivo no válido.",true);
+  if(!printFuel.length)return toast("Añade aporte a la caja.",true);
+  const pct=printSuccessChance();
+  // Consume fuel items from inventory
+  const fuelCopy=printFuel.map(x=>({...x}));
+  for(const f of fuelCopy){
+    const inv=state.inventory.find(i=>i.id===f.id);
+    if(!inv||inv.qty<f.qty)return toast("Faltan objetos de aporte.",true);
+  }
+  for(const f of fuelCopy){
+    if(!takeById(f.id,f.qty))return toast("Error al consumir aporte.",true);
+  }
+  printFuel=[];
+  printBusy=true;
+  if($("printBarFill"))$("printBarFill").style.width="0%";
+  if($("printStatus"))$("printStatus").textContent="Imprimiendo…";
+  if($("printArrow"))$("printArrow").textContent="⟶";
+  renderPrintMachine();sound(280,.08,"sine");
+  const t0=Date.now(),dur=5000;
+  const tick=()=>{
+    if(!printBusy)return;
+    const p=Math.min(1,(Date.now()-t0)/dur);
+    if($("printBarFill"))$("printBarFill").style.width=(p*100)+"%";
+    if(p<1){requestAnimationFrame(tick);return}
+    const ok=Math.random()*100<pct;
+    printBusy=false;
+    if(ok){
+      // Duplicate with same stats
+      const copy={
+        name:t.name,qty:1,
+        r:t.r,val:t.val,cat:t.cat||info(t.name).cat,
+        icon:t.icon,desc:t.desc,
+        trait:t.trait,affix:t.affix,secondaryTrait:t.secondaryTrait,
+        origin:"impresora"
+      };
+      if(isSynthesisItem(t)){copy.affix=t.affix||"Síntesis de convergencia";}
+      // preserve synthesis markers
+      ["abilities","ability","damage","defense","gather","passive","ballistic","illegal","robotic"].forEach(k=>{if(t[k]!=null)copy[k]=t[k]});
+      printOut=copy;
+      if($("printResult"))$("printResult").innerHTML=`<span class="cyan">Impresión correcta (${pct}%).</span> Copia lista para reclamar.`;
+      sound(620,.12,"triangle");
+    }else{
+      printOut=null;
+      if($("printResult"))$("printResult").innerHTML=`<span class="red">Impresión fallida (${pct}%).</span> Se perdió el aporte. El original sigue en el inventario.`;
+      sound(180,.12,"sawtooth");
+    }
+    if($("printStatus"))$("printStatus").textContent=ok?"Completado":"Fallido";
+    if($("printBarFill"))$("printBarFill").style.width="100%";
+    renderPrintMachine();save();
+  };
+  requestAnimationFrame(tick);
+}
+function claimPrint(){
+  if(!printOut||printBusy)return;
+  addItem(printOut.name,printOut.qty||1,{...printOut,origin:"impresora"});
+  log(`Impresora: copia de <b>${escapeHtml(printOut.name)}</b>.`);
+  toast("Copia reclamada");
+  printOut=null;
+  if($("printBarFill"))$("printBarFill").style.width="0%";
+  if($("printResult"))$("printResult").textContent="";
+  renderPrintMachine();render();save();sound(560,.1,"triangle");
+}
+
+
 function nav(page){
  // Combate activo: solo se permite volver a Exploración para no quedar atrapado fuera del HUD de combate
  if(currentEnemy){
@@ -3500,7 +3663,7 @@ function nav(page){
   // page === explore → permitir y reabrir el combate
  }
  const requestedSupplies=page==="supplies";if(requestedSupplies)page="central";document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id==="page-"+page));
-if(page==="city"){closeCasino();renderCityPlaces();updateSlotBetsUI();}if(page==="skills")renderSkills();if(page==="stats")renderStats();document.querySelectorAll("[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===page));if(typeof closeMobileNavPanels==="function")closeMobileNavPanels();if(requestedSupplies){document.querySelectorAll("[data-central-tab]").forEach(b=>b.classList.toggle("active",b.dataset.centralTab==="supplies"));document.querySelectorAll("#page-central .central-section").forEach(x=>x.classList.toggle("active",x.id==="central-supplies"))}if(page==="clinic"){renderExtractTable();renderSpawnTable()}if(page==="factory"){renderDismantleTable();renderAssembleTable()}if(page==="nexus"){renderUpgradeMachine();renderExchangeModule();renderRefineMachine();renderRecycleMachine();renderScrapMachine()}if(page==="market"){try{ensureMarketDay();renderMarketBuy(false);renderMarketBuy(true);renderMarketSell(false);renderMarketSell(true)}catch(err){console.error(err)}}
+if(page==="city"){closeCasino();renderCityPlaces();updateSlotBetsUI();}if(page==="skills")renderSkills();if(page==="stats")renderStats();document.querySelectorAll("[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===page));if(typeof closeMobileNavPanels==="function")closeMobileNavPanels();if(requestedSupplies){document.querySelectorAll("[data-central-tab]").forEach(b=>b.classList.toggle("active",b.dataset.centralTab==="supplies"));document.querySelectorAll("#page-central .central-section").forEach(x=>x.classList.toggle("active",x.id==="central-supplies"))}if(page==="clinic"){renderExtractTable();renderSpawnTable()}if(page==="factory"){renderDismantleTable();renderAssembleTable()}if(page==="nexus"){renderUpgradeMachine();renderExchangeModule();renderRefineMachine();renderRecycleMachine();renderScrapMachine();renderPrintMachine()}if(page==="market"){try{ensureMarketDay();renderMarketBuy(false);renderMarketBuy(true);renderMarketSell(false);renderMarketSell(true)}catch(err){console.error(err)}}
  // Si hay combate en curso, forzar HUD de zona + panel de combate visibles en Exploración
  if(currentEnemy&&page==="explore"){
   zoneHudOpen=true;
@@ -3784,7 +3947,58 @@ function renderPicker(){
   return;
  }
 
- if(pickerMode==="scrapInput"){
+ 
+ if(pickerMode==="printTarget"||pickerMode==="printFuel"){
+  const fuelIds=new Set(printFuel.map(x=>x.id));
+  let list=state.inventory.filter(x=>{
+    if(x.qty<=0||isItemEquipped(x.id))return false;
+    if(!isPrintEligible(x))return false;
+    if(pickerMode==="printFuel"){
+      if(printTargetId&&x.id===printTargetId)return false; // no usar el mismo stack objetivo como aporte opcionalmente allowed? allow other qty
+      // can use same item type different stacks; allow if qty available beyond target
+    }
+    if(pickerFilter&&pickerFilter!=="Todos"){
+      const cat=x.cat||info(x.name).cat||"";
+      if(pickerFilter==="Síntesis"){if(!isSynthesisItem(x))return false;}
+      else if(cat!==pickerFilter)return false;
+    }
+    const q=($("pickerSearch")&&$("pickerSearch").value||"").trim().toLowerCase();
+    if(q&&!String(x.name).toLowerCase().includes(q)&&!inventoryDisplayName(x).toLowerCase().includes(q))return false;
+    return true;
+  });
+  const pageSize=pickerPageSize();
+  const pages=Math.max(1,Math.ceil(list.length/pageSize));
+  pickerPage=Math.min(Math.max(1,pickerPage),pages);
+  const shown=list.slice((pickerPage-1)*pageSize,pickerPage*pageSize);
+  $("pickerGrid").innerHTML=shown.length?shown.map(x=>{
+    const v=printItemValue(x);
+    return `<button type="button" class="picker-item" data-pick-id="${x.id}"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><span style="min-width:0"><b>${escapeHtml(inventoryDisplayName(x))}</b><small>N${x.r||1} · ${formatCredits(v,12)}${x.qty>1?" · ×"+x.qty:""}</small></span></button>`;
+  }).join(""):'<div class="empty" style="grid-column:1/-1">No hay objetos válidos.</div>';
+  if($("pickerPageInfo"))$("pickerPageInfo").textContent=`Página ${pickerPage} / ${pages}`;
+  if($("pickerPrev")){$("pickerPrev").disabled=pickerPage<=1;$("pickerPrev").onclick=()=>{pickerPage=Math.max(1,pickerPage-1);renderPicker()};}
+  if($("pickerNext")){$("pickerNext").disabled=pickerPage>=pages;$("pickerNext").onclick=()=>{pickerPage++;renderPicker()};}
+  $("pickerGrid").querySelectorAll("[data-pick-id]").forEach(b=>b.onclick=()=>{
+    const x=state.inventory.find(i=>i.id===b.dataset.pickId);
+    if(!x)return;
+    if(pickerMode==="printTarget"){
+      printTargetId=x.id;$("inventoryPicker").classList.add("hidden");renderPrintMachine();sound(500);return;
+    }
+    // fuel: if qty>1 open qty? simple add 1 or all available not target reserved
+    let addQty=1;
+    if(x.qty>1){
+      // use existing qty hud if any — else add 1
+      addQty=1;
+    }
+    const existing=printFuel.find(f=>f.id===x.id);
+    const already=existing?existing.qty:0;
+    if(already+addQty>x.qty)return toast("No hay más unidades.",true);
+    if(existing)existing.qty+=addQty;
+    else printFuel.push({id:x.id,name:x.name,qty:addQty,val:x.val,r:x.r,cat:x.cat,icon:x.icon});
+    $("inventoryPicker").classList.add("hidden");renderPrintMachine();sound(500);
+  });
+  return;
+ }
+if(pickerMode==="scrapInput"){
   let list=state.inventory.filter(x=>{
     if(x.qty<=0||isItemEquipped(x.id))return false;
     if(!isScrapEligible(x))return false;
@@ -3981,7 +4195,58 @@ if(pickerMode==="upgradeInput"){
   return;
  }
 
- if(pickerMode==="scrapInput"){
+ 
+ if(pickerMode==="printTarget"||pickerMode==="printFuel"){
+  const fuelIds=new Set(printFuel.map(x=>x.id));
+  let list=state.inventory.filter(x=>{
+    if(x.qty<=0||isItemEquipped(x.id))return false;
+    if(!isPrintEligible(x))return false;
+    if(pickerMode==="printFuel"){
+      if(printTargetId&&x.id===printTargetId)return false; // no usar el mismo stack objetivo como aporte opcionalmente allowed? allow other qty
+      // can use same item type different stacks; allow if qty available beyond target
+    }
+    if(pickerFilter&&pickerFilter!=="Todos"){
+      const cat=x.cat||info(x.name).cat||"";
+      if(pickerFilter==="Síntesis"){if(!isSynthesisItem(x))return false;}
+      else if(cat!==pickerFilter)return false;
+    }
+    const q=($("pickerSearch")&&$("pickerSearch").value||"").trim().toLowerCase();
+    if(q&&!String(x.name).toLowerCase().includes(q)&&!inventoryDisplayName(x).toLowerCase().includes(q))return false;
+    return true;
+  });
+  const pageSize=pickerPageSize();
+  const pages=Math.max(1,Math.ceil(list.length/pageSize));
+  pickerPage=Math.min(Math.max(1,pickerPage),pages);
+  const shown=list.slice((pickerPage-1)*pageSize,pickerPage*pageSize);
+  $("pickerGrid").innerHTML=shown.length?shown.map(x=>{
+    const v=printItemValue(x);
+    return `<button type="button" class="picker-item" data-pick-id="${x.id}"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><span style="min-width:0"><b>${escapeHtml(inventoryDisplayName(x))}</b><small>N${x.r||1} · ${formatCredits(v,12)}${x.qty>1?" · ×"+x.qty:""}</small></span></button>`;
+  }).join(""):'<div class="empty" style="grid-column:1/-1">No hay objetos válidos.</div>';
+  if($("pickerPageInfo"))$("pickerPageInfo").textContent=`Página ${pickerPage} / ${pages}`;
+  if($("pickerPrev")){$("pickerPrev").disabled=pickerPage<=1;$("pickerPrev").onclick=()=>{pickerPage=Math.max(1,pickerPage-1);renderPicker()};}
+  if($("pickerNext")){$("pickerNext").disabled=pickerPage>=pages;$("pickerNext").onclick=()=>{pickerPage++;renderPicker()};}
+  $("pickerGrid").querySelectorAll("[data-pick-id]").forEach(b=>b.onclick=()=>{
+    const x=state.inventory.find(i=>i.id===b.dataset.pickId);
+    if(!x)return;
+    if(pickerMode==="printTarget"){
+      printTargetId=x.id;$("inventoryPicker").classList.add("hidden");renderPrintMachine();sound(500);return;
+    }
+    // fuel: if qty>1 open qty? simple add 1 or all available not target reserved
+    let addQty=1;
+    if(x.qty>1){
+      // use existing qty hud if any — else add 1
+      addQty=1;
+    }
+    const existing=printFuel.find(f=>f.id===x.id);
+    const already=existing?existing.qty:0;
+    if(already+addQty>x.qty)return toast("No hay más unidades.",true);
+    if(existing)existing.qty+=addQty;
+    else printFuel.push({id:x.id,name:x.name,qty:addQty,val:x.val,r:x.r,cat:x.cat,icon:x.icon});
+    $("inventoryPicker").classList.add("hidden");renderPrintMachine();sound(500);
+  });
+  return;
+ }
+if(pickerMode==="scrapInput"){
   let list=state.inventory.filter(x=>{
     if(x.qty<=0||isItemEquipped(x.id))return false;
     if(!isScrapEligible(x))return false;
@@ -4602,7 +4867,7 @@ document.querySelectorAll("[data-nexus-tab]").forEach(b=>b.onclick=()=>{
   document.querySelectorAll("#page-nexus .nexus-section").forEach(x=>x.classList.toggle("active",x.id==="nexus-"+b.dataset.nexusTab));
   if(b.dataset.nexusTab==="upgrade")renderUpgradeMachine();
   if(b.dataset.nexusTab==="mod2")renderExchangeModule();
-  if(b.dataset.nexusTab==="mod3")renderRefineMachine();if(b.dataset.nexusTab==="recycle")renderRecycleMachine();if(b.dataset.nexusTab==="scrap")renderScrapMachine();
+  if(b.dataset.nexusTab==="mod3")renderRefineMachine();if(b.dataset.nexusTab==="recycle")renderRecycleMachine();if(b.dataset.nexusTab==="scrap")renderScrapMachine();if(b.dataset.nexusTab==="print")renderPrintMachine();
 });
 
 if($("upgradeInputPick"))$("upgradeInputPick").onclick=()=>{if(!upgradeSpinning)openUpgradeInputPicker()};
@@ -4657,6 +4922,13 @@ if($("scrapInputPick"))$("scrapInputPick").onclick=()=>openScrapInputPicker();
 if($("scrapInputClear"))$("scrapInputClear").onclick=()=>{if(scrapBusy)return;scrapInputId=null;renderScrapMachine()};
 if($("scrapStartBtn"))$("scrapStartBtn").onclick=startScrap;
 if($("scrapClaimBtn"))$("scrapClaimBtn").onclick=claimScrap;
+if($("printTargetPick"))$("printTargetPick").onclick=()=>openPrintTargetPicker();
+if($("printTargetClear"))$("printTargetClear").onclick=()=>{if(printBusy||printOut)return;printTargetId=null;renderPrintMachine()};
+if($("printFuelAdd"))$("printFuelAdd").onclick=()=>openPrintFuelPicker();
+if($("printFuelClear"))$("printFuelClear").onclick=()=>{if(printBusy||printOut)return;printFuel=[];renderPrintMachine()};
+if($("printStartBtn"))$("printStartBtn").onclick=startPrint;
+if($("printClaimBtn"))$("printClaimBtn").onclick=claimPrint;
+
 
 
 if($("refineInputClear"))$("refineInputClear").onclick=()=>{if(refineBusy)return;refineInputId=null;renderRefineMachine()};

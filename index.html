@@ -1267,6 +1267,15 @@ body.layout-mobile .sidebar{
   visibility:hidden !important;
 }
 
+
+.scrap-mat-row{display:inline-flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:4px}
+.scrap-mat{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border:1px solid #2a3d48;border-radius:8px;background:#0c141a;font-size:.72rem}
+.scrap-mat .item-icon,.scrap-mat .item-svg-icon{width:16px;height:16px}
+.print-chance{font-size:1.6rem;font-weight:900;letter-spacing:.04em}
+.print-chance.pct-low{color:#ff3b4e;text-shadow:0 0 12px #ff3b4e66}
+.print-chance.pct-mid{color:#ff8c1a;text-shadow:0 0 12px #ff8c1a66}
+.print-chance.pct-high{color:#2ee56b;text-shadow:0 0 12px #2ee56b66}
+.print-box-list{min-height:72px;max-height:160px;overflow:auto}
 </style>
 </head>
 <body>
@@ -1755,14 +1764,14 @@ body.layout-mobile .sidebar{
 </section>
 
 <section class="page" id="page-nexus">
- <div class="page-head"><div><div class="eyebrow">SISTEMA 07 / CONVERSIÓN</div><h2>Centro</h2><p>Centro de máquinas. Mejora, Intercambio, Refinadora, Recicladora, Desguazadora y módulos en construcción.</p></div><span class="tag">8 MÓDULOS</span></div>
+ <div class="page-head"><div><div class="eyebrow">SISTEMA 07 / CONVERSIÓN</div><h2>Centro</h2><p>Centro de máquinas. Mejora, Intercambio, Refinadora, Recicladora, Desguazadora, Impresora y módulos en construcción.</p></div><span class="tag">8 MÓDULOS</span></div>
  <div class="inventory-controls" style="margin-bottom:14px;flex-wrap:wrap" id="nexusTabs">
   <button class="active" data-nexus-tab="upgrade">◎ Mejora</button>
   <button data-nexus-tab="mod2">▦ Intercambio</button>
   <button data-nexus-tab="mod3">⚗ Refinadora</button>
   <button data-nexus-tab="recycle">♻ Recicladora</button>
   <button data-nexus-tab="scrap">⛓ Desguazadora</button>
-  <button data-nexus-tab="mod6" disabled title="En construcción">Módulo F</button>
+  <button data-nexus-tab="print">🖨 Impresora</button>
   <button data-nexus-tab="mod7" disabled title="En construcción">Módulo G</button>
   <button data-nexus-tab="mod8" disabled title="En construcción">Módulo H</button>
  </div>
@@ -1934,7 +1943,50 @@ body.layout-mobile .sidebar{
   </div>
  </div>
 
- <div class="nexus-section" id="nexus-mod6"><div class="panel"><div class="empty">Módulo F — En construcción.</div></div></div>
+ 
+ <div class="nexus-section" id="nexus-print">
+  <div class="panel">
+   <h3>🖨 MÁQUINA IMPRESORA</h3>
+   <p class="small-note">Duplica un objeto del inventario (no criaturas). Llena la <b>caja de aporte</b> con objetos base o de síntesis hasta acercarte al valor del original. A mayor cobertura, mayor % de éxito. Proceso: <b>5 s</b>. Si fallas, pierdes el aporte (el original se conserva).</p>
+   <div class="refine-layout">
+    <div class="machine-col">
+     <div class="eyebrow">OBJETO A DUPLICAR</div>
+     <div class="machine-box">
+      <button type="button" class="equip-slot upgrade-slot" id="printTargetPick">＋ Elegir objeto</button>
+      <div id="printTargetInfo" class="small-note" style="margin-top:8px">Ningún objeto.</div>
+      <button type="button" class="tiny hidden" id="printTargetClear" style="margin-top:8px;width:100%">Retirar</button>
+     </div>
+     <div class="eyebrow" style="margin-top:12px">CAJA DE APORTE</div>
+     <div class="machine-box dashed">
+      <div class="statline"><span>Valor aporte</span><b class="gold" id="printFuelValue">0</b></div>
+      <div class="prize-box-list print-box-list" id="printFuelList"></div>
+      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+       <button type="button" class="tiny" id="printFuelAdd" style="flex:1">＋ Añadir objetos</button>
+       <button type="button" class="tiny hidden" id="printFuelClear" style="flex:1">Retirar aporte</button>
+      </div>
+     </div>
+    </div>
+    <div class="refine-arrow-col">
+     <div class="eyebrow">ÉXITO</div>
+     <div class="print-chance pct-low" id="printChance">0%</div>
+     <div style="font-size:1.4rem" id="printArrow">→</div>
+     <div class="refine-bar"><span id="printBarFill"></span></div>
+     <div class="small-note" id="printStatus">En espera</div>
+     <button class="primary" id="printStartBtn" style="width:100%;margin-top:6px" disabled>🖨 Imprimir · 5 s</button>
+    </div>
+    <div class="machine-col">
+     <div class="eyebrow">SALIDA · COPIA</div>
+     <div class="machine-box dashed">
+      <div class="prize-box-list print-box-list" id="printOutList"></div>
+      <button class="primary" id="printClaimBtn" style="width:100%;margin-top:10px" disabled>⇢ Reclamar</button>
+      <p class="small-note" id="printNote" style="margin-top:8px">Vacía.</p>
+     </div>
+    </div>
+   </div>
+   <p class="small-note" id="printResult" style="margin-top:12px"></p>
+  </div>
+ </div>
+
  <div class="nexus-section" id="nexus-mod7"><div class="panel"><div class="empty">Módulo G — En construcción.</div></div></div>
  <div class="nexus-section" id="nexus-mod8"><div class="panel"><div class="empty">Módulo H — En construcción.</div></div></div>
 
