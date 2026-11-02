@@ -3558,6 +3558,7 @@ function isPrintEligible(item){
   if(isItemEquipped(item.id))return false;
   const cat=item.cat||info(item.name).cat||"";
   if(cat==="Criatura")return false;
+  if(cat==="Otro"||(typeof isOtroOnlyItem==="function"&&isOtroOnlyItem(item)))return false;
   return true;
 }
 function printItemValue(item){
@@ -3617,7 +3618,7 @@ function renderPrintMachine(){
   const list=$("printFuelList");
   if(list){
     // Forzar scroll en móvil (iOS/Android ignoran a veces solo CSS)
-    list.style.cssText="display:block;height:120px;max-height:120px;min-height:120px;overflow-y:scroll;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;box-sizing:border-box;padding:6px;margin:0;border:1px solid #243440;border-radius:10px;background:#080c11;";
+    list.style.cssText="display:block;height:120px;max-height:120px;min-height:120px;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;box-sizing:border-box;padding:6px;margin:0;border:1px solid #243440;border-radius:10px;background:#080c11;scrollbar-width:thin;scrollbar-color:#53f2d1 #0d151c;";
     if(!printFuel.length)list.innerHTML='<div class="print-fuel-empty">Vacía.</div>';
     else list.innerHTML=printFuel.map((x,idx)=>{
       const v=printItemValue(x)*(x.qty||1);
