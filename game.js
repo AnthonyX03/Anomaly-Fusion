@@ -3584,7 +3584,9 @@ function renderPrintMachine(){
   // fuel list
   const list=$("printFuelList");
   if(list){
-    if(!printFuel.length)list.innerHTML='<div class="empty">Vacía.</div>';
+    // Forzar scroll en móvil (iOS/Android ignoran a veces solo CSS)
+    list.style.cssText="display:block;height:120px;max-height:120px;min-height:120px;overflow-y:scroll;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;box-sizing:border-box;padding:6px;margin:0;border:1px solid #243440;border-radius:10px;background:#080c11;";
+    if(!printFuel.length)list.innerHTML='<div class="print-fuel-empty">Vacía.</div>';
     else list.innerHTML=printFuel.map((x,idx)=>{
       const v=printItemValue(x)*(x.qty||1);
       const r=Math.max(1,Math.min(5,Number(x.r)||1));
