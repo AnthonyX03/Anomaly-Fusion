@@ -1178,7 +1178,7 @@ function hudIconMarkup(kind,size=22){
  const stroke='#53f2d1', mute='#7a9aa8', gold='#f5c542', red='#ff6b7a', blue='#6ec8ff', purple='#c18bff';
  const icons={
   // skills
-  printer:`<svg ${common}><rect x="14" y="22" width="36" height="24" rx="3" fill="none" stroke="${stroke}" stroke-width="3"/><path d="M20 22v-8h24v8M22 38h20M26 44h12" fill="none" stroke="${mute}" stroke-width="2.5" stroke-linecap="round"/><circle cx="44" cy="30" r="2.5" fill="${gold}"/></svg>`,
+  printer:`<svg ${common}><rect x="14" y="22" width="36" height="24" rx="3" fill="none" stroke="#ffffff" stroke-width="3"/><path d="M20 22v-8h24v8M22 38h20M26 44h12" fill="none" stroke="#d0d8e0" stroke-width="2.5" stroke-linecap="round"/><circle cx="44" cy="30" r="2.5" fill="#ffffff"/></svg>`,
   explore_speed:`<svg ${common}><circle cx="32" cy="32" r="22" fill="none" stroke="${stroke}" stroke-width="3"/><path d="M32 18v16l10 6" fill="none" stroke="${gold}" stroke-width="3.5" stroke-linecap="round"/></svg>`,
   base_damage:`<svg ${common}><path d="M38 8l10 10-22 30-12 4 4-12z" fill="none" stroke="${red}" stroke-width="3" stroke-linejoin="round"/><path d="M14 50l8-8" stroke="${mute}" stroke-width="3" stroke-linecap="round"/></svg>`,
   base_defense:`<svg ${common}><path d="M32 8l20 8v14c0 14-8 22-20 26C20 52 12 44 12 30V16z" fill="none" stroke="${blue}" stroke-width="3"/><path d="M24 32l6 6 12-14" fill="none" stroke="${stroke}" stroke-width="3" stroke-linecap="round"/></svg>`,
@@ -3589,7 +3589,14 @@ function renderPrintMachine(){
     else list.innerHTML=printFuel.map((x,idx)=>{
       const v=printItemValue(x)*(x.qty||1);
       const r=Math.max(1,Math.min(5,Number(x.r)||1));
-      return `<div class="print-fuel-row"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><div class="print-fuel-main"><b>${escapeHtml(inventoryDisplayName(x))}</b><small><span class="rarity r${r}">N${r}</span> · ×${x.qty||1} · ${formatCredits(v,12)}</small></div><button type="button" class="tiny print-fuel-rm" data-print-fuel-rm="${idx}" aria-label="Quitar">✕</button></div>`;
+      return `<div class="print-fuel-row" style="display:flex;flex-direction:row;align-items:center;gap:10px;width:100%;box-sizing:border-box;padding:8px 10px;margin:0 0 6px;border:1px solid #2a3d48;border-radius:10px;background:#0c141a">
+        <span class="item-icon" style="flex:0 0 28px;width:28px;height:28px;display:grid;place-items:center">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span>
+        <div style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:2px">
+          <b style="font-size:.85rem;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(inventoryDisplayName(x))}</b>
+          <small style="opacity:.95"><span class="rarity r${r}">N${r}</span> · ×${x.qty||1} · ${formatCredits(v,12)}</small>
+        </div>
+        <button type="button" class="tiny print-fuel-rm" data-print-fuel-rm="${idx}" aria-label="Quitar" style="flex:0 0 36px;min-width:36px;height:36px">✕</button>
+      </div>`;
     }).join("");
     list.querySelectorAll("[data-print-fuel-rm]").forEach(b=>b.onclick=()=>{
       if(printBusy||printOut)return;
