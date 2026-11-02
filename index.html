@@ -1605,6 +1605,45 @@ button[data-nexus-tab="print"],
   transform:translateY(0.04em);
 }
 
+
+/* Impresora: icono en la misma línea que el texto (como ♻ Recicladora) */
+#printTabBtn,
+button[data-nexus-tab="print"],
+#printStartBtn,
+#printPanelTitle{
+  white-space:nowrap !important;
+}
+#printTabBtn,
+button[data-nexus-tab="print"]{
+  display:inline-flex !important;
+  flex-direction:row !important;
+  flex-wrap:nowrap !important;
+  align-items:center !important;
+  gap:0 !important;
+}
+#printPanelTitle{
+  display:block !important; /* flujo inline del SVG + texto */
+}
+#printPanelTitle .printer-glyph,
+#printTabBtn .printer-glyph,
+#printStartBtn .printer-glyph,
+.printer-glyph{
+  display:inline !important;
+  vertical-align:-0.2em !important;
+  width:1.05em !important;
+  height:1.05em !important;
+  margin:0 0.35em 0 0 !important;
+  color:currentColor !important;
+}
+#printStartBtn{
+  display:inline-flex !important;
+  flex-direction:row !important;
+  flex-wrap:nowrap !important;
+  align-items:center !important;
+  justify-content:center !important;
+  white-space:nowrap !important;
+}
+
 </style>
 </head>
 <body>

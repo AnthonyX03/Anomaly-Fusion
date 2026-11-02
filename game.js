@@ -3580,18 +3580,22 @@ function printChanceClass(pct){
   if(pct<=49)return "pct-mid";
   return "pct-high";
 }
+
+function printerGlyph(sizeEm){
+  // SVG inline como glifo tipográfico (misma línea que el texto)
+  const s = sizeEm || 1;
+  return `<svg class="printer-glyph" width="${s}em" height="${s}em" viewBox="0 0 64 64" aria-hidden="true" focusable="false" style="width:${s}em;height:${s}em;display:inline;vertical-align:-0.2em;margin-right:0.35em;color:currentColor"><rect x="12" y="26" width="40" height="22" rx="3" fill="none" stroke="currentColor" stroke-width="3"/><path d="M18 26v-6h28v6" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/><path d="M20 40h24M24 46h16" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/><circle cx="44" cy="33" r="2.2" fill="currentColor"/></svg>`;
+}
+
 function renderPrintMachine(){
   try{
-    const ico18=typeof hudIconMarkup==="function"?hudIconMarkup("printer",18):"";
-    const ico16=typeof hudIconMarkup==="function"?hudIconMarkup("printer",16):"";
-    // Pestaña: mismo ritmo visual que ◎ Mejora (icono + espacio + texto)
+    const g1=printerGlyph(1.05);
     const tab=$("printTabBtn");
-    if(tab) tab.innerHTML=`<span class="nexus-leading-ico" aria-hidden="true">${ico16}</span><span>Impresora</span>`;
+    if(tab) tab.innerHTML=g1+"Impresora";
     const ht=$("printPanelTitle");
-    if(ht) ht.innerHTML=`<span class="nexus-leading-ico" aria-hidden="true">${ico18}</span><span>MÁQUINA IMPRESORA</span>`;
-    // Botón principal: color = color del texto del botón (currentColor)
+    if(ht) ht.innerHTML=printerGlyph(1.1)+"MÁQUINA IMPRESORA";
     if($("printStartBtn")&&!printBusy){
-      $("printStartBtn").innerHTML=`<span class="nexus-leading-ico" aria-hidden="true">${ico16}</span><span>Imprimir · 5 s</span>`;
+      $("printStartBtn").innerHTML=printerGlyph(1.05)+"Imprimir · 5 s";
     }
   }catch(e){}
 
@@ -3671,7 +3675,7 @@ function openPrintTargetPicker(){
   if(printBusy||printOut)return toast("Reclama o espera el proceso.",true);
   pickerMode="printTarget";pickerSlot=null;pickerFilter="Todos";pickerPage=1;
   if($("pickerSearch"))$("pickerSearch").value="";
-  if($("pickerTitle"))$("pickerTitle").innerHTML=`<span class="nexus-leading-ico">${typeof hudIconMarkup==="function"?hudIconMarkup("printer",16):""}</span> IMPRESORA · OBJETIVO`;
+  if($("pickerTitle"))$("pickerTitle").innerHTML=printerGlyph(1)+"IMPRESORA · OBJETIVO";
   if($("pickerDescription"))$("pickerDescription").textContent="Elige el objeto a duplicar (no criaturas, no equipados).";
   if($("pickerFilterMenu"))$("pickerFilterMenu").classList.remove("hidden");
   $("inventoryPicker").classList.remove("hidden");renderPicker();
@@ -3681,7 +3685,7 @@ function openPrintFuelPicker(){
   if(!printTargetId)return toast("Elige primero el objeto a duplicar.",true);
   pickerMode="printFuel";pickerSlot=null;pickerFilter="Todos";pickerPage=1;
   if($("pickerSearch"))$("pickerSearch").value="";
-  if($("pickerTitle"))$("pickerTitle").innerHTML=`<span class="nexus-leading-ico">${typeof hudIconMarkup==="function"?hudIconMarkup("printer",16):""}</span> IMPRESORA · APORTE`;
+  if($("pickerTitle"))$("pickerTitle").innerHTML=printerGlyph(1)+"IMPRESORA · APORTE";
   if($("pickerDescription"))$("pickerDescription").textContent="Añade objetos para cubrir el valor del original. No criaturas.";
   if($("pickerFilterMenu"))$("pickerFilterMenu").classList.remove("hidden");
   $("inventoryPicker").classList.remove("hidden");renderPicker();
