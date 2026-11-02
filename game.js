@@ -1178,7 +1178,7 @@ function hudIconMarkup(kind,size=22){
  const stroke='#53f2d1', mute='#7a9aa8', gold='#f5c542', red='#ff6b7a', blue='#6ec8ff', purple='#c18bff';
  const icons={
   // skills
-  printer:`<svg ${common}><rect x="14" y="22" width="36" height="24" rx="3" fill="none" stroke="#ffffff" stroke-width="3"/><path d="M20 22v-8h24v8M22 38h20M26 44h12" fill="none" stroke="#d0d8e0" stroke-width="2.5" stroke-linecap="round"/><circle cx="44" cy="30" r="2.5" fill="#ffffff"/></svg>`,
+  printer:`<svg ${common} style="color:currentColor"><rect x="14" y="22" width="36" height="24" rx="3" fill="none" stroke="currentColor" stroke-width="3"/><path d="M20 22v-8h24v8M22 38h20M26 44h12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><circle cx="44" cy="30" r="2.5" fill="currentColor"/></svg>`,
   explore_speed:`<svg ${common}><circle cx="32" cy="32" r="22" fill="none" stroke="${stroke}" stroke-width="3"/><path d="M32 18v16l10 6" fill="none" stroke="${gold}" stroke-width="3.5" stroke-linecap="round"/></svg>`,
   base_damage:`<svg ${common}><path d="M38 8l10 10-22 30-12 4 4-12z" fill="none" stroke="${red}" stroke-width="3" stroke-linejoin="round"/><path d="M14 50l8-8" stroke="${mute}" stroke-width="3" stroke-linecap="round"/></svg>`,
   base_defense:`<svg ${common}><path d="M32 8l20 8v14c0 14-8 22-20 26C20 52 12 44 12 30V16z" fill="none" stroke="${blue}" stroke-width="3"/><path d="M24 32l6 6 12-14" fill="none" stroke="${stroke}" stroke-width="3" stroke-linecap="round"/></svg>`,
@@ -3559,11 +3559,23 @@ function printChanceClass(pct){
 }
 function renderPrintMachine(){
   try{
-    const ico=typeof hudIconMarkup==="function"?hudIconMarkup("printer",20):"";
-    if($("printTitleIco"))$("printTitleIco").innerHTML=ico||"";
-    document.querySelectorAll('[data-hud-ico="printer"]').forEach(el=>{el.innerHTML=ico||""});
+    const ico18=typeof hudIconMarkup==="function"?hudIconMarkup("printer",18):"";
+    const ico16=typeof hudIconMarkup==="function"?hudIconMarkup("printer",16):"";
+    // Pestaña: mismo ritmo visual que ◎ Mejora (icono + espacio + texto)
+    const tab=$("printTabBtn");
+    if(tab&&!tab.dataset.icoReady){
+      tab.innerHTML=`<span class="nexus-leading-ico">${ico16}</span> Impresora`;
+      tab.dataset.icoReady="1";
+    }
+    // Título panel
+    const ht=$("printPanelTitle");
+    if(ht&&!ht.dataset.icoReady){
+      ht.innerHTML=`<span class="nexus-leading-ico">${ico18}</span> MÁQUINA IMPRESORA`;
+      ht.dataset.icoReady="1";
+    }
+    // Botón principal: color = color del texto del botón (currentColor)
     if($("printStartBtn")&&!printBusy){
-      $("printStartBtn").innerHTML=`<span style="display:inline-flex;align-items:center;justify-content:center;line-height:0">${ico||""}</span><span>Imprimir · 5 s</span>`;
+      $("printStartBtn").innerHTML=`<span class="nexus-leading-ico">${ico16}</span> Imprimir · 5 s`;
     }
   }catch(e){}
 
@@ -3643,7 +3655,7 @@ function openPrintTargetPicker(){
   if(printBusy||printOut)return toast("Reclama o espera el proceso.",true);
   pickerMode="printTarget";pickerSlot=null;pickerFilter="Todos";pickerPage=1;
   if($("pickerSearch"))$("pickerSearch").value="";
-  if($("pickerTitle"))$("pickerTitle").innerHTML=(typeof hudIconMarkup==="function"?hudIconMarkup("printer",18)+" ":"")+"IMPRESORA · OBJETIVO";
+  if($("pickerTitle"))$("pickerTitle").innerHTML=`<span class="nexus-leading-ico">${typeof hudIconMarkup==="function"?hudIconMarkup("printer",16):""}</span> IMPRESORA · OBJETIVO`;
   if($("pickerDescription"))$("pickerDescription").textContent="Elige el objeto a duplicar (no criaturas, no equipados).";
   if($("pickerFilterMenu"))$("pickerFilterMenu").classList.remove("hidden");
   $("inventoryPicker").classList.remove("hidden");renderPicker();
@@ -3653,7 +3665,7 @@ function openPrintFuelPicker(){
   if(!printTargetId)return toast("Elige primero el objeto a duplicar.",true);
   pickerMode="printFuel";pickerSlot=null;pickerFilter="Todos";pickerPage=1;
   if($("pickerSearch"))$("pickerSearch").value="";
-  if($("pickerTitle"))$("pickerTitle").innerHTML=(typeof hudIconMarkup==="function"?hudIconMarkup("printer",18)+" ":"")+"IMPRESORA · APORTE";
+  if($("pickerTitle"))$("pickerTitle").innerHTML=`<span class="nexus-leading-ico">${typeof hudIconMarkup==="function"?hudIconMarkup("printer",16):""}</span> IMPRESORA · APORTE`;
   if($("pickerDescription"))$("pickerDescription").textContent="Añade objetos para cubrir el valor del original. No criaturas.";
   if($("pickerFilterMenu"))$("pickerFilterMenu").classList.remove("hidden");
   $("inventoryPicker").classList.remove("hidden");renderPicker();

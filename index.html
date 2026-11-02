@@ -1516,6 +1516,43 @@ button[data-nexus-tab="print"] .tab-ico .hud-icon{width:16px!important;height:16
   }
 }
 
+
+.nexus-leading-ico{
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  width:1em;
+  height:1em;
+  margin-right:.35em;
+  vertical-align:-0.12em;
+  line-height:0 !important;
+  color:inherit !important;
+}
+.nexus-leading-ico .hud-icon{
+  width:1em !important;
+  height:1em !important;
+  display:block !important;
+  color:inherit !important;
+}
+button[data-nexus-tab="print"],
+#printTabBtn,
+#printStartBtn,
+#printPanelTitle{
+  color:inherit;
+}
+#printStartBtn .nexus-leading-ico,
+#printStartBtn .hud-icon{
+  color:inherit !important;
+}
+/* El primary usa texto oscuro: el icono hereda ese color */
+button.primary#printStartBtn,
+#printStartBtn.primary{
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:0 !important;
+}
+
 </style>
 </head>
 <body>
@@ -2011,7 +2048,7 @@ button[data-nexus-tab="print"] .tab-ico .hud-icon{width:16px!important;height:16
   <button data-nexus-tab="mod3">⚗ Refinadora</button>
   <button data-nexus-tab="recycle">♻ Recicladora</button>
   <button data-nexus-tab="scrap">⛓ Desguazadora</button>
-  <button data-nexus-tab="print"><span class="tab-ico" data-hud-ico="printer"></span> Impresora</button>
+  <button data-nexus-tab="print" class="nexus-tab-ico" id="printTabBtn">Impresora</button>
   <button data-nexus-tab="mod7" disabled title="En construcción">Módulo G</button>
   <button data-nexus-tab="mod8" disabled title="En construcción">Módulo H</button>
  </div>
@@ -2186,7 +2223,7 @@ button[data-nexus-tab="print"] .tab-ico .hud-icon{width:16px!important;height:16
  
  <div class="nexus-section" id="nexus-print">
   <div class="panel">
-   <h3 class="print-panel-title"><span class="panel-ico" id="printTitleIco"></span><span>MÁQUINA IMPRESORA</span></h3>
+   <h3 id="printPanelTitle">MÁQUINA IMPRESORA</h3>
    <p class="small-note">Duplica un objeto del inventario (no criaturas). Llena la <b>caja de aporte</b> con objetos base o de síntesis hasta acercarte al valor del original. A mayor cobertura, mayor % de éxito. Proceso: <b>5 s</b>. Si fallas, pierdes el aporte (el original se conserva).</p>
    <div class="refine-layout">
     <div class="machine-col">
