@@ -1178,7 +1178,7 @@ function hudIconMarkup(kind,size=22){
  const stroke='#53f2d1', mute='#7a9aa8', gold='#f5c542', red='#ff6b7a', blue='#6ec8ff', purple='#c18bff';
  const icons={
   // skills
-  printer:`<svg ${common} style="color:currentColor"><rect x="14" y="22" width="36" height="24" rx="3" fill="none" stroke="currentColor" stroke-width="3"/><path d="M20 22v-8h24v8M22 38h20M26 44h12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><circle cx="44" cy="30" r="2.5" fill="currentColor"/></svg>`,
+  printer:`<svg ${common} style="color:currentColor;display:block"><rect x="12" y="26" width="40" height="22" rx="3" fill="none" stroke="currentColor" stroke-width="3"/><path d="M18 26v-6h28v6" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/><path d="M20 40h24M24 46h16" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/><circle cx="44" cy="33" r="2.2" fill="currentColor"/></svg>`,
   explore_speed:`<svg ${common}><circle cx="32" cy="32" r="22" fill="none" stroke="${stroke}" stroke-width="3"/><path d="M32 18v16l10 6" fill="none" stroke="${gold}" stroke-width="3.5" stroke-linecap="round"/></svg>`,
   base_damage:`<svg ${common}><path d="M38 8l10 10-22 30-12 4 4-12z" fill="none" stroke="${red}" stroke-width="3" stroke-linejoin="round"/><path d="M14 50l8-8" stroke="${mute}" stroke-width="3" stroke-linecap="round"/></svg>`,
   base_defense:`<svg ${common}><path d="M32 8l20 8v14c0 14-8 22-20 26C20 52 12 44 12 30V16z" fill="none" stroke="${blue}" stroke-width="3"/><path d="M24 32l6 6 12-14" fill="none" stroke="${stroke}" stroke-width="3" stroke-linecap="round"/></svg>`,
@@ -3586,19 +3586,12 @@ function renderPrintMachine(){
     const ico16=typeof hudIconMarkup==="function"?hudIconMarkup("printer",16):"";
     // Pestaña: mismo ritmo visual que ◎ Mejora (icono + espacio + texto)
     const tab=$("printTabBtn");
-    if(tab&&!tab.dataset.icoReady){
-      tab.innerHTML=`<span class="nexus-leading-ico">${ico16}</span> Impresora`;
-      tab.dataset.icoReady="1";
-    }
-    // Título panel
+    if(tab) tab.innerHTML=`<span class="nexus-leading-ico" aria-hidden="true">${ico16}</span><span>Impresora</span>`;
     const ht=$("printPanelTitle");
-    if(ht&&!ht.dataset.icoReady){
-      ht.innerHTML=`<span class="nexus-leading-ico">${ico18}</span> MÁQUINA IMPRESORA`;
-      ht.dataset.icoReady="1";
-    }
+    if(ht) ht.innerHTML=`<span class="nexus-leading-ico" aria-hidden="true">${ico18}</span><span>MÁQUINA IMPRESORA</span>`;
     // Botón principal: color = color del texto del botón (currentColor)
     if($("printStartBtn")&&!printBusy){
-      $("printStartBtn").innerHTML=`<span class="nexus-leading-ico">${ico16}</span> Imprimir · 5 s`;
+      $("printStartBtn").innerHTML=`<span class="nexus-leading-ico" aria-hidden="true">${ico16}</span><span>Imprimir · 5 s</span>`;
     }
   }catch(e){}
 

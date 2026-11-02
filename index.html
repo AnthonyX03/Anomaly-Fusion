@@ -1553,6 +1553,58 @@ button.primary#printStartBtn,
   gap:0 !important;
 }
 
+
+/* Alineación icono impresora = centrado con la letra (como ◎ Mejora) */
+#printTabBtn,
+button[data-nexus-tab="print"],
+#printStartBtn{
+  display:inline-flex !important;
+  flex-direction:row !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:0.45em !important;
+  line-height:1.2 !important;
+}
+#printPanelTitle{
+  display:flex !important;
+  flex-direction:row !important;
+  align-items:center !important;
+  gap:0.5em !important;
+  line-height:1.2 !important;
+}
+#printPanelTitle > span:last-child,
+#printTabBtn > span:last-child,
+#printStartBtn > span:last-child{
+  line-height:1.2 !important;
+}
+.nexus-leading-ico{
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  flex:0 0 auto !important;
+  width:1.05em !important;
+  height:1.05em !important;
+  margin:0 !important;
+  padding:0 !important;
+  line-height:0 !important;
+  vertical-align:middle !important;
+  position:relative !important;
+  top:0 !important;
+  color:inherit !important;
+  transform:translateY(0.02em);
+}
+.nexus-leading-ico svg.hud-icon,
+.nexus-leading-ico .hud-icon{
+  width:100% !important;
+  height:100% !important;
+  display:block !important;
+  margin:0 !important;
+  color:inherit !important;
+}
+.modal-head .nexus-leading-ico{
+  transform:translateY(0.04em);
+}
+
 </style>
 </head>
 <body>
