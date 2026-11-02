@@ -1741,7 +1741,30 @@ function addItem(name,qty=1,opts={}){
 }
 function takeById(id,n=1){const x=state.inventory.find(i=>i.id===id);if(!x||x.qty<n)return false;x.qty-=n;if(x.qty<=0){state.inventory=state.inventory.filter(i=>i.id!==id);for(const k of Object.keys(state.equipped||{}))if(state.equipped[k]===id)state.equipped[k]=null;}return true}
 function count(name){return state.inventory.filter(x=>x.name===name).reduce((a,x)=>a+x.qty,0)}
-function take(name,n=1){let left=n;for(let i=state.inventory.length-1;i>=0&&left>0;i--){let x=state.inventory[i];if(x.name===name){let amt=Math.min(x.qty,left);x.qty-=amt;left-=amt;if(x.qty<=0)state.inventory.splice(i,1)}}return left===0}
+function take(name,n=1){
+ const requested=Math.max(0,Math.floor(Number(n)||0));
+ if(requested===0)return true;
+ // Operación atómica: nunca consume parcialmente si no hay unidades suficientes.
+ const available=state.inventory.reduce((sum,item)=>sum+(item.name===name?Math.max(0,Number(item.qty)||0):0),0);
+ if(available<requested)return false;
+ let left=requested;
+ for(let i=state.inventory.length-1;i>=0&&left>0;i--){
+  const item=state.inventory[i];
+  if(item.name!==name)continue;
+  const amount=Math.min(Math.max(0,Number(item.qty)||0),left);
+  item.qty-=amount;
+  left-=amount;
+  if(item.qty<=0){
+   const removedId=item.id;
+   state.inventory.splice(i,1);
+   // Evita referencias a equipo que ya no existe en el inventario.
+   for(const slot of Object.keys(state.equipped||{})){
+    if(state.equipped[slot]===removedId)state.equipped[slot]=null;
+   }
+  }
+ }
+ return left===0;
+}
 function equippedItem(slot){const id=state.equipped[slot];return state.inventory.find(x=>x.id===id)||null}
 function stat(key){
  const gear=Object.values(state.equipped).map(id=>state.inventory.find(x=>x.id===id)).filter(Boolean);
