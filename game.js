@@ -3560,11 +3560,10 @@ function printChanceClass(pct){
 function renderPrintMachine(){
   try{
     const ico=typeof hudIconMarkup==="function"?hudIconMarkup("printer",20):"";
-    if($("printTitleIco")&&!$("printTitleIco").dataset.ready){$("printTitleIco").innerHTML=ico;$("printTitleIco").dataset.ready="1"}
-    document.querySelectorAll('[data-hud-ico="printer"]').forEach(el=>{if(!el.dataset.ready){el.innerHTML=ico;el.dataset.ready="1"}});
-    if($("printStartBtn")&&!$("printStartBtn").dataset.ico){
-      $("printStartBtn").innerHTML=(ico?ico+" ":"")+"Imprimir · 5 s";
-      $("printStartBtn").dataset.ico="1";
+    if($("printTitleIco"))$("printTitleIco").innerHTML=ico||"";
+    document.querySelectorAll('[data-hud-ico="printer"]').forEach(el=>{el.innerHTML=ico||""});
+    if($("printStartBtn")&&!printBusy){
+      $("printStartBtn").innerHTML=`<span style="display:inline-flex;align-items:center;justify-content:center;line-height:0">${ico||""}</span><span>Imprimir · 5 s</span>`;
     }
   }catch(e){}
 
@@ -3598,15 +3597,25 @@ function renderPrintMachine(){
         <button type="button" class="tiny print-fuel-rm" data-print-fuel-rm="${idx}" aria-label="Quitar" style="flex:0 0 36px;min-width:36px;height:36px">✕</button>
       </div>`;
     }).join("");
-    list.querySelectorAll("[data-print-fuel-rm]").forEach(b=>b.onclick=()=>{
-      if(printBusy||printOut)return;
-      printFuel.splice(Number(b.dataset.printFuelRm),1);
-      renderPrintMachine();
+    list.querySelectorAll("[data-print-fuel-rm]").forEach(b=>{
+      b.disabled=!!(printBusy||printOut);
+      b.onclick=(ev)=>{
+        ev.preventDefault();ev.stopPropagation();
+        if(printBusy||printOut)return toast("No puedes retirar durante la impresión o con copia pendiente.",true);
+        const i=Number(b.dataset.printFuelRm);
+        if(i>=0&&i<printFuel.length)printFuel.splice(i,1);
+        renderPrintMachine();sound(400,.05,"sine");
+      };
     });
   }
   const fuelVal=printFuelTotal();
   if($("printFuelValue"))$("printFuelValue").innerHTML=formatCredits(fuelVal,14);
-  if($("printFuelClear"))$("printFuelClear").classList.toggle("hidden",!printFuel.length||printBusy||!!printOut);
+  if($("printFuelClear")){
+    $("printFuelClear").classList.toggle("hidden",!printFuel.length);
+    $("printFuelClear").disabled=!!(printBusy||printOut||!printFuel.length);
+  }
+  if($("printFuelAdd"))$("printFuelAdd").disabled=!!(printBusy||printOut);
+  if($("printTargetClear"))$("printTargetClear").disabled=!!(printBusy||printOut);
   if($("printFuelAdd"))$("printFuelAdd").disabled=printBusy||!!printOut;
   const pct=printSuccessChance();
   const ch=$("printChance");
