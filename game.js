@@ -1178,6 +1178,7 @@ function hudIconMarkup(kind,size=22){
  const stroke='#53f2d1', mute='#7a9aa8', gold='#f5c542', red='#ff6b7a', blue='#6ec8ff', purple='#c18bff';
  const icons={
   // skills
+  printer:`<svg ${common}><rect x="14" y="22" width="36" height="24" rx="3" fill="none" stroke="${stroke}" stroke-width="3"/><path d="M20 22v-8h24v8M22 38h20M26 44h12" fill="none" stroke="${mute}" stroke-width="2.5" stroke-linecap="round"/><circle cx="44" cy="30" r="2.5" fill="${gold}"/></svg>`,
   explore_speed:`<svg ${common}><circle cx="32" cy="32" r="22" fill="none" stroke="${stroke}" stroke-width="3"/><path d="M32 18v16l10 6" fill="none" stroke="${gold}" stroke-width="3.5" stroke-linecap="round"/></svg>`,
   base_damage:`<svg ${common}><path d="M38 8l10 10-22 30-12 4 4-12z" fill="none" stroke="${red}" stroke-width="3" stroke-linejoin="round"/><path d="M14 50l8-8" stroke="${mute}" stroke-width="3" stroke-linecap="round"/></svg>`,
   base_defense:`<svg ${common}><path d="M32 8l20 8v14c0 14-8 22-20 26C20 52 12 44 12 30V16z" fill="none" stroke="${blue}" stroke-width="3"/><path d="M24 32l6 6 12-14" fill="none" stroke="${stroke}" stroke-width="3" stroke-linecap="round"/></svg>`,
@@ -2266,7 +2267,7 @@ function openPrintFuelQtyModal(itemId,maxQty){
   if($("exchangeQtyTitle"))$("exchangeQtyTitle").textContent="CANTIDAD · APORTE";
   const itemEl=$("exchangeQtyItem");
   if(itemEl)itemEl.innerHTML=`<span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><div style="min-width:0;flex:1"><b>${escapeHtml(inventoryDisplayName(x))}</b><small>${pickerMetaHtml(x)} · Máx. aporte ×${maxQty}</small></div>`;
-  const sync=()=>{if($("exchangeQtyVal"))$("exchangeQtyVal").textContent="×"+qty;if($("exchangeQtyHint"))$("exchangeQtyHint").textContent=`Se añadirán ${qty} unidad${qty===1?"":"es"} a la caja de aporte (${formatCredits(printItemValue(x)*qty,12)}).`;};
+  const sync=()=>{if($("exchangeQtyVal"))$("exchangeQtyVal").textContent="×"+qty;if($("exchangeQtyHint"))$("exchangeQtyHint").innerHTML=`Se añadirán <b>${qty}</b> unidad${qty===1?"":"es"} a la caja de aporte (${formatCredits(printItemValue(x)*qty,12)}).`;};
   sync();
   if($("exchangeQtyMinus"))$("exchangeQtyMinus").onclick=()=>{qty=Math.max(1,qty-1);sync()};
   if($("exchangeQtyPlus"))$("exchangeQtyPlus").onclick=()=>{qty=Math.min(maxQty,qty+1);sync()};
@@ -3557,6 +3558,16 @@ function printChanceClass(pct){
   return "pct-high";
 }
 function renderPrintMachine(){
+  try{
+    const ico=typeof hudIconMarkup==="function"?hudIconMarkup("printer",20):"";
+    if($("printTitleIco")&&!$("printTitleIco").dataset.ready){$("printTitleIco").innerHTML=ico;$("printTitleIco").dataset.ready="1"}
+    document.querySelectorAll('[data-hud-ico="printer"]').forEach(el=>{if(!el.dataset.ready){el.innerHTML=ico;el.dataset.ready="1"}});
+    if($("printStartBtn")&&!$("printStartBtn").dataset.ico){
+      $("printStartBtn").innerHTML=(ico?ico+" ":"")+"Imprimir · 5 s";
+      $("printStartBtn").dataset.ico="1";
+    }
+  }catch(e){}
+
   const t=printTargetId?state.inventory.find(i=>i.id===printTargetId):null;
   if(printTargetId&&!t)printTargetId=null;
   const pick=$("printTargetPick"),infoEl=$("printTargetInfo"),clr=$("printTargetClear");
@@ -3592,7 +3603,13 @@ function renderPrintMachine(){
   if($("printFuelAdd"))$("printFuelAdd").disabled=printBusy||!!printOut;
   const pct=printSuccessChance();
   const ch=$("printChance");
-  if(ch){ch.textContent=pct+"%";ch.className="print-chance";ch.classList.add(printChanceClass(pct));ch.style.fontSize="2.2rem";}
+  if(ch){
+    const cls=printChanceClass(pct);
+    const col=cls==="pct-low"?"#ff2a3c":cls==="pct-mid"?"#ff8a00":"#1dff6a";
+    ch.textContent=pct+"%";
+    ch.className="print-chance "+cls;
+    ch.style.cssText="font-size:2.4rem;font-weight:900;color:"+col+";text-shadow:0 0 18px "+col+"99;line-height:1.1;text-align:center;";
+  }
   if($("printStartBtn"))$("printStartBtn").disabled=printBusy||!t||!printFuel.length||!!printOut||!!activeTask;
   // out
   const outList=$("printOutList");
@@ -3608,7 +3625,7 @@ function openPrintTargetPicker(){
   if(printBusy||printOut)return toast("Reclama o espera el proceso.",true);
   pickerMode="printTarget";pickerSlot=null;pickerFilter="Todos";pickerPage=1;
   if($("pickerSearch"))$("pickerSearch").value="";
-  if($("pickerTitle"))$("pickerTitle").textContent="IMPRESORA · OBJETIVO";
+  if($("pickerTitle"))$("pickerTitle").innerHTML=(typeof hudIconMarkup==="function"?hudIconMarkup("printer",18)+" ":"")+"IMPRESORA · OBJETIVO";
   if($("pickerDescription"))$("pickerDescription").textContent="Elige el objeto a duplicar (no criaturas, no equipados).";
   if($("pickerFilterMenu"))$("pickerFilterMenu").classList.remove("hidden");
   $("inventoryPicker").classList.remove("hidden");renderPicker();
@@ -3618,7 +3635,7 @@ function openPrintFuelPicker(){
   if(!printTargetId)return toast("Elige primero el objeto a duplicar.",true);
   pickerMode="printFuel";pickerSlot=null;pickerFilter="Todos";pickerPage=1;
   if($("pickerSearch"))$("pickerSearch").value="";
-  if($("pickerTitle"))$("pickerTitle").textContent="IMPRESORA · APORTE";
+  if($("pickerTitle"))$("pickerTitle").innerHTML=(typeof hudIconMarkup==="function"?hudIconMarkup("printer",18)+" ":"")+"IMPRESORA · APORTE";
   if($("pickerDescription"))$("pickerDescription").textContent="Añade objetos para cubrir el valor del original. No criaturas.";
   if($("pickerFilterMenu"))$("pickerFilterMenu").classList.remove("hidden");
   $("inventoryPicker").classList.remove("hidden");renderPicker();

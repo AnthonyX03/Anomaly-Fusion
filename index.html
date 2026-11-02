@@ -1297,6 +1297,41 @@ body.layout-mobile .sidebar{
 .print-chance.pct-high{color:#1dff6a !important;text-shadow:0 0 16px #1dff6aaa !important}
 .picker-item small .rarity{font-weight:900}
 
+
+.print-fuel-box{
+  display:flex !important;
+  flex-direction:column !important;
+  gap:10px !important;
+  min-height:200px;
+}
+.print-box-list{
+  flex:1 1 auto;
+  min-height:80px;
+  max-height:160px;
+  overflow-y:auto;
+  overflow-x:hidden;
+  padding:4px 2px;
+  margin:0 !important;
+}
+.print-fuel-actions{
+  display:flex;
+  gap:8px;
+  flex-shrink:0;
+  position:relative;
+  z-index:2;
+  background:#0c1218;
+  padding-top:8px;
+  border-top:1px solid #243440;
+}
+.print-fuel-actions .tiny{flex:1;margin:0}
+.print-fuel-row{position:relative;z-index:1}
+.print-chance.pct-low{color:#ff2a3c !important}
+.print-chance.pct-mid{color:#ff8a00 !important}
+.print-chance.pct-high{color:#1dff6a !important}
+.panel-ico,.tab-ico{display:inline-flex;vertical-align:middle;margin-right:6px}
+.panel-ico .hud-icon,.tab-ico .hud-icon{width:1.1em;height:1.1em}
+#exchangeQtyHint .credits-icon{vertical-align:middle;margin:0 2px}
+
 </style>
 </head>
 <body>
@@ -1792,7 +1827,7 @@ body.layout-mobile .sidebar{
   <button data-nexus-tab="mod3">⚗ Refinadora</button>
   <button data-nexus-tab="recycle">♻ Recicladora</button>
   <button data-nexus-tab="scrap">⛓ Desguazadora</button>
-  <button data-nexus-tab="print">Impresora</button>
+  <button data-nexus-tab="print"><span class="tab-ico" data-hud-ico="printer"></span> Impresora</button>
   <button data-nexus-tab="mod7" disabled title="En construcción">Módulo G</button>
   <button data-nexus-tab="mod8" disabled title="En construcción">Módulo H</button>
  </div>
@@ -1967,7 +2002,7 @@ body.layout-mobile .sidebar{
  
  <div class="nexus-section" id="nexus-print">
   <div class="panel">
-   <h3>MÁQUINA IMPRESORA</h3>
+   <h3><span class="panel-ico" id="printTitleIco"></span> MÁQUINA IMPRESORA</h3>
    <p class="small-note">Duplica un objeto del inventario (no criaturas). Llena la <b>caja de aporte</b> con objetos base o de síntesis hasta acercarte al valor del original. A mayor cobertura, mayor % de éxito. Proceso: <b>5 s</b>. Si fallas, pierdes el aporte (el original se conserva).</p>
    <div class="refine-layout">
     <div class="machine-col">
@@ -1978,12 +2013,12 @@ body.layout-mobile .sidebar{
       <button type="button" class="tiny hidden" id="printTargetClear" style="margin-top:8px;width:100%">Retirar</button>
      </div>
      <div class="eyebrow" style="margin-top:12px">CAJA DE APORTE</div>
-     <div class="machine-box dashed">
+     <div class="machine-box dashed print-fuel-box">
       <div class="statline"><span>Valor aporte</span><b class="gold" id="printFuelValue">0</b></div>
-      <div class="prize-box-list print-box-list" id="printFuelList"></div>
-      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
-       <button type="button" class="tiny" id="printFuelAdd" style="flex:1">＋ Añadir objetos</button>
-       <button type="button" class="tiny hidden" id="printFuelClear" style="flex:1">Retirar aporte</button>
+      <div class="print-box-list" id="printFuelList"></div>
+      <div class="print-fuel-actions">
+       <button type="button" class="tiny" id="printFuelAdd">＋ Añadir objetos</button>
+       <button type="button" class="tiny hidden" id="printFuelClear">Retirar aporte</button>
       </div>
      </div>
     </div>
