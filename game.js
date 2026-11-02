@@ -1161,6 +1161,15 @@ function marketRequiredLevel(item){
  return ({1:1,2:10,3:20,4:30,5:40})[r]||1;
 }
 
+
+function rarityClass(r){return "r"+Math.max(1,Math.min(5,Number(r)||1));}
+function pickerMetaHtml(x){
+  const r=Math.max(1,Math.min(5,Number(x.r)||Number(info(x.name).r)||1));
+  const v=Math.max(1,Number(x.val)||Number(info(x.name).val)||1);
+  const qty=Number(x.qty)||0;
+  return `<span class="rarity ${rarityClass(r)}">N${r}</span> · ${formatCredits(v,13)}${qty>1?` · <span class="muted">×${qty}</span>`:""}`;
+}
+
 function formatCredits(amount,size=14){return `${creditsIconMarkup(size)}<span class="credits-amount">${Number(amount||0).toLocaleString("es-ES")}</span>`;}
 
 function hudIconMarkup(kind,size=22){
@@ -2222,7 +2231,7 @@ function renderExchangeModule(){
     const rows=Object.entries(exchangeBox).map(([id,qty])=>{
       const x=state.inventory.find(i=>i.id===id);
       if(!x||qty<=0)return "";
-      return `<div class="exchange-row"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><div style="min-width:0;flex:1"><b>${escapeHtml(inventoryDisplayName(x))}</b><small>N${x.r||1} · ${escapeHtml(x.cat||"?")} · ×${qty}</small></div><button type="button" class="tiny" data-ex-remove="${id}">Retirar</button></div>`;
+      return `<div class="exchange-row"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><div style="min-width:0;flex:1"><b>${escapeHtml(inventoryDisplayName(x))}</b><small>${pickerMetaHtml(x)}</small></div><button type="button" class="tiny" data-ex-remove="${id}">Retirar</button></div>`;
     }).filter(Boolean);
     list.innerHTML=rows.length?rows.join(""):'<div class="empty">La caja está vacía. Añade 1–10 objetos base.</div>';
     list.querySelectorAll("[data-ex-remove]").forEach(b=>b.onclick=()=>{delete exchangeBox[b.dataset.exRemove];renderExchangeModule()});
@@ -2247,6 +2256,34 @@ function openExchangePicker(){
 }
 
 
+
+function openPrintFuelQtyModal(itemId,maxQty){
+  const x=state.inventory.find(i=>i.id===itemId);
+  if(!x||maxQty<1)return;
+  let qty=1;
+  const modal=$("exchangeQtyModal");
+  if(!modal)return;
+  if($("exchangeQtyTitle"))$("exchangeQtyTitle").textContent="CANTIDAD · APORTE";
+  const itemEl=$("exchangeQtyItem");
+  if(itemEl)itemEl.innerHTML=`<span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><div style="min-width:0;flex:1"><b>${escapeHtml(inventoryDisplayName(x))}</b><small>${pickerMetaHtml(x)} · Máx. aporte ×${maxQty}</small></div>`;
+  const sync=()=>{if($("exchangeQtyVal"))$("exchangeQtyVal").textContent="×"+qty;if($("exchangeQtyHint"))$("exchangeQtyHint").textContent=`Se añadirán ${qty} unidad${qty===1?"":"es"} a la caja de aporte (${formatCredits(printItemValue(x)*qty,12)}).`;};
+  sync();
+  if($("exchangeQtyMinus"))$("exchangeQtyMinus").onclick=()=>{qty=Math.max(1,qty-1);sync()};
+  if($("exchangeQtyPlus"))$("exchangeQtyPlus").onclick=()=>{qty=Math.min(maxQty,qty+1);sync()};
+  const close=()=>modal.classList.add("hidden");
+  if($("exchangeQtyClose"))$("exchangeQtyClose").onclick=close;
+  if($("exchangeQtyCancel"))$("exchangeQtyCancel").onclick=close;
+  if($("exchangeQtyOk"))$("exchangeQtyOk").onclick=()=>{
+    const existing=printFuel.find(f=>f.id===x.id);
+    const already=existing?existing.qty:0;
+    if(already+qty>x.qty){toast("No hay suficientes.",true);return;}
+    if(existing)existing.qty+=qty;
+    else printFuel.push({id:x.id,name:x.name,qty:qty,val:x.val,r:x.r,cat:x.cat,icon:x.icon});
+    close();renderPrintMachine();sound(500);
+  };
+  modal.classList.remove("hidden");
+}
+
 function openExchangeQtyModal(itemId,maxQty){
   const x=state.inventory.find(i=>i.id===itemId);
   if(!x||maxQty<1)return;
@@ -2254,7 +2291,7 @@ function openExchangeQtyModal(itemId,maxQty){
   const modal=$("exchangeQtyModal");
   if(!modal)return;
   const itemEl=$("exchangeQtyItem");
-  if(itemEl)itemEl.innerHTML=`<span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><div style="min-width:0;flex:1"><b>${escapeHtml(inventoryDisplayName(x))}</b><small>N${x.r||1} · Disponible ×${x.qty} · Máx. en caja ×${maxQty}</small></div>`;
+  if(itemEl)itemEl.innerHTML=`<span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><div style="min-width:0;flex:1"><b>${escapeHtml(inventoryDisplayName(x))}</b><small>${pickerMetaHtml(x)} · Disponible ×${x.qty} · Máx. ×${maxQty}</small></div>`;
   const sync=()=>{if($("exchangeQtyVal"))$("exchangeQtyVal").textContent="×"+qty;if($("exchangeQtyHint"))$("exchangeQtyHint").textContent=`Se añadirán ${qty} unidad${qty===1?"":"es"} a la caja (${exchangeBoxCount()+qty}/10).`;};
   sync();
   if($("exchangeQtyMinus"))$("exchangeQtyMinus").onclick=()=>{qty=Math.max(1,qty-1);sync()};
@@ -3530,7 +3567,7 @@ function renderPrintMachine(){
   if(infoEl){
     if(t){
       const syn=isSynthesisItem(t)?' · Síntesis':'';
-      infoEl.innerHTML=`N${t.r||1} · ${escapeHtml(t.cat||"?")}${syn}<br>Valor base: ${formatCredits(printItemValue(t),14)}`;
+      infoEl.innerHTML=`<span class="rarity r${Math.max(1,Math.min(5,Number(t.r)||1))}">N${t.r||1}</span> · ${escapeHtml(t.cat||"?")}${syn}<br>Valor base: ${formatCredits(printItemValue(t),14)}`;
     } else infoEl.textContent="Ningún objeto.";
   }
   if(clr)clr.classList.toggle("hidden",!t||printBusy||!!printOut);
@@ -3540,7 +3577,8 @@ function renderPrintMachine(){
     if(!printFuel.length)list.innerHTML='<div class="empty">Vacía.</div>';
     else list.innerHTML=printFuel.map((x,idx)=>{
       const v=printItemValue(x)*(x.qty||1);
-      return `<div class="prize-row"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><div><b>${escapeHtml(inventoryDisplayName(x))}</b><small> · ×${x.qty||1} · ${formatCredits(v,12)}</small></div><button type="button" class="tiny" data-print-fuel-rm="${idx}">✕</button></div>`;
+      const r=Math.max(1,Math.min(5,Number(x.r)||1));
+      return `<div class="print-fuel-row"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><div class="print-fuel-main"><b>${escapeHtml(inventoryDisplayName(x))}</b><small><span class="rarity r${r}">N${r}</span> · ×${x.qty||1} · ${formatCredits(v,12)}</small></div><button type="button" class="tiny print-fuel-rm" data-print-fuel-rm="${idx}" aria-label="Quitar">✕</button></div>`;
     }).join("");
     list.querySelectorAll("[data-print-fuel-rm]").forEach(b=>b.onclick=()=>{
       if(printBusy||printOut)return;
@@ -3554,7 +3592,7 @@ function renderPrintMachine(){
   if($("printFuelAdd"))$("printFuelAdd").disabled=printBusy||!!printOut;
   const pct=printSuccessChance();
   const ch=$("printChance");
-  if(ch){ch.textContent=pct+"%";ch.className="print-chance "+printChanceClass(pct)}
+  if(ch){ch.textContent=pct+"%";ch.className="print-chance";ch.classList.add(printChanceClass(pct));ch.style.fontSize="2.2rem";}
   if($("printStartBtn"))$("printStartBtn").disabled=printBusy||!t||!printFuel.length||!!printOut||!!activeTask;
   // out
   const outList=$("printOutList");
@@ -3570,7 +3608,7 @@ function openPrintTargetPicker(){
   if(printBusy||printOut)return toast("Reclama o espera el proceso.",true);
   pickerMode="printTarget";pickerSlot=null;pickerFilter="Todos";pickerPage=1;
   if($("pickerSearch"))$("pickerSearch").value="";
-  if($("pickerTitle"))$("pickerTitle").textContent="🖨 IMPRESORA · OBJETIVO";
+  if($("pickerTitle"))$("pickerTitle").textContent="IMPRESORA · OBJETIVO";
   if($("pickerDescription"))$("pickerDescription").textContent="Elige el objeto a duplicar (no criaturas, no equipados).";
   if($("pickerFilterMenu"))$("pickerFilterMenu").classList.remove("hidden");
   $("inventoryPicker").classList.remove("hidden");renderPicker();
@@ -3580,7 +3618,7 @@ function openPrintFuelPicker(){
   if(!printTargetId)return toast("Elige primero el objeto a duplicar.",true);
   pickerMode="printFuel";pickerSlot=null;pickerFilter="Todos";pickerPage=1;
   if($("pickerSearch"))$("pickerSearch").value="";
-  if($("pickerTitle"))$("pickerTitle").textContent="🖨 IMPRESORA · APORTE";
+  if($("pickerTitle"))$("pickerTitle").textContent="IMPRESORA · APORTE";
   if($("pickerDescription"))$("pickerDescription").textContent="Añade objetos para cubrir el valor del original. No criaturas.";
   if($("pickerFilterMenu"))$("pickerFilterMenu").classList.remove("hidden");
   $("inventoryPicker").classList.remove("hidden");renderPicker();
@@ -3972,7 +4010,7 @@ function renderPicker(){
   const shown=list.slice((pickerPage-1)*pageSize,pickerPage*pageSize);
   $("pickerGrid").innerHTML=shown.length?shown.map(x=>{
     const v=printItemValue(x);
-    return `<button type="button" class="picker-item" data-pick-id="${x.id}"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><span style="min-width:0"><b>${escapeHtml(inventoryDisplayName(x))}</b><small>N${x.r||1} · ${formatCredits(v,12)}${x.qty>1?" · ×"+x.qty:""}</small></span></button>`;
+    return `<button type="button" class="picker-item" data-pick-id="${x.id}"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><span style="min-width:0"><b>${escapeHtml(inventoryDisplayName(x))}</b><small>${pickerMetaHtml(x)}</small></span></button>`;
   }).join(""):'<div class="empty" style="grid-column:1/-1">No hay objetos válidos.</div>';
   if($("pickerPageInfo"))$("pickerPageInfo").textContent=`Página ${pickerPage} / ${pages}`;
   if($("pickerPrev")){$("pickerPrev").disabled=pickerPage<=1;$("pickerPrev").onclick=()=>{pickerPage=Math.max(1,pickerPage-1);renderPicker()};}
@@ -3983,18 +4021,17 @@ function renderPicker(){
     if(pickerMode==="printTarget"){
       printTargetId=x.id;$("inventoryPicker").classList.add("hidden");renderPrintMachine();sound(500);return;
     }
-    // fuel: if qty>1 open qty? simple add 1 or all available not target reserved
-    let addQty=1;
-    if(x.qty>1){
-      // use existing qty hud if any — else add 1
-      addQty=1;
-    }
     const existing=printFuel.find(f=>f.id===x.id);
     const already=existing?existing.qty:0;
-    if(already+addQty>x.qty)return toast("No hay más unidades.",true);
-    if(existing)existing.qty+=addQty;
-    else printFuel.push({id:x.id,name:x.name,qty:addQty,val:x.val,r:x.r,cat:x.cat,icon:x.icon});
-    $("inventoryPicker").classList.add("hidden");renderPrintMachine();sound(500);
+    const maxQty=Math.max(0,x.qty-already);
+    if(maxQty<1)return toast("No hay más unidades.",true);
+    $("inventoryPicker").classList.add("hidden");
+    if(maxQty===1){
+      if(existing)existing.qty+=1;
+      else printFuel.push({id:x.id,name:x.name,qty:1,val:x.val,r:x.r,cat:x.cat,icon:x.icon});
+      renderPrintMachine();sound(500);return;
+    }
+    openPrintFuelQtyModal(x.id,maxQty);
   });
   return;
  }
@@ -4011,7 +4048,7 @@ if(pickerMode==="scrapInput"){
   $("pickerGrid").innerHTML=shown.length?shown.map(x=>{
     const outs=scrapOutputsFor(x);
     const prev=outs.slice(0,3).map(o=>o.qty+"× "+o.name).join(", ");
-    return `<button type="button" class="picker-item" data-pick-id="${x.id}"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><span style="min-width:0"><b>${escapeHtml(inventoryDisplayName(x))}</b><small>${escapeHtml(prev||"con receta")}</small></span></button>`;
+    return `<button type="button" class="picker-item" data-pick-id="${x.id}"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><span style="min-width:0"><b>${escapeHtml(inventoryDisplayName(x))}</b><small>${pickerMetaHtml(x)} · ${escapeHtml(prev||"con receta")}</small></span></button>`;
   }).join(""):'<div class="empty" style="grid-column:1/-1">No hay objetos desguazables.</div>';
   if($("pickerPageInfo"))$("pickerPageInfo").textContent=`Página ${pickerPage} / ${pages}`;
   if($("pickerPrev")){$("pickerPrev").disabled=pickerPage<=1;$("pickerPrev").onclick=()=>{pickerPage=Math.max(1,pickerPage-1);renderPicker()};}
@@ -4030,7 +4067,7 @@ if(pickerMode==="recycleInput"){
   const pages=Math.max(1,Math.ceil(list.length/pageSize));
   pickerPage=Math.min(Math.max(1,pickerPage),pages);
   const shown=list.slice((pickerPage-1)*pageSize,pickerPage*pageSize);
-  $("pickerGrid").innerHTML=shown.length?shown.map(x=>`<button type="button" class="picker-item" data-pick-id="${x.id}"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><span style="min-width:0"><b>${escapeHtml(inventoryDisplayName(x))}</b><small>N${x.r||1} · ${Math.max(1,Number(x.val)||1)} cr. · Síntesis</small></span></button>`).join(""):'<div class="empty" style="grid-column:1/-1">No hay objetos de síntesis (no criaturas).</div>';
+  $("pickerGrid").innerHTML=shown.length?shown.map(x=>`<button type="button" class="picker-item" data-pick-id="${x.id}"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><span style="min-width:0"><b>${escapeHtml(inventoryDisplayName(x))}</b><small>${pickerMetaHtml(x)}</small></span></button>`).join(""):'<div class="empty" style="grid-column:1/-1">No hay objetos de síntesis (no criaturas).</div>';
   if($("pickerPageInfo"))$("pickerPageInfo").textContent=`Página ${pickerPage} / ${pages}`;
   if($("pickerPrev")){$("pickerPrev").disabled=pickerPage<=1;$("pickerPrev").onclick=()=>{pickerPage=Math.max(1,pickerPage-1);renderPicker()};}
   if($("pickerNext")){$("pickerNext").disabled=pickerPage>=pages;$("pickerNext").onclick=()=>{pickerPage++;renderPicker()};}
@@ -4053,7 +4090,7 @@ if(pickerMode==="upgradeInput"){
   const pages=Math.max(1,Math.ceil(list.length/pageSize));
   pickerPage=Math.min(Math.max(1,pickerPage),pages);
   const shown=list.slice((pickerPage-1)*pageSize,pickerPage*pageSize);
-  $("pickerGrid").innerHTML=shown.length?shown.map(x=>`<button type="button" class="picker-item" data-pick-id="${x.id}"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><span style="min-width:0"><b title="${escapeHtml(x.name)}">${escapeHtml(inventoryDisplayName(x))}</b><small>N${x.r||1} · ${escapeHtml(x.cat||"?")} · ×${x.qty}</small></span></button>`).join(""):'<div class="empty" style="grid-column:1/-1">No hay objetos base en el inventario.</div>';
+  $("pickerGrid").innerHTML=shown.length?shown.map(x=>`<button type="button" class="picker-item" data-pick-id="${x.id}"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><span style="min-width:0"><b title="${escapeHtml(x.name)}">${escapeHtml(inventoryDisplayName(x))}</b><small>${pickerMetaHtml(x)}</small></span></button>`).join(""):'<div class="empty" style="grid-column:1/-1">No hay objetos base en el inventario.</div>';
   if($("pickerPageInfo"))$("pickerPageInfo").textContent=`Página ${pickerPage} / ${pages}`;
   if($("pickerPrev")){$("pickerPrev").disabled=pickerPage<=1;$("pickerPrev").onclick=()=>{pickerPage=Math.max(1,pickerPage-1);renderPicker()};}
   if($("pickerNext")){$("pickerNext").disabled=pickerPage>=pages;$("pickerNext").onclick=()=>{pickerPage++;renderPicker()};}
@@ -4078,7 +4115,7 @@ if(pickerMode==="upgradeInput"){
   const pages=Math.max(1,Math.ceil(list.length/pageSize));
   pickerPage=Math.min(Math.max(1,pickerPage),pages);
   const shown=list.slice((pickerPage-1)*pageSize,pickerPage*pageSize);
-  $("pickerGrid").innerHTML=shown.length?shown.map(x=>`<button type="button" class="picker-item" data-pick-id="${x.id}"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><span style="min-width:0"><b>${escapeHtml(inventoryDisplayName(x))}</b><small>N${x.r||1} · ${Math.max(1,Number(x.val)||1)} cr. · ×${x.qty}</small></span></button>`).join(""):'<div class="empty" style="grid-column:1/-1">Sin objetos válidos.</div>';
+  $("pickerGrid").innerHTML=shown.length?shown.map(x=>`<button type="button" class="picker-item" data-pick-id="${x.id}"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><span style="min-width:0"><b>${escapeHtml(inventoryDisplayName(x))}</b><small>${pickerMetaHtml(x)}</small></span></button>`).join(""):'<div class="empty" style="grid-column:1/-1">Sin objetos válidos.</div>';
   if($("pickerPageInfo"))$("pickerPageInfo").textContent=`Página ${pickerPage} / ${pages}`;
   if($("pickerPrev")){$("pickerPrev").disabled=pickerPage<=1;$("pickerPrev").onclick=()=>{pickerPage=Math.max(1,pickerPage-1);renderPicker()};}
   if($("pickerNext")){$("pickerNext").disabled=pickerPage>=pages;$("pickerNext").onclick=()=>{pickerPage++;renderPicker()};}
@@ -4132,7 +4169,7 @@ if(pickerMode==="upgradeInput"){
   const pages=Math.max(1,Math.ceil(list.length/pageSize));
   pickerPage=Math.min(Math.max(1,pickerPage),pages);
   const shown=list.slice((pickerPage-1)*pageSize,pickerPage*pageSize);
-  $("pickerGrid").innerHTML=shown.length?shown.map(x=>`<button type="button" class="picker-item" data-pick-id="${x.id}"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><span style="min-width:0"><b title="${escapeHtml(x.name)}">${escapeHtml(inventoryDisplayName(x))}</b><small>N${x.r||1} · ×${x.qty}</small></span></button>`).join(""):'<div class="empty" style="grid-column:1/-1">No hay objetos base disponibles.</div>';
+  $("pickerGrid").innerHTML=shown.length?shown.map(x=>`<button type="button" class="picker-item" data-pick-id="${x.id}"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><span style="min-width:0"><b title="${escapeHtml(x.name)}">${escapeHtml(inventoryDisplayName(x))}</b><small>${pickerMetaHtml(x)}</small></span></button>`).join(""):'<div class="empty" style="grid-column:1/-1">No hay objetos base disponibles.</div>';
   // Cantidad en HUD aparte (no dentro del picker)
   $("pickerGrid").querySelectorAll("[data-pick-id]").forEach(b=>b.onclick=()=>{
     const x=state.inventory.find(i=>i.id===b.dataset.pickId);if(!x)return;
@@ -4220,7 +4257,7 @@ if(pickerMode==="upgradeInput"){
   const shown=list.slice((pickerPage-1)*pageSize,pickerPage*pageSize);
   $("pickerGrid").innerHTML=shown.length?shown.map(x=>{
     const v=printItemValue(x);
-    return `<button type="button" class="picker-item" data-pick-id="${x.id}"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><span style="min-width:0"><b>${escapeHtml(inventoryDisplayName(x))}</b><small>N${x.r||1} · ${formatCredits(v,12)}${x.qty>1?" · ×"+x.qty:""}</small></span></button>`;
+    return `<button type="button" class="picker-item" data-pick-id="${x.id}"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><span style="min-width:0"><b>${escapeHtml(inventoryDisplayName(x))}</b><small>${pickerMetaHtml(x)}</small></span></button>`;
   }).join(""):'<div class="empty" style="grid-column:1/-1">No hay objetos válidos.</div>';
   if($("pickerPageInfo"))$("pickerPageInfo").textContent=`Página ${pickerPage} / ${pages}`;
   if($("pickerPrev")){$("pickerPrev").disabled=pickerPage<=1;$("pickerPrev").onclick=()=>{pickerPage=Math.max(1,pickerPage-1);renderPicker()};}
@@ -4231,18 +4268,17 @@ if(pickerMode==="upgradeInput"){
     if(pickerMode==="printTarget"){
       printTargetId=x.id;$("inventoryPicker").classList.add("hidden");renderPrintMachine();sound(500);return;
     }
-    // fuel: if qty>1 open qty? simple add 1 or all available not target reserved
-    let addQty=1;
-    if(x.qty>1){
-      // use existing qty hud if any — else add 1
-      addQty=1;
-    }
     const existing=printFuel.find(f=>f.id===x.id);
     const already=existing?existing.qty:0;
-    if(already+addQty>x.qty)return toast("No hay más unidades.",true);
-    if(existing)existing.qty+=addQty;
-    else printFuel.push({id:x.id,name:x.name,qty:addQty,val:x.val,r:x.r,cat:x.cat,icon:x.icon});
-    $("inventoryPicker").classList.add("hidden");renderPrintMachine();sound(500);
+    const maxQty=Math.max(0,x.qty-already);
+    if(maxQty<1)return toast("No hay más unidades.",true);
+    $("inventoryPicker").classList.add("hidden");
+    if(maxQty===1){
+      if(existing)existing.qty+=1;
+      else printFuel.push({id:x.id,name:x.name,qty:1,val:x.val,r:x.r,cat:x.cat,icon:x.icon});
+      renderPrintMachine();sound(500);return;
+    }
+    openPrintFuelQtyModal(x.id,maxQty);
   });
   return;
  }
@@ -4259,7 +4295,7 @@ if(pickerMode==="scrapInput"){
   $("pickerGrid").innerHTML=shown.length?shown.map(x=>{
     const outs=scrapOutputsFor(x);
     const prev=outs.slice(0,3).map(o=>o.qty+"× "+o.name).join(", ");
-    return `<button type="button" class="picker-item" data-pick-id="${x.id}"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><span style="min-width:0"><b>${escapeHtml(inventoryDisplayName(x))}</b><small>${escapeHtml(prev||"con receta")}</small></span></button>`;
+    return `<button type="button" class="picker-item" data-pick-id="${x.id}"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><span style="min-width:0"><b>${escapeHtml(inventoryDisplayName(x))}</b><small>${pickerMetaHtml(x)} · ${escapeHtml(prev||"con receta")}</small></span></button>`;
   }).join(""):'<div class="empty" style="grid-column:1/-1">No hay objetos desguazables.</div>';
   if($("pickerPageInfo"))$("pickerPageInfo").textContent=`Página ${pickerPage} / ${pages}`;
   if($("pickerPrev")){$("pickerPrev").disabled=pickerPage<=1;$("pickerPrev").onclick=()=>{pickerPage=Math.max(1,pickerPage-1);renderPicker()};}
@@ -4278,7 +4314,7 @@ if(pickerMode==="recycleInput"){
   const pages=Math.max(1,Math.ceil(list.length/pageSize));
   pickerPage=Math.min(Math.max(1,pickerPage),pages);
   const shown=list.slice((pickerPage-1)*pageSize,pickerPage*pageSize);
-  $("pickerGrid").innerHTML=shown.length?shown.map(x=>`<button type="button" class="picker-item" data-pick-id="${x.id}"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><span style="min-width:0"><b>${escapeHtml(inventoryDisplayName(x))}</b><small>N${x.r||1} · ${Math.max(1,Number(x.val)||1)} cr. · Síntesis</small></span></button>`).join(""):'<div class="empty" style="grid-column:1/-1">No hay objetos de síntesis (no criaturas).</div>';
+  $("pickerGrid").innerHTML=shown.length?shown.map(x=>`<button type="button" class="picker-item" data-pick-id="${x.id}"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><span style="min-width:0"><b>${escapeHtml(inventoryDisplayName(x))}</b><small>${pickerMetaHtml(x)}</small></span></button>`).join(""):'<div class="empty" style="grid-column:1/-1">No hay objetos de síntesis (no criaturas).</div>';
   if($("pickerPageInfo"))$("pickerPageInfo").textContent=`Página ${pickerPage} / ${pages}`;
   if($("pickerPrev")){$("pickerPrev").disabled=pickerPage<=1;$("pickerPrev").onclick=()=>{pickerPage=Math.max(1,pickerPage-1);renderPicker()};}
   if($("pickerNext")){$("pickerNext").disabled=pickerPage>=pages;$("pickerNext").onclick=()=>{pickerPage++;renderPicker()};}
