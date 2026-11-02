@@ -752,9 +752,9 @@ body.layout-mobile .registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 .picker-confirm-row button{flex:1}
 
 .upgrade-chance{position:absolute;inset:0;display:grid;place-items:center;font-size:2.55rem;font-weight:900;letter-spacing:.04em;color:#8a9aa5;text-shadow:none;pointer-events:none;z-index:3;transition:color .2s,text-shadow .2s;line-height:1}
-.upgrade-chance.chance-high{color:#1dff6a;text-shadow:0 0 8px #1dff6a,0 0 18px #1dff6acc,0 0 32px #1dff6a66}
-.upgrade-chance.chance-mid{color:#ff8a00;text-shadow:0 0 8px #ff8a00,0 0 18px #ff8a00cc,0 0 32px #ff8a0066}
-.upgrade-chance.chance-low{color:#ff2a3c;text-shadow:0 0 8px #ff2a3c,0 0 18px #ff2a3ccc,0 0 32px #ff2a3c66}
+.upgrade-chance.chance-high{color:#2ee56b;text-shadow:0 0 10px #2ee56b88}
+.upgrade-chance.chance-mid{color:#ff9500;text-shadow:0 0 10px #ff950088}
+.upgrade-chance.chance-low{color:#ff4d5e;text-shadow:0 0 10px #ff4d5e88}
 #nexusTabs button:disabled{opacity:.4;cursor:not-allowed}
 
 
@@ -1675,6 +1675,43 @@ button[data-nexus-tab="print"]{
 }
 #printFuelList::-webkit-scrollbar-corner{background:transparent}
 
+
+/* Centro y Ciudad: rejilla 5×2 */
+#nexusTabs.mod-grid-5x2,
+.mod-grid-5x2{
+  display:grid !important;
+  grid-template-columns:repeat(5,minmax(0,1fr)) !important;
+  gap:8px !important;
+  flex-wrap:unset !important;
+}
+#nexusTabs.mod-grid-5x2 button{
+  width:100%;
+  min-width:0;
+  justify-content:center;
+  text-align:center;
+  white-space:nowrap;
+  font-size:clamp(.72rem,.95vw,.85rem);
+  padding:10px 6px;
+}
+.city-places{
+  display:grid !important;
+  grid-template-columns:repeat(5,minmax(0,1fr)) !important;
+  gap:12px !important;
+  margin-top:8px;
+}
+@media (max-width:1100px){
+  #nexusTabs.mod-grid-5x2,
+  .city-places{
+    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+  }
+}
+@media (max-width:700px){
+  #nexusTabs.mod-grid-5x2,
+  .city-places{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1795,7 +1832,7 @@ button[data-nexus-tab="print"]{
  <div class="clinic-section" id="clinic-spawn">
   <div class="panel extract-panel">
    <h3>🧬 SÍNTESIS DE CRIATURA · ENGENDRO</h3>
-   <p class="small-note">Coloca <b>5 órganos</b> (obligatorio) y una <b>anomalía opcional</b>. Sin anomalía: rasgo Engendro. Con anomalía: <b>Hibridación anómala</b>. Siempre Ilegal. 10 s.</p>
+   <p class="small-note">Coloca <b>5 órganos</b> (obligatorio) y una <b>anomalía opcional</b>. Sin anomalía: rasgo Engendro. Con anomalía: <b>Núcleo anómalo</b>. Siempre Ilegal. 10 s.</p>
    <div class="spawn-slots" id="spawnSlots">
     <div class="slot" id="spawnSlot0"><div class="slot-icon">＋</div><b id="spawnLabel0">Órgano 1</b><div class="slot-actions"><button class="tiny" id="chooseSpawn0">Elegir</button><button class="tiny hidden" id="clearSpawn0">Retirar</button></div></div>
     <div class="slot" id="spawnSlot1"><div class="slot-icon">＋</div><b id="spawnLabel1">Órgano 2</b><div class="slot-actions"><button class="tiny" id="chooseSpawn1">Elegir</button><button class="tiny hidden" id="clearSpawn1">Retirar</button></div></div>
@@ -1804,7 +1841,7 @@ button[data-nexus-tab="print"]{
     <div class="slot" id="spawnSlot4"><div class="slot-icon">＋</div><b id="spawnLabel4">Órgano 5</b><div class="slot-actions"><button class="tiny" id="chooseSpawn4">Elegir</button><button class="tiny hidden" id="clearSpawn4">Retirar</button></div></div>
     <div class="slot spawn-anomaly-slot" id="spawnSlotAnomaly"><div class="slot-icon">＋</div><b id="spawnLabelAnomaly">Anomalía opcional</b><div class="slot-actions"><button class="tiny" id="chooseSpawnAnomaly">Añadir anomalía</button><button class="tiny hidden" id="clearSpawnAnomaly">Retirar</button></div></div>
    </div>
-   <p class="small-note" id="spawnAnomalyNote" style="margin-top:10px">Una anomalía es opcional: consume la anomalía y otorga el rasgo <b>Hibridación anómala</b> en lugar de solo Engendro.</p>
+   <p class="small-note" id="spawnAnomalyNote" style="margin-top:10px">Una anomalía es opcional: consume la anomalía y otorga el rasgo <b>Núcleo anómalo</b> en lugar de solo Engendro.</p>
    <div class="bar-wrap hidden" id="spawnProgress" style="margin-top:12px"><div class="bar-label"><b class="cyan">Sintetizando engendro...</b><span id="spawnPercent">0%</span></div><div class="meter progress"><span id="spawnBar"></span></div></div>
    <button class="danger" id="spawnStartBtn" style="width:100%;margin-top:12px" disabled>🧬 Iniciar síntesis · 10 s</button>
    <p class="small-note" id="spawnMessage" style="margin-top:10px">Los engendros solo pueden venderse en el Mercado Negro.</p>
@@ -1844,10 +1881,10 @@ button[data-nexus-tab="print"]{
     <div class="slot" id="asmSlot4"><div class="slot-icon">＋</div><b id="asmLabel4">Pieza 5</b><div class="slot-actions"><button class="tiny" id="chooseAsm4">Elegir</button><button class="tiny hidden" id="clearAsm4">Retirar</button></div></div>
     <div class="slot" id="asmAnomalySlot"><div class="slot-icon" id="asmAnomalyIcon">＋</div><b id="asmAnomalyLabel">Anomalía (opcional)</b><div class="slot-actions"><button class="tiny" id="chooseAsmAnomaly">Elegir</button><button class="tiny hidden" id="clearAsmAnomaly">Retirar</button></div></div>
    </div>
-   <p class="small-note" id="asmAnomalyNote" style="margin-top:10px">La anomalía es opcional y otorga <b>Hibridación anómala</b>.</p>
+   <p class="small-note" id="asmAnomalyNote" style="margin-top:10px">La anomalía es opcional. Sin ella: rasgo <b>Autómata</b>. Con ella: rasgo <b>Núcleo anómalo</b> (nombre propio).</p>
    <div class="bar-wrap hidden" id="asmProgress" style="margin-top:12px"><div class="bar-label"><b class="cyan">Ensamblando...</b><span id="asmPercent">0%</span></div><div class="meter progress"><span id="asmBar"></span></div></div>
    <button class="primary" id="asmStartBtn" style="width:100%;margin-top:12px" disabled>Iniciar ensamblaje · 10 s</button>
-   <p class="small-note" id="asmMessage" style="margin-top:10px">Los autómatas pueden venderse en el Mercado Negro.</p>
+   <p class="small-note" id="asmMessage" style="margin-top:10px">Los autómatas pueden venderse en el Mercado.</p>
   </div>
  </div>
 </section>
@@ -2054,7 +2091,7 @@ button[data-nexus-tab="print"]{
  </div>
 </section>
 <section class="page" id="page-city">
- <div class="page-head"><div><div class="eyebrow">SISTEMA 08 / URBANO</div><h2>Ciudad</h2><p>Distritos del asentamiento. La mayoría permanecen sellados tras el Colapso. El Casino es el único acceso estable… de momento.</p></div><span class="tag">5 LUGARES</span></div>
+ <div class="page-head"><div><div class="eyebrow">SISTEMA 08 / URBANO</div><h2>Ciudad</h2><p>Diez distritos del asentamiento. Nueve permanecen sellados tras el Colapso. El Casino es el único acceso estable… de momento.</p></div><span class="tag">10 LUGARES</span></div>
  <div class="city-places" id="cityPlaces"></div>
  <div id="cityCasino" class="hidden">
   <div class="panel" style="margin-bottom:12px">
@@ -2163,8 +2200,8 @@ button[data-nexus-tab="print"]{
 </section>
 
 <section class="page" id="page-nexus">
- <div class="page-head"><div><div class="eyebrow">SISTEMA 07 / CONVERSIÓN</div><h2>Centro</h2><p>Centro de máquinas. Mejora, Intercambio, Refinadora, Recicladora, Desguazadora, Impresora y módulos en construcción.</p></div><span class="tag">8 MÓDULOS</span></div>
- <div class="inventory-controls" style="margin-bottom:14px;flex-wrap:wrap" id="nexusTabs">
+ <div class="page-head"><div><div class="eyebrow">SISTEMA 07 / CONVERSIÓN</div><h2>Centro</h2><p>Centro de máquinas. Diez módulos de conversión: Mejora, Intercambio, Refinadora, Recicladora, Desguazadora, Impresora y cuatro en construcción.</p></div><span class="tag">10 MÓDULOS</span></div>
+ <div class="inventory-controls" style="margin-bottom:14px;flex-wrap:wrap" id="nexusTabs" class="mod-grid-5x2">
   <button class="active" data-nexus-tab="upgrade">◎ Mejora</button>
   <button data-nexus-tab="mod2">▦ Intercambio</button>
   <button data-nexus-tab="mod3">⚗ Refinadora</button>
@@ -2173,6 +2210,8 @@ button[data-nexus-tab="print"]{
   <button data-nexus-tab="print" class="nexus-tab-ico" id="printTabBtn">Impresora</button>
   <button data-nexus-tab="mod7" disabled title="En construcción">Módulo G</button>
   <button data-nexus-tab="mod8" disabled title="En construcción">Módulo H</button>
+  <button data-nexus-tab="mod9" disabled title="En construcción">Módulo I</button>
+  <button data-nexus-tab="mod10" disabled title="En construcción">Módulo J</button>
  </div>
  <div class="nexus-section active" id="nexus-upgrade">
   <div class="panel">
@@ -2388,6 +2427,8 @@ button[data-nexus-tab="print"]{
 
  <div class="nexus-section" id="nexus-mod7"><div class="panel"><div class="empty">Módulo G — En construcción.</div></div></div>
  <div class="nexus-section" id="nexus-mod8"><div class="panel"><div class="empty">Módulo H — En construcción.</div></div></div>
+ <div class="nexus-section" id="nexus-mod9"><div class="panel"><div class="empty">Módulo I — En construcción.</div></div></div>
+ <div class="nexus-section" id="nexus-mod10"><div class="panel"><div class="empty">Módulo J — En construcción.</div></div></div>
 
 </section>
 

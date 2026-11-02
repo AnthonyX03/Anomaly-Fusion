@@ -865,7 +865,7 @@ function isIllegalItem(x){
  if(cat==="Órgano")return true;
  if(isBallisticWeapon(name,x))return true;
  if(trait==="Engendro"||/engendro/i.test(name))return true;
- if((trait==="Hibridación anómala"||/hibridaci[oó]n an[oó]mala/i.test(trait)||/h[ií]brido an[oó]malo/i.test(name))&&!x.robotic)return true;
+ if((trait==="Núcleo anómalo"||/hibridaci[oó]n an[oó]mala/i.test(trait)||/h[ií]brido an[oó]malo/i.test(name))&&!x.robotic)return true;
  return false;
 }
 function applyIllegalPolicy(item){
@@ -1465,7 +1465,7 @@ function renderSpawnTable(){
  if($("spawnLabelAnomaly"))$("spawnLabelAnomaly").textContent=ax?inventoryDisplayName(ax):"Anomalía opcional";
  if($("chooseSpawnAnomaly")){$("chooseSpawnAnomaly").textContent=ax?"Cambiar anomalía":"Añadir anomalía";$("chooseSpawnAnomaly").disabled=!!activeTask}
  if($("clearSpawnAnomaly")){$("clearSpawnAnomaly").classList.toggle("hidden",!ax);$("clearSpawnAnomaly").disabled=!!activeTask}
- if($("spawnAnomalyNote"))$("spawnAnomalyNote").innerHTML=ax?`Anomalía lista: se consumirá y el resultado tendrá rasgo <b>Hibridación anómala</b>.`:`Una anomalía es opcional: consume la anomalía y otorga el rasgo <b>Hibridación anómala</b> en lugar de solo Engendro.`;
+ if($("spawnAnomalyNote"))$("spawnAnomalyNote").innerHTML=ax?`Anomalía lista: se consumirá y el resultado tendrá rasgo <b>Núcleo anómalo</b>.`:`Una anomalía es opcional: consume la anomalía y otorga el rasgo <b>Núcleo anómalo</b> en lugar de solo Engendro.`;
  const filled=[0,1,2,3,4].filter(i=>spawnSelected[i]).length;
  if($("spawnStartBtn"))$("spawnStartBtn").disabled=filled!==5||!!activeTask;
 }
@@ -1487,18 +1487,18 @@ function startCreatureSpawn(){
   const avgR=Math.max(1,Math.min(5,Math.round(organs.reduce((s,o)=>s+(Number(o.r)||1),0)/5)+(anomaly?1:0)));
   const rFinal=Math.min(5,avgR);
   const useAnomaly=!!anomalyName;
-  const trait=useAnomaly?"Hibridación anómala":"Engendro";
+  const trait=useAnomaly?"Núcleo anómalo":"Engendro";
   const roots=useAnomaly?["Híbrido anómalo","Quimera de fase","Vástago resonante","Simbionte prismático","Coloso de umbral","Engendro híbrido"]:["Engendro","Quimera","Vástago sintético","Simbionte ilegal","Coloso menor","Híbrido de clínica"];
   const adjs=useAnomaly?["Anómalo","de FASE","Prismático","Resonante","del Umbral","Espectral"]:["Umbrío","Carmesí","Anómalo","de FASE","del Umbral","Clandestino","Resonante"];
   const name=roots[Math.floor(Math.random()*roots.length)]+" "+adjs[Math.floor(Math.random()*adjs.length)];
   const abilities=useAnomaly?[
-   {name:"Hibridación anómala",effect:"+"+(12+rFinal*3)+"% hallazgos anómalos"},
+   {name:"Núcleo anómalo",effect:"+"+(12+rFinal*3)+"% hallazgos anómalos"},
    {name:"Inestabilidad controlada",effect:"+"+(6+rFinal)+" defensa residual"}
   ]:[
    {name:"Instinto de engendro",effect:"+"+(8+rFinal*2)+"% de botín en exploración"},
    {name:"Tejido inestable",effect:"+"+(5+rFinal)+" defensa residual"}
   ];
-  const out={name,icon:useAnomaly?"🧬":"🧟",cat:"Criatura",r:rFinal,val:30+rFinal*25+(useAnomaly?40:0),desc:useAnomaly?`Criatura sintetizada con órganos y la anomalía ${anomalyName}. Rasgo Hibridación anómala e Ilegal.`:`Criatura sintetizada en clínica a partir de cinco órganos. Rasgo Engendro e Ilegal.`,trait,affix:trait,illegal:true,secondaryTrait:"Ilegal",abilities,companion:true,origin:"síntesis de criatura"};
+  const out={name,icon:useAnomaly?"🧬":"🧟",cat:"Criatura",r:rFinal,val:30+rFinal*25+(useAnomaly?40:0),desc:useAnomaly?`Criatura sintetizada con órganos y la anomalía ${anomalyName}. Rasgo Núcleo anómalo e Ilegal.`:`Criatura sintetizada en clínica a partir de cinco órganos. Rasgo Engendro e Ilegal.`,trait,affix:trait,illegal:true,secondaryTrait:"Ilegal",abilities,companion:true,origin:"síntesis de criatura"};
   itemDB[name]=out;
   addItem(name,1,out);
   state.discovered=state.discovered||{};state.discovered[name]={...out};
@@ -2859,7 +2859,12 @@ const CITY_PLACES=[
  {id:"lugar_b",name:"Lugar B",iconKey:"lock",desc:"Distrito sellado. Acceso restringido.",unlocked:false,req:"Bloqueado"},
  {id:"lugar_c",name:"Lugar C",iconKey:"lock",desc:"Distrito sellado. Acceso restringido.",unlocked:false,req:"Bloqueado"},
  {id:"lugar_d",name:"Lugar D",iconKey:"lock",desc:"Distrito sellado. Acceso restringido.",unlocked:false,req:"Bloqueado"},
- {id:"lugar_e",name:"Lugar E",iconKey:"lock",desc:"Distrito sellado. Acceso restringido.",unlocked:false,req:"Bloqueado"}
+ {id:"lugar_e",name:"Lugar E",iconKey:"lock",desc:"Distrito sellado. Acceso restringido.",unlocked:false,req:"Bloqueado"},
+ {id:"lugar_f",name:"Lugar F",iconKey:"lock",desc:"Distrito sellado. Acceso restringido.",unlocked:false,req:"Bloqueado"},
+ {id:"lugar_g",name:"Lugar G",iconKey:"lock",desc:"Distrito sellado. Acceso restringido.",unlocked:false,req:"Bloqueado"},
+ {id:"lugar_h",name:"Lugar H",iconKey:"lock",desc:"Distrito sellado. Acceso restringido.",unlocked:false,req:"Bloqueado"},
+ {id:"lugar_i",name:"Lugar I",iconKey:"lock",desc:"Distrito sellado. Acceso restringido.",unlocked:false,req:"Bloqueado"},
+ {id:"lugar_j",name:"Lugar J",iconKey:"lock",desc:"Distrito sellado. Acceso restringido.",unlocked:false,req:"Bloqueado"}
 ];
 const SLOT_MONEY_SYMBOLS=[
  {id:"chip",iconKey:"chip",name:"Ficha",mult:2,weight:28},
