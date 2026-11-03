@@ -1071,7 +1071,19 @@ function isLegalMarketItem(name,data){
  return false;
 }
 
+itemDB["Polvo de Fragmento"]={icon:"◇",cat:"Otro",r:1,val:1,desc:"Residuo de una fragmentación fallida. Solo útil en la Fragmentadora: cada unidad suma +1% de éxito y se consume al fragmentar.",name:"Polvo de Fragmento",fragmentDust:true,origin:"Fragmentadora"};
+itemDB["Fragmento de Síntesis"]={icon:"◈",cat:"Otro",r:5,val:0,desc:"Fragmento denso extraído de un objeto de síntesis. Valor de mercado variable (el doble del objeto origen). En el Registro Base el valor figura como desconocido (???).",name:"Fragmento de Síntesis",synthesisFragment:true,origin:"Fragmentadora",registryValHidden:true};
 itemDB["Polvo de Refinita"]={icon:"✧",cat:"Otro",r:1,val:1,desc:"Residuo de un refinamiento fallido. Material común de la Refinadora. Cada unidad suma +5% de éxito y se consume al refinar.",name:"Polvo de Refinita",refineDust:true};
+function isFragmentDust(x){
+  const n=typeof x==="string"?x:(x&&x.name)||"";
+  const d=typeof x==="object"&&x?x:info(n);
+  return n==="Polvo de Fragmento"||!!(d&&d.fragmentDust);
+}
+function isSynthesisFragment(x){
+  const n=typeof x==="string"?x:(x&&x.name)||"";
+  const d=typeof x==="object"&&x?x:info(n);
+  return n==="Fragmento de Síntesis"||!!(d&&d.synthesisFragment);
+}
 function isRefineDust(x){
   const n=typeof x==="string"?x:(x&&x.name)||"";
   const d=typeof x==="object"&&x?x:info(n);
@@ -1103,7 +1115,7 @@ function isOtroOnlyItem(x){
   // Categoría Otro (no contrabando): origen fijo, no entra en mejora/intercambio/suministros
   if(!d)return false;
   if(d.cat==="Contrabando"||d.contraband)return false;
-  if(n==="Polvo de Refinita"||d.refineDust)return true;
+  if(n==="Polvo de Refinita"||d.refineDust||n==="Polvo de Fragmento"||d.fragmentDust||n==="Fragmento de Síntesis"||d.synthesisFragment)return true;
   return d.cat==="Otro";
 }
 
@@ -1170,6 +1182,16 @@ function pickerMetaHtml(x){
   return `<span class="rarity ${rarityClass(r)}">N${r}</span> · ${formatCredits(v,13)}${qty>1?` · <span class="muted">×${qty}</span>`:""}`;
 }
 
+function displayItemValueHtml(item,size=14){
+  if(item&&(item.registryValHidden||item.name==="Fragmento de Síntesis")&&!(item.val>0&&item.hideRegistryVal===false)){
+    // En inventario sí se ve el valor real si viene en el stack; en registro base fijo ???
+    if(item.fromRegistry)return `<span class="muted">???</span>`;
+  }
+  if(item&&item.registryValHidden&&item.val==null)return `<span class="muted">???</span>`;
+  const v=item&&item.val!=null?item.val:(info(item&&item.name||"").val);
+  if(v==null||(info(item&&item.name||"").registryValHidden&&!(item&&item.val>0)))return `<span class="muted">???</span>`;
+  return formatCredits(v,size);
+}
 function formatCredits(amount,size=14){return `${creditsIconMarkup(size)}<span class="credits-amount">${Number(amount||0).toLocaleString("es-ES")}</span>`;}
 
 function hudIconMarkup(kind,size=22){
@@ -1178,6 +1200,8 @@ function hudIconMarkup(kind,size=22){
  const stroke='#53f2d1', mute='#7a9aa8', gold='#f5c542', red='#ff6b7a', blue='#6ec8ff', purple='#c18bff';
  const icons={
   // skills
+  home:`<svg ${common} style="color:currentColor"><path d="M32 12l22 18v26H40V40H24v16H10V30z" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/></svg>`,
+  arcade:`<svg ${common} style="color:currentColor"><rect x="16" y="10" width="32" height="40" rx="4" fill="none" stroke="currentColor" stroke-width="3"/><rect x="22" y="16" width="20" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2.5"/><circle cx="26" cy="40" r="3" fill="currentColor"/><circle cx="38" cy="40" r="3" fill="currentColor"/><path d="M24 48h16" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>`,
   printer:`<svg ${common} style="color:currentColor;display:block"><rect x="12" y="26" width="40" height="22" rx="3" fill="none" stroke="currentColor" stroke-width="3"/><path d="M18 26v-6h28v6" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/><path d="M20 40h24M24 46h16" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/><circle cx="44" cy="33" r="2.2" fill="currentColor"/></svg>`,
   explore_speed:`<svg ${common}><circle cx="32" cy="32" r="22" fill="none" stroke="${stroke}" stroke-width="3"/><path d="M32 18v16l10 6" fill="none" stroke="${gold}" stroke-width="3.5" stroke-linecap="round"/></svg>`,
   base_damage:`<svg ${common}><path d="M38 8l10 10-22 30-12 4 4-12z" fill="none" stroke="${red}" stroke-width="3" stroke-linejoin="round"/><path d="M14 50l8-8" stroke="${mute}" stroke-width="3" stroke-linecap="round"/></svg>`,
@@ -1647,7 +1671,7 @@ art=`<path d="M32 5 39 21 57 13 49 30 60 38 43 42 48 59 32 48 17 59 21 42 4 38 1
  const safe=raw.replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
  return `<svg class="item-svg-icon vector-item-icon icon-${kind}" viewBox="0 0 64 64" role="img" aria-label="${safe}" xmlns="http://www.w3.org/2000/svg" focusable="false">${art}</svg>`;
 }
-function knownInfo(name){const base={...info(name),...(state.discovered?.[name]||{}),...(state.inventory.find(x=>x.name===name)||{})};const variants=state.synthesisVariants?.[name];if(isSynthesisItem(base)&&Array.isArray(variants)&&variants.length){const best=variants.reduce((a,b)=>(Number(b.r)||1)>(Number(a.r)||1)?b:a,variants[0]);return {...base,...best,name}}return base}
+function knownInfo(name){const base={...info(name),...(state.discovered?.[name]||{}),...(state.inventory.find(x=>x.name===name)||{})};if(base.registryValHidden&&name==="Fragmento de Síntesis"){base.valDisplay="???";}const variants=state.synthesisVariants?.[name];if(isSynthesisItem(base)&&Array.isArray(variants)&&variants.length){const best=variants.reduce((a,b)=>(Number(b.r)||1)>(Number(a.r)||1)?b:a,variants[0]);return {...base,...best,name}}return base}
 function isSynthesisItem(x){return !!(x&&(x.trait==="Síntesis de convergencia"||x.affix==="Síntesis de convergencia"||x.coherent===true||x.sourceA&&x.sourceB));}
 // Fuente única del Registro Base. La Refinadora y la pantalla del Registro
 // consultan exactamente estos mismos registros, nunca itemDB ni discovered por separado.
@@ -2855,9 +2879,9 @@ function removeItemById(id,qty){
 
 // === CIUDAD · CASINO ===
 const CITY_PLACES=[
+ {id:"hogar",name:"Hogar",iconKey:"home",desc:"Tu refugio. Ordenador con acceso a la red local del asentamiento.",unlocked:true},
+ {id:"arcade",name:"Arcade",iconKey:"arcade",desc:"Tres máquinas recreativas. 1 CR por partida. Compite por el highscore.",unlocked:true},
  {id:"casino",name:"El Casino",iconKey:"casino",desc:"Mesas de azar y slots. Créditos y objetos en juego.",unlocked:true},
- {id:"lugar_b",name:"Lugar B",iconKey:"lock",desc:"Distrito sellado. Acceso restringido.",unlocked:false,req:"Bloqueado"},
- {id:"lugar_c",name:"Lugar C",iconKey:"lock",desc:"Distrito sellado. Acceso restringido.",unlocked:false,req:"Bloqueado"},
  {id:"lugar_d",name:"Lugar D",iconKey:"lock",desc:"Distrito sellado. Acceso restringido.",unlocked:false,req:"Bloqueado"},
  {id:"lugar_e",name:"Lugar E",iconKey:"lock",desc:"Distrito sellado. Acceso restringido.",unlocked:false,req:"Bloqueado"},
  {id:"lugar_f",name:"Lugar F",iconKey:"lock",desc:"Distrito sellado. Acceso restringido.",unlocked:false,req:"Bloqueado"},
@@ -2889,11 +2913,234 @@ function renderCityPlaces(){
   const id=b.dataset.cityPlace;
   const place=CITY_PLACES.find(x=>x.id===id);
   if(!place||!place.unlocked)return toast("Lugar bloqueado.",true);
-  if(id==="casino")openCasino();
+  if(id==="hogar")openHogar();
+  else if(id==="arcade")openArcade();
+  else if(id==="casino")openCasino();
  });
+}
+
+// === HOGAR · ORDENADOR ===
+const HOME_SITES=[
+ {id:"news",name:"AnomalyWire",url:"aw://news.local",icon:"AW",kind:"news"},
+ {id:"lore",name:"Archivo del Colapso",url:"aw://archivo.colapso",icon:"AR",kind:"lore"},
+ {id:"ops",name:"Boletín del Operador",url:"aw://ops.bulletin",icon:"OP",kind:"info"},
+ {id:"ads",name:"Clasificados Gris",url:"aw://ads.gris",icon:"CL",kind:"ads"},
+ {id:"net",name:"Nodo Ciudad",url:"aw://ciudad.nodo",icon:"NC",kind:"info"},
+ {id:"shop",name:"Vitrina Fantasma",url:"aw://shop.ghost",icon:"VF",kind:"ads"},
+ {id:"forum",name:"Foro Subcapa",url:"aw://forum.sub",icon:"FS",kind:"lore"},
+ {id:"weather",name:"Cielo Sintético",url:"aw://meteo.syn",icon:"CS",kind:"info"}
+];
+const HOME_NEWS=[
+ "Fuga menor en el sector de conversión: sin víctimas, con rumores.",
+ "El Casino reporta una racha de pérdidas 'estadísticamente normales'.",
+ "Autómatas avistados en el perímetro; la Fábrica niega fallos de sellado.",
+ "Precio del lingote de cobre oscila tras un cargamento fantasma.",
+ "Operadores reportan sueños con el mismo patrón de interferencia.",
+ "Nueva ruta de suministros aprobada… y cancelada en la misma hora.",
+ "Un Fragmento de Síntesis aparece en un inventario sin registro de origen.",
+ "La Torre sigue en silencio. Nadie confirma si sigue activa."
+];
+const HOME_LORE=[
+ "El Colapso no fue un instante: fue una serie de puertas que nadie debió abrir.",
+ "Las anomalías no 'existen' en el vacío; se pegan a lo que ya tenía nombre.",
+ "Antes del asentamiento había mapas. Ahora hay rutas que se reescriben solas.",
+ "Síntesis de convergencia: dos verdades forzadas a compartir el mismo cuerpo.",
+ "El Registro Base miente por omisión. Lo que no está listado aún no te ha visto.",
+ "Los módulos del Centro no fueron inventados: fueron desenterrados."
+];
+const HOME_ADS=[
+ "¡Duplica tus hallazgos! (Resultados no garantizados. Casa siempre gana.)",
+ "Vendo pinzas casi nuevas. No pregunten por las manchas.",
+ "Curso express: 'Cómo no morir en la Mina'. Plazas limitadas.",
+ "Compra polvo. Vende polvo. Respira polvo. Patrocinado por la Refinadora.",
+ "¿Cansado de explorar? Deja que el Arcade vacíe tu monedero con dignidad."
+];
+const HOME_INFO=[
+ "Consejo: los objetos Otros no circulan por las máquinas de conversión estándar.",
+ "El Destornillador solo rinde en la Fábrica. Las Pinzas, en la Clínica.",
+ "Highscores del Arcade se guardan en tu perfil de operador.",
+ "La Fragmentadora devuelve valor en forma de riesgo: 5% base no es un rumor.",
+ "Si el Hogar muestra publicidad, la red local sigue viva. Eso es… algo."
+];
+let homeSiteId="news";
+function homePageContent(site){
+  const seed=(state.day||1)+(state.credits||0)%7;
+  if(site.kind==="news"){
+    const items=[];
+    for(let i=0;i<6;i++) items.push(HOME_NEWS[(seed+i*3)%HOME_NEWS.length]);
+    return `<h4>Titulares · ciclo ${seed}</h4><ul class="home-list">${items.map(t=>`<li>${escapeHtml(t)}</li>`).join("")}</ul>`;
+  }
+  if(site.kind==="lore"){
+    const items=[];
+    for(let i=0;i<5;i++) items.push(HOME_LORE[(seed+i*2)%HOME_LORE.length]);
+    return `<h4>Fragmentos de archivo</h4><div class="home-lore">${items.map(t=>`<p>${escapeHtml(t)}</p>`).join("")}</div>`;
+  }
+  if(site.kind==="ads"){
+    const items=[];
+    for(let i=0;i<5;i++) items.push(HOME_ADS[(seed+i)%HOME_ADS.length]);
+    return `<h4>Clasificados</h4><ul class="home-list ads">${items.map(t=>`<li>${escapeHtml(t)}</li>`).join("")}</ul><p class="small-note">La publicidad no implica respaldo del Centro de control.</p>`;
+  }
+  // info
+  const items=[];
+  for(let i=0;i<5;i++) items.push(HOME_INFO[(seed+i*4)%HOME_INFO.length]);
+  return `<h4>${escapeHtml(site.name)}</h4><ul class="home-list">${items.map(t=>`<li>${escapeHtml(t)}</li>`).join("")}</ul>`;
+}
+function renderHogar(){
+  const list=$("homeSiteList");
+  if(list){
+    list.innerHTML=HOME_SITES.map(s=>`<button type="button" class="home-site-btn ${s.id===homeSiteId?"active":""}" data-home-site="${s.id}"><span>${s.icon}</span><span>${escapeHtml(s.name)}</span></button>`).join("");
+    list.querySelectorAll("[data-home-site]").forEach(b=>b.onclick=()=>{homeSiteId=b.dataset.homeSite;renderHogar();sound(400,.04,"sine")});
+  }
+  const site=HOME_SITES.find(s=>s.id===homeSiteId)||HOME_SITES[0];
+  if($("homeUrl"))$("homeUrl").textContent=site.url;
+  if($("homePage"))$("homePage").innerHTML=homePageContent(site);
+}
+function openHogar(){
+  if($("cityPlaces"))$("cityPlaces").classList.add("hidden");
+  ["cityCasino","cityArcade"].forEach(id=>{const el=$(id);if(el)el.classList.add("hidden")});
+  if($("cityHogar"))$("cityHogar").classList.remove("hidden");
+  if($("hogarTitleIcon"))$("hogarTitleIcon").innerHTML=typeof hudIconMarkup==="function"?hudIconMarkup("home",26):"";
+  renderHogar();
+}
+
+// === ARCADE ===
+let arcadeGame=null,arcadeTimer=null,arcadeScore=0,arcadeActive=false;
+function ensureArcadeScores(){if(!state.arcadeScores)state.arcadeScores={reflex:0,memory:0,pulse:0}}
+function openArcade(){
+  ensureArcadeScores();
+  if($("cityPlaces"))$("cityPlaces").classList.add("hidden");
+  ["cityCasino","cityHogar"].forEach(id=>{const el=$(id);if(el)el.classList.add("hidden")});
+  if($("cityArcade"))$("cityArcade").classList.remove("hidden");
+  if($("arcadeTitleIcon"))$("arcadeTitleIcon").innerHTML=typeof hudIconMarkup==="function"?hudIconMarkup("arcade",26):"";
+  renderArcadeHub();
+}
+function renderArcadeHub(){
+  ensureArcadeScores();
+  const s=state.arcadeScores;
+  if($("hsReflex"))$("hsReflex").textContent=String(s.reflex||0);
+  if($("hsMemory"))$("hsMemory").textContent=String(s.memory||0);
+  if($("hsPulse"))$("hsPulse").textContent=String(s.pulse||0);
+  if($("arcadePlay"))$("arcadePlay").classList.remove("hidden");
+  if($("arcadeStage"))$("arcadeStage").classList.add("hidden");
+}
+function stopArcadeGame(silent){
+  arcadeActive=false;
+  if(arcadeTimer){clearInterval(arcadeTimer);clearTimeout(arcadeTimer);arcadeTimer=null}
+  arcadeGame=null;
+  if(!silent)renderArcadeHub();
+}
+function startArcade(game){
+  ensureArcadeScores();
+  if((state.credits||0)<1)return toast("Necesitas 1 CR.",true);
+  state.credits-=1;save();
+  if(typeof renderTopbar==="function")renderTopbar();
+  else if(typeof render==="function")try{render()}catch(e){}
+  arcadeGame=game;arcadeScore=0;arcadeActive=true;
+  if($("arcadePlay"))$("arcadePlay").classList.add("hidden");
+  if($("arcadeStage"))$("arcadeStage").classList.remove("hidden");
+  if($("arcadeStageTitle"))$("arcadeStageTitle").textContent=game==="reflex"?"Reflejos":game==="memory"?"Memoria":"Pulso";
+  if($("arcadeLiveScore"))$("arcadeLiveScore").textContent="0";
+  if(game==="reflex")runReflex();
+  else if(game==="memory")runMemory();
+  else runPulse();
+  toast("-1 CR");sound(280,.06,"sine");
+}
+function finishArcade(game,score){
+  arcadeActive=false;
+  if(arcadeTimer){clearInterval(arcadeTimer);clearTimeout(arcadeTimer);arcadeTimer=null}
+  ensureArcadeScores();
+  const prev=Number(state.arcadeScores[game]||0);
+  if(score>prev){state.arcadeScores[game]=score;toast("¡Nuevo récord!");sound(660,.12,"triangle")}
+  else toast("Puntuación: "+score);
+  save();
+  if($("arcadeStageMsg"))$("arcadeStageMsg").textContent=`Final: ${score} · Récord: ${state.arcadeScores[game]}`;
+  setTimeout(()=>{renderArcadeHub()},900);
+}
+function runReflex(){
+  const host=$("arcadeCanvas");
+  if(!host)return;
+  let left=20,hits=0;
+  const spawn=()=>{
+    if(!arcadeActive||arcadeGame!=="reflex")return;
+    host.innerHTML="";
+    if(left<=0){finishArcade("reflex",hits);return}
+    left--;
+    const btn=document.createElement("button");
+    btn.className="arcade-target";
+    btn.textContent="●";
+    btn.style.left=(10+Math.random()*70)+"%";
+    btn.style.top=(10+Math.random()*70)+"%";
+    btn.onclick=()=>{hits++;arcadeScore=hits;if($("arcadeLiveScore"))$("arcadeLiveScore").textContent=String(hits);btn.remove();sound(520,.04,"square")};
+    host.appendChild(btn);
+    arcadeTimer=setTimeout(spawn,700);
+  };
+  if($("arcadeStageMsg"))$("arcadeStageMsg").textContent="Toca el objetivo antes de que cambie.";
+  spawn();
+}
+function runMemory(){
+  const host=$("arcadeCanvas");
+  if(!host)return;
+  const seq=[];
+  let expect=0,showing=false;
+  const colors=["#53f2d1","#f5c542","#ff6b7a","#6ec8ff"];
+  host.innerHTML=`<div class="mem-grid">${[0,1,2,3].map(i=>`<button type="button" class="mem-cell" data-m="${i}" style="--c:${colors[i]}"></button>`).join("")}</div>`;
+  const cells=[...host.querySelectorAll(".mem-cell")];
+  const flash=async()=>{
+    showing=true;
+    for(const n of seq){
+      cells[n].classList.add("on");
+      await new Promise(r=>setTimeout(r,320));
+      cells[n].classList.remove("on");
+      await new Promise(r=>setTimeout(r,120));
+    }
+    showing=false;expect=0;
+  };
+  const next=()=>{seq.push(Math.floor(Math.random()*4));arcadeScore=Math.max(0,seq.length-1);if($("arcadeLiveScore"))$("arcadeLiveScore").textContent=String(arcadeScore);flash()};
+  cells.forEach(c=>c.onclick=()=>{
+    if(!arcadeActive||showing||arcadeGame!=="memory")return;
+    const n=Number(c.dataset.m);
+    c.classList.add("on");setTimeout(()=>c.classList.remove("on"),150);
+    if(n!==seq[expect]){finishArcade("memory",Math.max(0,seq.length-1));return}
+    expect++;
+    if(expect>=seq.length){arcadeScore=seq.length;if($("arcadeLiveScore"))$("arcadeLiveScore").textContent=String(arcadeScore);setTimeout(next,400)}
+  });
+  if($("arcadeStageMsg"))$("arcadeStageMsg").textContent="Repite la secuencia.";
+  next();
+}
+function runPulse(){
+  const host=$("arcadeCanvas");
+  if(!host)return;
+  let t=15,combo=0;
+  host.innerHTML=`<button type="button" class="pulse-btn" id="pulseBtn">PULSO</button><div class="small-note" id="pulseHint">Pulsa en el ritmo</div>`;
+  let last=Date.now();
+  const beat=650;
+  arcadeTimer=setInterval(()=>{
+    t--;
+    if($("arcadeStageMsg"))$("arcadeStageMsg").textContent=`Tiempo: ${t}s`;
+    if(t<=0){clearInterval(arcadeTimer);finishArcade("pulse",arcadeScore)}
+  },1000);
+  if($("pulseBtn"))$("pulseBtn").onclick=()=>{
+    if(!arcadeActive)return;
+    const now=Date.now();
+    const d=Math.abs((now-last)%beat);
+    const err=Math.min(d,beat-d);
+    if(err<90){combo++;arcadeScore+=1+Math.floor(combo/3)}
+    else{combo=0;arcadeScore=Math.max(0,arcadeScore-1)}
+    last=now;
+    if($("arcadeLiveScore"))$("arcadeLiveScore").textContent=String(arcadeScore);
+    sound(err<90?600:220,.04,"square");
+  };
+  if($("arcadeStageMsg"))$("arcadeStageMsg").textContent="Tiempo: 15s";
+}
+
+
+function hideAllCityVenues(){
+ if($("cityPlaces"))$("cityPlaces").classList.remove("hidden");
+ ["cityCasino","cityHogar","cityArcade"].forEach(id=>{const el=$(id);if(el)el.classList.add("hidden")});
 }
 function openCasino(){
  if($("cityPlaces"))$("cityPlaces").classList.add("hidden");
+ ["cityHogar","cityArcade"].forEach(id=>{const el=$(id);if(el)el.classList.add("hidden")});
  if($("cityCasino"))$("cityCasino").classList.remove("hidden");
  if($("casinoTitleIcon"))$("casinoTitleIcon").innerHTML=hudIconMarkup("casino",26);
  if($("tabIcoMoney"))$("tabIcoMoney").innerHTML=hudIconMarkup("chip",18);
@@ -2906,10 +3153,10 @@ function openCasino(){
   grid.querySelectorAll(".slot-cell").forEach(c=>{c.innerHTML=hudIconMarkup("question",28);c.classList.remove("spinning","win")});
  });
 }
-function closeCasino(){
- if($("cityCasino"))$("cityCasino").classList.add("hidden");
- if($("cityPlaces"))$("cityPlaces").classList.remove("hidden");
-}
+function closeCasino(){hideAllCityVenues()}
+function closeHogar(){hideAllCityVenues()}
+function closeArcade(){hideAllCityVenues();stopArcadeGame(true)}
+
 function renderSlotMoneyPaytable(){
  const host=$("slotMoneyPaytable");
  if(!host)return;
@@ -3133,6 +3380,12 @@ function claimSlotPrizes(){
 }
 function bindCasinoUI(){
  if($("cityBackBtn"))$("cityBackBtn").onclick=closeCasino;
+if($("hogarBackBtn"))$("hogarBackBtn").onclick=closeHogar;
+if($("arcadeBackBtn"))$("arcadeBackBtn").onclick=closeArcade;
+if($("arcadeStartReflex"))$("arcadeStartReflex").onclick=()=>startArcade("reflex");
+if($("arcadeStartMemory"))$("arcadeStartMemory").onclick=()=>startArcade("memory");
+if($("arcadeStartPulse"))$("arcadeStartPulse").onclick=()=>startArcade("pulse");
+
  document.querySelectorAll("[data-casino-tab]").forEach(b=>b.onclick=()=>{
   document.querySelectorAll("[data-casino-tab]").forEach(x=>x.classList.toggle("active",x===b));
   document.querySelectorAll(".casino-section").forEach(x=>x.classList.toggle("active",x.id==="casino-"+b.dataset.casinoTab));
@@ -3763,6 +4016,139 @@ function claimPrint(){
 }
 
 
+
+// === FRAGMENTADORA ===
+let fragInputId=null,fragDustQty=0,fragBusy=false,fragPending=null;
+function countFragmentDust(){
+  return state.inventory.filter(isFragmentDust).reduce((s,x)=>s+(Number(x.qty)||0),0);
+}
+function fragChancePct(){
+  return Math.max(0,Math.min(100,5+Math.max(0,Number(fragDustQty)||0))); // base 5% +1% por polvo
+}
+function fragChanceClass(pct){
+  if(pct<=20)return "pct-low";
+  if(pct<=49)return "pct-mid";
+  return "pct-high";
+}
+function renderFragmentMachine(){
+  const inItem=fragInputId?state.inventory.find(i=>i.id===fragInputId):null;
+  if(fragInputId&&!inItem)fragInputId=null;
+  if(inItem&&(isItemEquipped(inItem.id)||!isSynthesisItem(inItem)||isFragmentDust(inItem)||isSynthesisFragment(inItem))){fragInputId=null}
+  const pick=$("fragInputPick"),infoEl=$("fragInputInfo"),clr=$("fragInputClear");
+  if(pick){
+    if(inItem)pick.innerHTML=`<span class="item-icon">${itemIconMarkup(inItem.name,inItem.icon||info(inItem.name).icon)}</span> ${escapeHtml(inventoryDisplayName(inItem))}`;
+    else pick.textContent="＋ Elegir objeto de síntesis";
+  }
+  if(infoEl){
+    if(inItem){
+      const v=Math.max(1,Number(inItem.val)||Number(info(inItem.name).val)||1);
+      const outV=v*2;
+      infoEl.innerHTML=`N${inItem.r||1} · Síntesis · Valor ${formatCredits(v,14)}<br><span class="muted">Si aciertas → Fragmento de Síntesis (~${formatCredits(outV,12)})</span>`;
+    } else infoEl.textContent="Ningún objeto.";
+  }
+  if(clr){clr.classList.toggle("hidden",!inItem||fragBusy||!!fragPending);clr.disabled=!!(fragBusy||fragPending)}
+  const dustHave=countFragmentDust();
+  if(fragDustQty>dustHave)fragDustQty=dustHave;
+  if($("fragDustHave"))$("fragDustHave").textContent=String(dustHave);
+  if($("fragDustQty"))$("fragDustQty").textContent="×"+fragDustQty;
+  if($("fragDustMinus"))$("fragDustMinus").disabled=fragBusy||!!fragPending||fragDustQty<=0;
+  if($("fragDustPlus"))$("fragDustPlus").disabled=fragBusy||!!fragPending||fragDustQty>=dustHave;
+  const pct=fragChancePct();
+  const ch=$("fragChance");
+  if(ch){
+    const cls=fragChanceClass(pct);
+    const col=cls==="pct-low"?"#ff2a3c":cls==="pct-mid"?"#ff8a00":"#2ee56b";
+    ch.textContent=pct+"%";
+    ch.className="print-chance "+cls;
+    ch.style.cssText="font-size:2.2rem;font-weight:900;color:"+col+";text-shadow:0 0 12px "+col+"88;text-align:center;";
+  }
+  if($("fragStartBtn"))$("fragStartBtn").disabled=fragBusy||!inItem||!!fragPending||!!activeTask;
+  // salida
+  const outList=$("fragOutList");
+  if(outList){
+    if(!fragPending)outList.innerHTML='<div class="empty">Vacía.</div>';
+    else {
+      const p=fragPending;
+      outList.innerHTML=`<div class="print-fuel-row" style="display:flex;align-items:center;gap:10px"><span class="item-icon">${itemIconMarkup(p.name,info(p.name).icon)}</span><div style="flex:1"><b>${escapeHtml(p.name)}</b><small> · ×${p.qty||1} · ${p.registryValHidden?"???":formatCredits(p.val||1,12)}</small></div></div>`;
+    }
+  }
+  if($("fragClaimBtn"))$("fragClaimBtn").disabled=!fragPending||fragBusy;
+  if($("fragNote"))$("fragNote").textContent=fragPending?(fragPending.ok?"Fragmentación correcta.":"Fragmentación fallida."):"Vacía.";
+  if($("fragStatus")&&!fragBusy)$("fragStatus").textContent=fragPending?"Listo":"En espera";
+}
+function openFragInputPicker(){
+  if(fragBusy||fragPending)return toast("Reclama o espera el proceso.",true);
+  pickerMode="fragInput";pickerSlot=null;pickerFilter="Síntesis";pickerPage=1;
+  if($("pickerSearch"))$("pickerSearch").value="";
+  if($("pickerTitle"))$("pickerTitle").textContent="FRAGMENTADORA · ENTRADA";
+  if($("pickerDescription"))$("pickerDescription").textContent="Solo objetos de síntesis (no criaturas, no fragmentos).";
+  if($("pickerFilterMenu"))$("pickerFilterMenu").classList.remove("hidden");
+  $("inventoryPicker").classList.remove("hidden");renderPicker();
+}
+function startFragment(){
+  if(fragBusy||fragPending)return;
+  const item=state.inventory.find(i=>i.id===fragInputId);
+  if(!item)return toast("Elige un objeto de síntesis.",true);
+  if(!isSynthesisItem(item)||isFragmentDust(item)||isSynthesisFragment(item))return toast("Solo síntesis válidas.",true);
+  if(isItemEquipped(item.id))return toast("Desequipa primero.",true);
+  const dustNeed=Math.max(0,Number(fragDustQty)||0);
+  if(dustNeed>countFragmentDust())return toast("No tienes suficiente Polvo de Fragmento.",true);
+  const pct=fragChancePct();
+  const inVal=Math.max(1,Number(item.val)||Number(info(item.name).val)||1);
+  // consume input + dust
+  if(!takeById(item.id,1))return toast("No se pudo consumir el objeto.",true);
+  let left=dustNeed;
+  for(const d of state.inventory.filter(isFragmentDust)){
+    if(left<=0)break;
+    const use=Math.min(left,d.qty||0);
+    if(use>0){takeById(d.id,use);left-=use}
+  }
+  fragDustQty=0;
+  fragInputId=null;
+  fragBusy=true;
+  if($("fragBarFill"))$("fragBarFill").style.width="0%";
+  if($("fragStatus"))$("fragStatus").textContent="Fragmentando…";
+  renderFragmentMachine();sound(300,.08,"sine");
+  const t0=Date.now(),dur=5000;
+  const tick=()=>{
+    if(!fragBusy)return;
+    const p=Math.min(1,(Date.now()-t0)/dur);
+    if($("fragBarFill"))$("fragBarFill").style.width=(p*100)+"%";
+    if(p<1){requestAnimationFrame(tick);return}
+    const ok=Math.random()*100<pct;
+    fragBusy=false;
+    if(ok){
+      fragPending={name:"Fragmento de Síntesis",qty:1,r:5,val:inVal*2,cat:"Otro",origin:"Fragmentadora",synthesisFragment:true,registryValHidden:true,ok:true,sourceVal:inVal};
+      if($("fragResult"))$("fragResult").innerHTML=`<span class="cyan">Éxito (${pct}%).</span> Fragmento listo (valor efectivo ${inVal*2} cr.).`;
+      sound(620,.12,"triangle");
+    }else{
+      fragPending={name:"Polvo de Fragmento",qty:1,r:1,val:1,cat:"Otro",origin:"Fragmentadora",fragmentDust:true,ok:false};
+      if($("fragResult"))$("fragResult").innerHTML=`<span class="red">Fallo (${pct}%).</span> Obtienes Polvo de Fragmento.`;
+      sound(180,.12,"sawtooth");
+    }
+    if($("fragStatus"))$("fragStatus").textContent="Listo";
+    if($("fragBarFill"))$("fragBarFill").style.width="100%";
+    renderFragmentMachine();save();
+  };
+  requestAnimationFrame(tick);
+}
+function claimFragment(){
+  if(!fragPending||fragBusy)return;
+  const p=fragPending;
+  addItem(p.name,p.qty||1,{r:p.r,val:p.val,cat:"Otro",origin:p.origin,fragmentDust:p.fragmentDust,synthesisFragment:p.synthesisFragment,registryValHidden:p.registryValHidden});
+  // ensure seen for registry
+  if(!state.seen)state.seen=[];
+  if(!state.seen.includes(p.name))state.seen.push(p.name);
+  if(state.discovered&&!state.discovered[p.name])state.discovered[p.name]={};
+  log(`Fragmentadora: <b>${escapeHtml(p.name)}</b> ×${p.qty||1}.`);
+  toast(p.ok?"Fragmento reclamado":"Polvo reclamado");
+  fragPending=null;
+  if($("fragBarFill"))$("fragBarFill").style.width="0%";
+  if($("fragResult"))$("fragResult").textContent="";
+  renderFragmentMachine();render();save();sound(560,.1,"triangle");
+}
+
+
 function nav(page){
  // Combate activo: solo se permite volver a Exploración para no quedar atrapado fuera del HUD de combate
  if(currentEnemy){
@@ -3774,7 +4160,7 @@ function nav(page){
   // page === explore → permitir y reabrir el combate
  }
  const requestedSupplies=page==="supplies";if(requestedSupplies)page="central";document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id==="page-"+page));
-if(page==="city"){closeCasino();renderCityPlaces();updateSlotBetsUI();}if(page==="skills")renderSkills();if(page==="stats")renderStats();document.querySelectorAll("[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===page));if(typeof closeMobileNavPanels==="function")closeMobileNavPanels();if(requestedSupplies){document.querySelectorAll("[data-central-tab]").forEach(b=>b.classList.toggle("active",b.dataset.centralTab==="supplies"));document.querySelectorAll("#page-central .central-section").forEach(x=>x.classList.toggle("active",x.id==="central-supplies"))}if(page==="clinic"){renderExtractTable();renderSpawnTable()}if(page==="factory"){renderDismantleTable();renderAssembleTable()}if(page==="nexus"){renderUpgradeMachine();renderExchangeModule();renderRefineMachine();renderRecycleMachine();renderScrapMachine();renderPrintMachine()}if(page==="market"){try{ensureMarketDay();renderMarketBuy(false);renderMarketBuy(true);renderMarketSell(false);renderMarketSell(true)}catch(err){console.error(err)}}
+if(page==="city"){closeCasino();renderCityPlaces();updateSlotBetsUI();}if(page==="skills")renderSkills();if(page==="stats")renderStats();document.querySelectorAll("[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===page));if(typeof closeMobileNavPanels==="function")closeMobileNavPanels();if(requestedSupplies){document.querySelectorAll("[data-central-tab]").forEach(b=>b.classList.toggle("active",b.dataset.centralTab==="supplies"));document.querySelectorAll("#page-central .central-section").forEach(x=>x.classList.toggle("active",x.id==="central-supplies"))}if(page==="clinic"){renderExtractTable();renderSpawnTable()}if(page==="factory"){renderDismantleTable();renderAssembleTable()}if(page==="nexus"){renderUpgradeMachine();renderExchangeModule();renderRefineMachine();renderRecycleMachine();renderScrapMachine();renderPrintMachine();renderFragmentMachine()}if(page==="market"){try{ensureMarketDay();renderMarketBuy(false);renderMarketBuy(true);renderMarketSell(false);renderMarketSell(true)}catch(err){console.error(err)}}
  // Si hay combate en curso, forzar HUD de zona + panel de combate visibles en Exploración
  if(currentEnemy&&page==="explore"){
   zoneHudOpen=true;
@@ -4059,7 +4445,33 @@ function renderPicker(){
  }
 
  
- if(pickerMode==="printTarget"||pickerMode==="printFuel"){
+ 
+ if(pickerMode==="fragInput"){
+  const search=($("pickerSearch")&&$("pickerSearch").value||"").trim().toLowerCase();
+  let list=state.inventory.filter(x=>{
+    if(x.qty<=0||isItemEquipped(x.id))return false;
+    if(!isSynthesisItem(x))return false;
+    if(isFragmentDust(x)||isSynthesisFragment(x)||isRefineDust(x))return false;
+    if((x.cat||info(x.name).cat)==="Criatura")return false;
+    if(search&&!String(x.name).toLowerCase().includes(search)&&!inventoryDisplayName(x).toLowerCase().includes(search))return false;
+    return true;
+  });
+  const pageSize=pickerPageSize();
+  const pages=Math.max(1,Math.ceil(list.length/pageSize));
+  pickerPage=Math.min(Math.max(1,pickerPage),pages);
+  const shown=list.slice((pickerPage-1)*pageSize,pickerPage*pageSize);
+  $("pickerGrid").innerHTML=shown.length?shown.map(x=>`<button type="button" class="picker-item" data-pick-id="${x.id}"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><span style="min-width:0"><b>${escapeHtml(inventoryDisplayName(x))}</b><small>${pickerMetaHtml(x)}</small></span></button>`).join(""):'<div class="empty" style="grid-column:1/-1">No hay objetos de síntesis válidos.</div>';
+  if($("pickerPageInfo"))$("pickerPageInfo").textContent=`Página ${pickerPage} / ${pages}`;
+  if($("pickerPrev")){$("pickerPrev").disabled=pickerPage<=1;$("pickerPrev").onclick=()=>{pickerPage=Math.max(1,pickerPage-1);renderPicker()};}
+  if($("pickerNext")){$("pickerNext").disabled=pickerPage>=pages;$("pickerNext").onclick=()=>{pickerPage++;renderPicker()};}
+  $("pickerGrid").querySelectorAll("[data-pick-id]").forEach(b=>b.onclick=()=>{
+    const x=state.inventory.find(i=>i.id===b.dataset.pickId);
+    if(!x)return;
+    fragInputId=x.id;$("inventoryPicker").classList.add("hidden");renderFragmentMachine();sound(500);
+  });
+  return;
+ }
+if(pickerMode==="printTarget"||pickerMode==="printFuel"){
   const fuelIds=new Set(printFuel.map(x=>x.id));
   let list=state.inventory.filter(x=>{
     if(x.qty<=0||isItemEquipped(x.id))return false;
@@ -4306,7 +4718,33 @@ if(pickerMode==="upgradeInput"){
  }
 
  
- if(pickerMode==="printTarget"||pickerMode==="printFuel"){
+ 
+ if(pickerMode==="fragInput"){
+  const search=($("pickerSearch")&&$("pickerSearch").value||"").trim().toLowerCase();
+  let list=state.inventory.filter(x=>{
+    if(x.qty<=0||isItemEquipped(x.id))return false;
+    if(!isSynthesisItem(x))return false;
+    if(isFragmentDust(x)||isSynthesisFragment(x)||isRefineDust(x))return false;
+    if((x.cat||info(x.name).cat)==="Criatura")return false;
+    if(search&&!String(x.name).toLowerCase().includes(search)&&!inventoryDisplayName(x).toLowerCase().includes(search))return false;
+    return true;
+  });
+  const pageSize=pickerPageSize();
+  const pages=Math.max(1,Math.ceil(list.length/pageSize));
+  pickerPage=Math.min(Math.max(1,pickerPage),pages);
+  const shown=list.slice((pickerPage-1)*pageSize,pickerPage*pageSize);
+  $("pickerGrid").innerHTML=shown.length?shown.map(x=>`<button type="button" class="picker-item" data-pick-id="${x.id}"><span class="item-icon">${itemIconMarkup(x.name,x.icon||info(x.name).icon)}</span><span style="min-width:0"><b>${escapeHtml(inventoryDisplayName(x))}</b><small>${pickerMetaHtml(x)}</small></span></button>`).join(""):'<div class="empty" style="grid-column:1/-1">No hay objetos de síntesis válidos.</div>';
+  if($("pickerPageInfo"))$("pickerPageInfo").textContent=`Página ${pickerPage} / ${pages}`;
+  if($("pickerPrev")){$("pickerPrev").disabled=pickerPage<=1;$("pickerPrev").onclick=()=>{pickerPage=Math.max(1,pickerPage-1);renderPicker()};}
+  if($("pickerNext")){$("pickerNext").disabled=pickerPage>=pages;$("pickerNext").onclick=()=>{pickerPage++;renderPicker()};}
+  $("pickerGrid").querySelectorAll("[data-pick-id]").forEach(b=>b.onclick=()=>{
+    const x=state.inventory.find(i=>i.id===b.dataset.pickId);
+    if(!x)return;
+    fragInputId=x.id;$("inventoryPicker").classList.add("hidden");renderFragmentMachine();sound(500);
+  });
+  return;
+ }
+if(pickerMode==="printTarget"||pickerMode==="printFuel"){
   const fuelIds=new Set(printFuel.map(x=>x.id));
   let list=state.inventory.filter(x=>{
     if(x.qty<=0||isItemEquipped(x.id))return false;
@@ -4898,7 +5336,9 @@ function openRegistryItem(name,level=null){
  // TODOS los de síntesis → Valor Aprox. Base y órganos no-síntesis → Valor Base fijo.
  const isSynth=isSynthesisItem(base)||isSynthesisItem(d)||!!(d&&d.trait==="Síntesis de convergencia");
  const fixedPrice=!isSynth&&!base.procedural&&!(d&&d.procedural);
- const approxChip=fixedPrice
+ const approxChip=(base.registryValHidden||d.registryValHidden||name==="Fragmento de Síntesis")
+  ?`<span class="chip">Valor Base: ???</span>`
+  :fixedPrice
   ?`<span class="chip">Valor Base: ${Math.max(1,Number(d.val)||Number(base.val)||0)}</span>`
   :`<span class="chip">Valor Aprox: ${valMin} - ${valMax}</span>`;
  const traitBits=[d.trait,d.secondaryTrait,d.affix].filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i);
@@ -4976,7 +5416,7 @@ document.querySelectorAll("[data-nexus-tab]").forEach(b=>b.onclick=()=>{
   document.querySelectorAll("#page-nexus .nexus-section").forEach(x=>x.classList.toggle("active",x.id==="nexus-"+b.dataset.nexusTab));
   if(b.dataset.nexusTab==="upgrade")renderUpgradeMachine();
   if(b.dataset.nexusTab==="mod2")renderExchangeModule();
-  if(b.dataset.nexusTab==="mod3")renderRefineMachine();if(b.dataset.nexusTab==="recycle")renderRecycleMachine();if(b.dataset.nexusTab==="scrap")renderScrapMachine();if(b.dataset.nexusTab==="print")renderPrintMachine();
+  if(b.dataset.nexusTab==="mod3")renderRefineMachine();if(b.dataset.nexusTab==="recycle")renderRecycleMachine();if(b.dataset.nexusTab==="scrap")renderScrapMachine();if(b.dataset.nexusTab==="print")renderPrintMachine();if(b.dataset.nexusTab==="frag")renderFragmentMachine();
 });
 
 if($("upgradeInputPick"))$("upgradeInputPick").onclick=()=>{if(!upgradeSpinning)openUpgradeInputPicker()};
@@ -5037,6 +5477,13 @@ if($("printFuelAdd"))$("printFuelAdd").onclick=()=>openPrintFuelPicker();
 if($("printFuelClear"))$("printFuelClear").onclick=()=>{if(printBusy||printOut)return;printFuel=[];renderPrintMachine()};
 if($("printStartBtn"))$("printStartBtn").onclick=startPrint;
 if($("printClaimBtn"))$("printClaimBtn").onclick=claimPrint;
+if($("fragInputPick"))$("fragInputPick").onclick=()=>openFragInputPicker();
+if($("fragInputClear"))$("fragInputClear").onclick=()=>{if(fragBusy||fragPending)return;fragInputId=null;renderFragmentMachine()};
+if($("fragDustMinus"))$("fragDustMinus").onclick=()=>{if(fragBusy||fragPending)return;fragDustQty=Math.max(0,fragDustQty-1);renderFragmentMachine()};
+if($("fragDustPlus"))$("fragDustPlus").onclick=()=>{if(fragBusy||fragPending)return;fragDustQty=Math.min(countFragmentDust(),fragDustQty+1);renderFragmentMachine()};
+if($("fragStartBtn"))$("fragStartBtn").onclick=startFragment;
+if($("fragClaimBtn"))$("fragClaimBtn").onclick=claimFragment;
+
 
 
 
@@ -5149,7 +5596,7 @@ function migrateOrganVariants(){
  (state.inventory||[]).forEach(it=>{if(it&&it.cat==="Órgano")saveOrganVariant(it)});
  Object.values(state.discovered||{}).forEach(it=>{if(it&&it.cat==="Órgano")saveOrganVariant(it)});
 }
-function init(){ensureSkillPointsFromLevel();
+function init(){ensureSkillPointsFromLevel();try{ensureArcadeScores()}catch(e){}
  try{applyHudCursors();fixSidebarScroll();window.addEventListener("resize",()=>{fixSidebarScroll();applyHudCursors()});window.addEventListener("orientationchange",fixSidebarScroll);}catch(e){}
 
  try{bindCasinoUI()}catch(e){console.warn(e)}

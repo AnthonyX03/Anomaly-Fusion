@@ -1712,6 +1712,31 @@ button[data-nexus-tab="print"]{
   }
 }
 
+
+.home-pc{padding:0;overflow:hidden}
+.home-pc-bar{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--line);background:#0a1016}
+.home-dot{width:10px;height:10px;border-radius:50%;background:#3a4a55}
+.home-dot:first-child{background:#ff6b7a}
+.home-url{margin-left:8px;color:#7a9aa8;font-size:.78rem;letter-spacing:.04em}
+.home-pc-body{display:grid;grid-template-columns:200px 1fr;min-height:320px}
+@media(max-width:700px){.home-pc-body{grid-template-columns:1fr}}
+.home-side{border-right:1px solid var(--line);padding:10px;display:flex;flex-direction:column;gap:6px;background:#0c1218}
+.home-site-btn{display:flex;align-items:center;gap:8px;text-align:left;padding:8px 10px;border-radius:8px;border:1px solid transparent;background:transparent;color:#a7b6bf;cursor:pointer}
+.home-site-btn.active{border-color:#24594f;background:#12232a;color:var(--cyan)}
+.home-page{padding:16px;overflow:auto;max-height:420px}
+.home-page h4{margin:0 0 12px;color:var(--cyan);letter-spacing:.08em;font-size:.85rem}
+.home-list{margin:0;padding-left:18px;color:#c5d0d6;line-height:1.55}
+.home-list.ads li{margin-bottom:8px}
+.home-lore p{color:#b7c4cc;line-height:1.55;margin:0 0 12px;padding-bottom:12px;border-bottom:1px solid #1a2630}
+.arcade-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media(max-width:800px){.arcade-grid{grid-template-columns:1fr}}
+.arcade-canvas{position:relative;height:260px;border:1px solid var(--line);border-radius:12px;background:#080c11;margin-top:10px;overflow:hidden}
+.arcade-target{position:absolute;width:48px;height:48px;border-radius:50%;border:2px solid var(--cyan);background:#12232a;color:var(--cyan);font-size:1.2rem;cursor:pointer;transform:translate(-50%,-50%)}
+.mem-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;height:100%;padding:16px;box-sizing:border-box}
+.mem-cell{border:2px solid #2a3d48;border-radius:12px;background:#101820;cursor:pointer}
+.mem-cell.on{background:var(--c,#53f2d1);border-color:#fff;box-shadow:0 0 16px var(--c,#53f2d1)}
+.pulse-btn{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:140px;height:140px;border-radius:50%;border:3px solid var(--cyan);background:#10201f;color:var(--cyan);font-weight:900;letter-spacing:.12em;cursor:pointer}
+
 </style>
 </head>
 <body>
@@ -2091,8 +2116,74 @@ button[data-nexus-tab="print"]{
  </div>
 </section>
 <section class="page" id="page-city">
- <div class="page-head"><div><div class="eyebrow">SISTEMA 08 / URBANO</div><h2>Ciudad</h2><p>Diez distritos del asentamiento. Nueve permanecen sellados tras el Colapso. El Casino es el único acceso estable… de momento.</p></div><span class="tag">10 LUGARES</span></div>
+ <div class="page-head"><div><div class="eyebrow">SISTEMA 08 / URBANO</div><h2>Ciudad</h2><p>Diez distritos del asentamiento. Hogar, Arcade y Casino están abiertos; el resto sigue sellado tras el Colapso.</p></div><span class="tag">10 LUGARES</span></div>
  <div class="city-places" id="cityPlaces"></div>
+ 
+ <div id="cityHogar" class="hidden">
+  <div class="panel" style="margin-bottom:12px">
+   <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+    <div>
+     <div class="eyebrow">DISTRITO · REFUGIO</div>
+     <h3 style="margin:4px 0 0;display:flex;align-items:center;gap:8px"><span id="hogarTitleIcon"></span> HOGAR</h3>
+    </div>
+    <button type="button" class="tiny" id="hogarBackBtn">← Volver a la Ciudad</button>
+   </div>
+   <p class="small-note" style="margin-top:8px">Terminal doméstico conectado a la red local. Noticias, archivo y ruido de la ciudad.</p>
+  </div>
+  <div class="home-pc panel">
+   <div class="home-pc-bar">
+    <span class="home-dot"></span><span class="home-dot"></span><span class="home-dot"></span>
+    <span class="home-url" id="homeUrl">aw://news.local</span>
+   </div>
+   <div class="home-pc-body">
+    <aside class="home-side" id="homeSiteList"></aside>
+    <main class="home-page" id="homePage"></main>
+   </div>
+  </div>
+ </div>
+
+
+ <div id="cityArcade" class="hidden">
+  <div class="panel" style="margin-bottom:12px">
+   <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+    <div>
+     <div class="eyebrow">DISTRITO · OCIO</div>
+     <h3 style="margin:4px 0 0;display:flex;align-items:center;gap:8px"><span id="arcadeTitleIcon"></span> ARCADE</h3>
+    </div>
+    <button type="button" class="tiny" id="arcadeBackBtn">← Volver a la Ciudad</button>
+   </div>
+   <p class="small-note" style="margin-top:8px">Tres máquinas. <b>1 CR</b> por partida. Solo importa el highscore.</p>
+  </div>
+  <div id="arcadePlay" class="arcade-grid">
+   <div class="panel arcade-card">
+    <h3>Reflejos</h3>
+    <p class="small-note">Toca el objetivo el mayor número de veces.</p>
+    <div class="statline"><span>Récord</span><b id="hsReflex">0</b></div>
+    <button class="primary" id="arcadeStartReflex" style="width:100%;margin-top:10px">Jugar · 1 CR</button>
+   </div>
+   <div class="panel arcade-card">
+    <h3>Memoria</h3>
+    <p class="small-note">Repite la secuencia de colores.</p>
+    <div class="statline"><span>Récord</span><b id="hsMemory">0</b></div>
+    <button class="primary" id="arcadeStartMemory" style="width:100%;margin-top:10px">Jugar · 1 CR</button>
+   </div>
+   <div class="panel arcade-card">
+    <h3>Pulso</h3>
+    <p class="small-note">Mantén el ritmo 15 segundos.</p>
+    <div class="statline"><span>Récord</span><b id="hsPulse">0</b></div>
+    <button class="primary" id="arcadeStartPulse" style="width:100%;margin-top:10px">Jugar · 1 CR</button>
+   </div>
+  </div>
+  <div id="arcadeStage" class="panel hidden">
+   <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+    <h3 id="arcadeStageTitle">Juego</h3>
+    <div class="statline" style="margin:0"><span>Score</span><b id="arcadeLiveScore">0</b></div>
+   </div>
+   <p class="small-note" id="arcadeStageMsg"></p>
+   <div id="arcadeCanvas" class="arcade-canvas"></div>
+  </div>
+ </div>
+
  <div id="cityCasino" class="hidden">
   <div class="panel" style="margin-bottom:12px">
    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
@@ -2208,7 +2299,7 @@ button[data-nexus-tab="print"]{
   <button data-nexus-tab="recycle">♻ Recicladora</button>
   <button data-nexus-tab="scrap">⛓ Desguazadora</button>
   <button data-nexus-tab="print" class="nexus-tab-ico" id="printTabBtn">Impresora</button>
-  <button data-nexus-tab="mod7" disabled title="En construcción">Módulo G</button>
+  <button data-nexus-tab="frag">◈ Fragmentadora</button>
   <button data-nexus-tab="mod8" disabled title="En construcción">Módulo H</button>
   <button data-nexus-tab="mod9" disabled title="En construcción">Módulo I</button>
   <button data-nexus-tab="mod10" disabled title="En construcción">Módulo J</button>
@@ -2425,7 +2516,51 @@ button[data-nexus-tab="print"]{
   </div>
  </div>
 
- <div class="nexus-section" id="nexus-mod7"><div class="panel"><div class="empty">Módulo G — En construcción.</div></div></div>
+ 
+ <div class="nexus-section" id="nexus-frag">
+  <div class="panel">
+   <h3>◈ MÁQUINA FRAGMENTADORA</h3>
+   <p class="small-note">Consume un <b>objeto de síntesis</b> (no criaturas). Éxito base <b>5%</b>: obtiene un <b>Fragmento de Síntesis</b> (Otros · N5 · valor efectivo = ×2 del objeto; en el Registro Base el valor figura como <b>???</b>). Al fallar: <b>Polvo de Fragmento</b> (Otros · N1 · 1 cr.). Cada polvo añadido suma <b>+1%</b> y se consume al fragmentar.</p>
+   <div class="refine-layout">
+    <div class="machine-col">
+     <div class="eyebrow">ENTRADA · SÍNTESIS</div>
+     <div class="machine-box">
+      <button type="button" class="equip-slot upgrade-slot" id="fragInputPick">＋ Elegir objeto de síntesis</button>
+      <div id="fragInputInfo" class="small-note" style="margin-top:8px">Ningún objeto.</div>
+      <button type="button" class="tiny hidden" id="fragInputClear" style="margin-top:8px;width:100%">Retirar</button>
+     </div>
+     <div class="eyebrow" style="margin-top:12px">POLVO DE FRAGMENTO</div>
+     <div class="machine-box dashed">
+      <div class="statline"><span>Disponible</span><b id="fragDustHave">0</b></div>
+      <div class="picker-qty-bar" style="margin-top:8px">
+       <button type="button" class="qty-btn" id="fragDustMinus">‹</button>
+       <span class="qty-val" id="fragDustQty">×0</span>
+       <button type="button" class="qty-btn" id="fragDustPlus">›</button>
+      </div>
+      <p class="small-note" style="margin-top:6px">+1% por unidad (se consume al fragmentar).</p>
+     </div>
+    </div>
+    <div class="refine-arrow-col">
+     <div class="eyebrow">ÉXITO</div>
+     <div class="print-chance pct-low" id="fragChance">5%</div>
+     <div style="font-size:1.4rem" id="fragArrow">→</div>
+     <div class="refine-bar"><span id="fragBarFill"></span></div>
+     <div class="small-note" id="fragStatus">En espera</div>
+     <button class="primary" id="fragStartBtn" style="width:100%;margin-top:6px" disabled>Fragmentar · 5 s</button>
+    </div>
+    <div class="machine-col">
+     <div class="eyebrow">SALIDA</div>
+     <div class="machine-box dashed">
+      <div id="fragOutList" class="print-box-list" style="min-height:72px"></div>
+      <button class="primary" id="fragClaimBtn" style="width:100%;margin-top:10px" disabled>⇢ Reclamar</button>
+      <p class="small-note" id="fragNote" style="margin-top:8px">Vacía.</p>
+     </div>
+    </div>
+   </div>
+   <p class="small-note" id="fragResult" style="margin-top:12px"></p>
+  </div>
+ </div>
+
  <div class="nexus-section" id="nexus-mod8"><div class="panel"><div class="empty">Módulo H — En construcción.</div></div></div>
  <div class="nexus-section" id="nexus-mod9"><div class="panel"><div class="empty">Módulo I — En construcción.</div></div></div>
  <div class="nexus-section" id="nexus-mod10"><div class="panel"><div class="empty">Módulo J — En construcción.</div></div></div>
